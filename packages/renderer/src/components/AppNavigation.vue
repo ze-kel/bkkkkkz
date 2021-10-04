@@ -1,7 +1,7 @@
 <template>
   <nav>
     <router-link to="/">
-      Home
+      Home asdasd
     </router-link>
     <span> | </span>
     <router-link to="/about">
@@ -11,7 +11,7 @@
 </template>
 
 <script lang="ts">
-import {defineComponent} from 'vue';
+import { defineComponent } from 'vue';
 
 export default defineComponent({
   name: 'AppNavigation',

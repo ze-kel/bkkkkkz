@@ -1,11 +1,16 @@
-import {contextBridge} from 'electron';
+import { contextBridge, ipcRenderer } from 'electron';
 
 const apiKey = 'electron';
 /**
  * @see https://github.com/electron/electron/issues/21437#issuecomment-573522360
  */
 const api: ElectronApi = {
-  versions: process.versions,
+  files: {
+    getFiles: async () => {
+      const result = await ipcRenderer.invoke('getFiles');
+      return result;
+    },
+  },
 };
 
 /**
