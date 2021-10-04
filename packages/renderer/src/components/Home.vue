@@ -1,49 +1,36 @@
 <template>
-  <p>
-    For a guide and recipes on how to configure / customize this project,<br>
-    check out the
-    <a
-      href="https://github.com/cawa-93/vite-electron-builder"
-      rel="noopener"
-      target="_blank"
-    >vite-electron-builder documentation</a>.
-  </p>
-
-  <p>
-    <a
-      href="https://vitejs.dev/guide/features.html"
-      target="_blank"
-    >Vite Documentation</a> |
-    <a
-      href="https://v3.vuejs.org/"
-      target="_blank"
-    >Vue 3 Documentation</a>
-  </p>
-
-  <hr>
-  <button @click="count++">
-    count is: {{ count }}
+  <button @click="doShit">
+    DO SHIT
   </button>
-  <p>
-    Edit
-    <code>renderer/components/Home.vue</code> to test hot module replacement.
-  </p>
+  {{ files }}
 </template>
 
 <script lang="ts">
-import {defineComponent, ref} from 'vue';
+import { defineComponent, ref } from 'vue';
+import { useElectron } from '/@/use/electron';
 
 export default defineComponent({
   name: 'HelloWorld',
   setup() {
-    const count = ref(0);
+    const elec = useElectron();
 
-    return {count};
+    const files = ref([]);
+
+    const doShit = async () => {
+      console.log('hello');
+      const result = await elec.files.getFiles();
+      console.log(result);
+
+      files.value = result;
+    };
+
+    doShit();
+
+    return { doShit, files };
   },
 });
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
 a {
   color: #42b983;
