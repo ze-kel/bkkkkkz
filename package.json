@@ -33,6 +33,8 @@
     "@types/electron-devtools-installer": "2.2.0",
     "@typescript-eslint/eslint-plugin": "4.32.0",
     "@typescript-eslint/parser": "^4.32.0",
+    "@types/fs-extra": "^9.0.13",
+    "@types/node": "^16.10.3",
     "@vitejs/plugin-vue": "1.9.2",
     "cross-env": "7.0.3",
     "electron": "15.1.0",
@@ -48,7 +50,6 @@
     "vue-tsc": "0.3.0"
   },
   "dependencies": {
-    "@types/fs-extra": "^9.0.13",
     "chokidar": "^3.5.2",
     "directory-tree": "^3.0.0",
     "electron-updater": "4.6.0",
