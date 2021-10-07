@@ -1,7 +1,6 @@
 const chokidar = require('chokidar');
 const fs = require('fs-extra');
 const path = require('path');
-
 let watcher: any;
 
 type IFile = {
@@ -60,11 +59,33 @@ const getFilesFromFolder = (basePath: string): IFolder => {
     if (fs.statSync(path.join(basePath, file)).isDirectory()) {
       output.content[file] = getFilesFromFolder(path.join(basePath, file));
     } else {
-      output.content[file] = { type: 'file', name: file, path: path.join(basePath, file) };
+      output.content[file] = {
+        type: 'file',
+        name: file,
+        path: path.join(basePath, file),
+      };
     }
   });
 
   return output;
 };
 
-export default { watchFolder, getFilesFromFolder };
+const getFileContent = async (path: string): Promise<string> => {
+  if (!fs.existsSync(path)) {
+    throw new Error('No such file');
+  }
+  const file = await fs.readFile(path);
+
+  return file.toString();
+};
+
+const saveFileContent = async (path: string, data: string): Promise<void> => {
+  await fs.writeFile(path, data);
+};
+
+export default {
+  watchFolder,
+  getFilesFromFolder,
+  getFileContent,
+  saveFileContent,
+};

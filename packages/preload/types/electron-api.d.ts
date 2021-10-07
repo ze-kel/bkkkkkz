@@ -1,5 +1,7 @@
 interface ElectronApi {
-  files: any;
+  files: {
+    
+  };
 }
 
 declare interface Window {

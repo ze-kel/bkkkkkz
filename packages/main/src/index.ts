@@ -2,6 +2,7 @@ import { app, BrowserWindow, ipcMain } from 'electron';
 import { join } from 'path';
 import { URL } from 'url';
 import FileService from './services/files';
+import IpcHandles from './ipc/ipcHandles';
 
 const isSingleInstance = app.requestSingleInstanceLock();
 
@@ -58,13 +59,9 @@ const createWindow = async () => {
    * `file://../renderer/index.html` for production and test
    */
   const pageUrl =
-    import.meta.env.MODE === 'development' &&
-    import.meta.env.VITE_DEV_SERVER_URL !== undefined
+    import.meta.env.MODE === 'development' && import.meta.env.VITE_DEV_SERVER_URL !== undefined
       ? import.meta.env.VITE_DEV_SERVER_URL
-      : new URL(
-          '../renderer/dist/index.html',
-          'file://' + __dirname,
-        ).toString();
+      : new URL('../renderer/dist/index.html', 'file://' + __dirname).toString();
 
   await mainWindow.loadURL(pageUrl);
 
@@ -90,6 +87,8 @@ app
   .then(createWindow)
   .catch((e) => console.error('Failed create window:', e));
 
+app.whenReady().then(() => Object.entries(IpcHandles).forEach((pair) => ipcMain.handle(pair[0], pair[1])));
+
 // Auto-updates
 if (import.meta.env.PROD) {
   app
@@ -100,7 +99,6 @@ if (import.meta.env.PROD) {
 }
 
 ipcMain.handle('getFiles', async () => {
-  console.log('getting files');
   const files = await FileService.getFilesFromFolder('./files');
   return files;
 });
