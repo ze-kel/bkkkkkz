@@ -2,14 +2,11 @@
   <div
     v-if="content.type === 'file'"
     :style="{ marginLeft: depth + 'px' }"
-    @click="selectFile(content as IFile)"
+    @click="content.type === 'file' ? selectFile(content) : ''"
   >
     [File] {{ content.name }}
   </div>
-  <div
-    v-else
-    :style="{ marginLeft: depth + 'px' }"
-  >
+  <div v-else :style="{ marginLeft: depth + 'px' }">
     [Folder] {{ content.name }}
     <FileTree
       v-for="item in content.content"
