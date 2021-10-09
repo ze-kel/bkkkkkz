@@ -1,8 +1,8 @@
 /* eslint-env node */
 
-import {chrome} from '../../electron-vendors.config.json';
-import {join} from 'path';
-import {builtinModules} from 'module';
+import { chrome } from '../../electron-vendors.config.json';
+import { join } from 'path';
+import { builtinModules } from 'module';
 import vue from '@vitejs/plugin-vue';
 
 const PACKAGE_ROOT = __dirname;
@@ -17,6 +17,8 @@ const config = {
   resolve: {
     alias: {
       '/@/': join(PACKAGE_ROOT, 'src') + '/',
+      '/@main/': join(PACKAGE_ROOT, '../main/src') + '/',
+      '/@preload/': join(PACKAGE_ROOT, '../preload/src') + '/',
     },
   },
   plugins: [vue()],
@@ -39,9 +41,7 @@ const config = {
       safari10: false,
     },
     rollupOptions: {
-      external: [
-        ...builtinModules,
-      ],
+      external: [...builtinModules],
     },
     emptyOutDir: true,
     brotliSize: false,

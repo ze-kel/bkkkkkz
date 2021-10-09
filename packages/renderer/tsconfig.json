@@ -3,9 +3,9 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "/@/*": [
-        "./src/*"
-      ]
+      "/@/*": ["./src/*"],
+      "/@main/*": ["./../main/src/*"],
+      "/@preload/*": ["./../preload/src/*"]
     },
     "lib": ["ESNext", "dom", "dom.iterable"]
   },
