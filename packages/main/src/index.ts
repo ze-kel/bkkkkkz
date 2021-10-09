@@ -37,6 +37,8 @@ const createWindow = async () => {
       nativeWindowOpen: true,
       preload: join(__dirname, '../../preload/dist/index.cjs'),
     },
+    width: 1280,
+    height: 720,
   });
 
   /**
@@ -48,6 +50,8 @@ const createWindow = async () => {
   mainWindow.on('ready-to-show', () => {
     mainWindow?.show();
 
+    /* This will open devtool when you open the app. TODO: make it a .env variable
+     */
     if (import.meta.env.MODE === 'development') {
       mainWindow?.webContents.openDevTools();
     }
@@ -64,8 +68,6 @@ const createWindow = async () => {
       : new URL('../renderer/dist/index.html', 'file://' + __dirname).toString();
 
   await mainWindow.loadURL(pageUrl);
-
-  FileService.watchFolder('./files');
 };
 
 app.on('second-instance', () => {
@@ -87,7 +89,15 @@ app
   .then(createWindow)
   .catch((e) => console.error('Failed create window:', e));
 
-app.whenReady().then(() => Object.entries(IpcHandles).forEach((pair) => ipcMain.handle(pair[0], pair[1])));
+app
+  .whenReady()
+  .then(() => Object.entries(IpcHandles).forEach((pair) => ipcMain.handle(pair[0], pair[1])));
+
+ipcMain.handle('watchFolder', async (_, path = './files') => {
+  if (mainWindow) {
+    await FileService.watchFolder(mainWindow, path);
+  }
+});
 
 // Auto-updates
 if (import.meta.env.PROD) {
@@ -97,8 +107,3 @@ if (import.meta.env.PROD) {
     .then(({ autoUpdater }) => autoUpdater.checkForUpdatesAndNotify())
     .catch((e) => console.error('Failed check updates:', e));
 }
-
-ipcMain.handle('getFiles', async () => {
-  const files = await FileService.getFilesFromFolder('./files');
-  return files;
-});

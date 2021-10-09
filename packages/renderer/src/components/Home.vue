@@ -1,38 +1,76 @@
 <template>
-  <button @click="doShit">
-    DO SHIT
-  </button>
-  {{ files }}
+  <div class="root">
+    <div class="treeContainer">
+      <FileTree v-if="files" :content="files" @fileSelected="loadFileContent" />
+    </div>
+    <div class="textContainer">
+      <template v-if="currentFileContent">
+        <textarea v-model="currentFileContent" class="textInput" />
+        <button @click="saveFileContent()">Save</button>
+      </template>
+      <div v-else>No file Loaded</div>
+    </div>
+  </div>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref } from 'vue';
+<script setup lang="ts">
+import { ref } from 'vue';
+import FileTree from './FileTree/FileTree.vue';
 import { useElectron } from '/@/use/electron';
+import type { IFile, IFolder } from '/@main/services/files';
+const api = useElectron();
 
-export default defineComponent({
-  name: 'HelloWorld',
-  setup() {
-    const elec = useElectron();
+const files = ref<IFolder>();
+const refreshFiles = async () => {
+  const result = await api.files.getFilesFromFolder();
+  files.value = result;
+};
 
-    const files = ref([]);
+const currentFileContent = ref<string | null>(null);
+const currentFile = ref<IFile | null>(null);
 
-    const doShit = async () => {
-      console.log('hello');
-      const result = await elec.files.getFiles();
-      console.log(result);
+const loadFileContent = async (file: IFile) => {
+  currentFile.value = file;
+  const fileContent = await api.files.getFileContent(file.path);
+  currentFileContent.value = fileContent;
+};
 
-      files.value = result;
-    };
+const saveFileContent = async () => {
+  if (!currentFile.value || !currentFileContent.value) {
+    throw 'Trying to save data while having no current file or value';
+  }
+  await api.files.saveFileContent(currentFile.value.path, currentFileContent.value);
+};
 
-    doShit();
+refreshFiles();
 
-    return { doShit, files };
-  },
-});
+const updateFolderTreeCallback = (_: Event, newFolder: IFolder) => {
+  console.log('got update from chokidar');
+  files.value = newFolder;
+};
+
+api.files.watchFolder(updateFolderTreeCallback);
 </script>
 
 <style scoped>
-a {
-  color: #42b983;
+.root {
+  display: flex;
+}
+
+.treeContainer {
+  width: 50%;
+}
+
+.textContainer {
+  width: 100%;
+  padding: 0 25px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.textInput {
+  width: 100%;
+  height: 100%;
 }
 </style>

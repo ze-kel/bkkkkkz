@@ -1,15 +1,16 @@
+import type { FSWatcher } from 'chokidar';
+import type { BrowserWindow } from 'electron';
 const chokidar = require('chokidar');
 const fs = require('fs-extra');
 const path = require('path');
-let watcher: any;
 
-type IFile = {
+export type IFile = {
   type: 'file';
   name: string;
   path: string;
 };
 
-type IFolder = {
+export type IFolder = {
   type: 'folder';
   name: string;
   path: string;
@@ -18,29 +19,52 @@ type IFolder = {
   };
 };
 
-const watchFolder = (path: string) => {
-  watcher = chokidar.watch(path, {
+let folderWatcher: FSWatcher | null = null;
+let watchedFolder: string | null = null;
+
+const watchFolder = async (win: BrowserWindow, path: string): Promise<void> => {
+  if (folderWatcher) {
+    await unwatchFolder();
+  }
+
+  watchedFolder = path;
+
+  folderWatcher = chokidar.watch(path, {
     ignored: /(^|[/\\])\../, // ignore dotfiles
     persistent: true,
   });
 
   const log = console.log.bind(console);
+
+  log('watching folder and sending whatsup');
+
+  const sendUpdated = async () => {
+    if (!watchedFolder) {
+      throw 'watcher triggered but has no watchedFolder data';
+    }
+    const newFiles = await getFilesFromFolder(watchedFolder);
+
+    win.webContents.send('watchFolder', newFiles);
+  };
+
+  if (!folderWatcher) {
+    throw 'Watcher was not created';
+  }
+
   // Add event listeners.
-  watcher
-    .on('add', (path: any) => log(`File ${path} has been added`))
-    .on('change', (path: any) => log(`File ${path} has been changed`))
-    .on('unlink', (path: any) => log(`File ${path} has been removed`));
+
+  folderWatcher.on('add', sendUpdated).on('change', sendUpdated).on('unlink', sendUpdated);
 
   // More possible events.
-  watcher
-    .on('addDir', (path: any) => log(`Directory ${path} has been added`))
-    .on('unlinkDir', (path: any) => log(`Directory ${path} has been removed`))
-    .on('error', (error: any) => log(`Watcher error: ${error}`))
-    .on('ready', () => log('Initial scan complete. Ready for changes'))
-    .on('raw', (event: any, path: any, details: any) => {
-      // internal
-      log('Raw event info:', event, path, details);
-    });
+  folderWatcher.on('ready', () => log('Initial scan complete. Ready for changes'));
+};
+
+const unwatchFolder = async () => {
+  if (folderWatcher) {
+    await folderWatcher.close();
+    folderWatcher = null;
+  }
+  watchedFolder = null;
 };
 
 const getFilesFromFolder = (basePath: string): IFolder => {
@@ -85,6 +109,7 @@ const saveFileContent = async (path: string, data: string): Promise<void> => {
 
 export default {
   watchFolder,
+  unwatchFolder,
   getFilesFromFolder,
   getFileContent,
   saveFileContent,

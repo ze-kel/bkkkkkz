@@ -16,6 +16,8 @@ const config = {
   resolve: {
     alias: {
       '/@/': join(PACKAGE_ROOT, 'src') + '/',
+      '/@preload/': join(PACKAGE_ROOT, '../preload/src') + '/',
+      '/@renderer/': join(PACKAGE_ROOT, '../renderer/src') + '/',
     },
   },
   build: {
