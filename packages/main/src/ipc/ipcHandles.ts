@@ -19,11 +19,18 @@ const getFileContent: IIpcHandle = async (_, path: string) => {
 };
 
 const saveFileContent: IIpcHandle = async (_, path: string, data: string) => {
+  const currentTime = new Date();
+
+  FileService.fileWatcher.ignoreUntill = new Date(currentTime.getTime() + 3000);
   await FileService.saveFileContent(path, data);
 };
 
 const unwatchFolder: IIpcHandle = async () => {
-  await FileService.unwatchFolder();
+  await FileService.folderWatcher.unWatch();
+};
+
+const unwatchFile: IIpcHandle = async () => {
+  await FileService.fileWatcher.unWatch();
 };
 
 const handles: IHandles = {
@@ -31,6 +38,7 @@ const handles: IHandles = {
   getFileContent,
   saveFileContent,
   unwatchFolder,
+  unwatchFile,
 };
 
 export default handles;

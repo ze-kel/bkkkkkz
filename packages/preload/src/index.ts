@@ -17,16 +17,23 @@ const api: ElectronApi = {
       return result;
     },
     saveFileContent: async (path, data) => {
+      console.log('api Save File Content');
       const result = await ipcRenderer.invoke('saveFileContent', path, data);
       return result;
     },
     watchFolder: async (callback) => {
       ipcRenderer.on('watchFolder', callback);
-
       await ipcRenderer.invoke('watchFolder');
     },
     unwatchFolder: async () => {
       await ipcRenderer.invoke('unwatchFolder');
+    },
+    watchFile: async (callback, path) => {
+      ipcRenderer.on('watchFile', callback);
+      await ipcRenderer.invoke('watchFile', path);
+    },
+    unwatchFile: async () => {
+      await ipcRenderer.invoke('watchFile');
     },
   },
 };

@@ -95,7 +95,13 @@ app
 
 ipcMain.handle('watchFolder', async (_, path = './files') => {
   if (mainWindow) {
-    await FileService.watchFolder(mainWindow, path);
+    await FileService.folderWatcher.watch(mainWindow, path);
+  }
+});
+
+ipcMain.handle('watchFile', async (_, path) => {
+  if (mainWindow) {
+    await FileService.fileWatcher.watch(mainWindow, path);
   }
 });
 
