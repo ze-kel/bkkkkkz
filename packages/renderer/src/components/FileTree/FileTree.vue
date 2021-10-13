@@ -2,6 +2,7 @@
   <div
     v-if="content.type === 'file'"
     :style="{ marginLeft: depth + 'px' }"
+    :class="openedFile?.path === content.path && 'opened'"
     @click="content.type === 'file' ? selectFile(content) : ''"
   >
     [File] {{ content.name }}
@@ -13,6 +14,7 @@
       :key="item.path"
       :content="item"
       :depth="depth + 10"
+      :opened-file="openedFile"
       @fileSelected="selectFile"
     />
   </div>
@@ -34,10 +36,14 @@ const props = defineProps({
     type: Number,
     default: 0,
   },
+  openedFile: {
+    type: Object as PropType<IFile | null>,
+    default: null,
+  },
 });
 
 const emit = defineEmits<{
-  (e: 'select', file: IFile): void;
+  (e: 'fileSelected', file: IFile): void;
 }>();
 
 const selectFile = (file: IFile) => {
@@ -45,4 +51,8 @@ const selectFile = (file: IFile) => {
 };
 </script>
 
-<style scoped></style>
+<style scoped>
+.opened {
+  color: red;
+}
+</style>

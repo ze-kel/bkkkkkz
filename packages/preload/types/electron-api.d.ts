@@ -7,6 +7,8 @@ interface ElectronApi {
     saveFileContent: (path: string, data: string) => Promise<void>;
     watchFolder: (callback: (_, newFolder: IFolder) => void, path?: string) => Promise<void>;
     unwatchFolder: () => Promise<void>;
+    watchFile: (callback: (_, fileContent: string) => void, path: string) => Promise<void>;
+    unwatchFile: () => Promise<void>;
   };
 }
 

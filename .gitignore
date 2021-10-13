@@ -58,3 +58,6 @@ thumbs.db
 
 # folder for testing stuff
 files
+
+# file to remind myself about stuff
+.todo

@@ -1,12 +1,17 @@
 <template>
   <div class="root">
     <div class="treeContainer">
-      <FileTree v-if="files" :content="files" @fileSelected="loadFileContent" />
+      <FileTree
+        v-if="files"
+        :content="files"
+        :opened-file="currentFile"
+        @fileSelected="loadFileContentChoki"
+      />
     </div>
     <div class="textContainer">
+      <div v-if="currentFile">{{ currentFile.path }}</div>
       <template v-if="currentFileContent">
         <textarea v-model="currentFileContent" class="textInput" />
-        <button @click="saveFileContent()">Save</button>
       </template>
       <div v-else>No file Loaded</div>
     </div>
@@ -14,41 +19,46 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, watchEffect } from 'vue';
 import FileTree from './FileTree/FileTree.vue';
 import { useElectron } from '/@/use/electron';
 import type { IFile, IFolder } from '/@main/services/files';
+import _debounce from 'lodash-es/debounce';
+
 const api = useElectron();
 
 const files = ref<IFolder>();
-const refreshFiles = async () => {
-  const result = await api.files.getFilesFromFolder();
-  files.value = result;
-};
 
 const currentFileContent = ref<string | null>(null);
 const currentFile = ref<IFile | null>(null);
+const isChangingFile = ref<boolean>(false);
 
-const loadFileContent = async (file: IFile) => {
+const updateFileContentCallback = (_: Event, newContent: string) => {
+  currentFileContent.value = newContent;
+};
+
+const loadFileContentChoki = async (file: IFile) => {
+  isChangingFile.value = true;
   currentFile.value = file;
-  const fileContent = await api.files.getFileContent(file.path);
-  currentFileContent.value = fileContent;
+  await api.files.watchFile(updateFileContentCallback, file.path);
+  isChangingFile.value = false;
 };
 
-const saveFileContent = async () => {
-  if (!currentFile.value || !currentFileContent.value) {
-    throw 'Trying to save data while having no current file or value';
+const debouncedSave = _debounce(api.files.saveFileContent, 1000);
+
+watchEffect(() => {
+  if (isChangingFile.value || !currentFile.value || !currentFileContent.value) {
+    console.log('save triggered but we are ignoring it');
+    return;
   }
-  await api.files.saveFileContent(currentFile.value.path, currentFileContent.value);
-};
-
-refreshFiles();
+  console.log('save');
+  debouncedSave(currentFile.value.path, currentFileContent.value);
+});
 
 const updateFolderTreeCallback = (_: Event, newFolder: IFolder) => {
   console.log('got update from chokidar');
   files.value = newFolder;
 };
-
 api.files.watchFolder(updateFolderTreeCallback);
 </script>
 
@@ -65,6 +75,7 @@ api.files.watchFolder(updateFolderTreeCallback);
   width: 100%;
   padding: 0 25px;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
 }
