@@ -1,31 +1,90 @@
 <template>
   <div
     v-if="content.type === 'file'"
-    :style="{ marginLeft: depth + 'px' }"
-    :class="openedFile?.path === content.path && 'opened'"
+    :style="{ marginLeft: depth + 'px', width: `calc(100% - ${depth}px)`, zIndex: 1000 - depth }"
+    :class="['node', 'file', openedFile?.path === content.path && 'openedFile']"
+    draggable="true"
+    @dragstart="startDrag($event, content.path)"
     @click="content.type === 'file' ? selectFile(content) : ''"
+    @click.right="startRenaming"
   >
-    [File] {{ content.name }}
-  </div>
-  <div v-else :style="{ marginLeft: depth + 'px' }">
-    [Folder] {{ content.name }}
-    <FileTree
-      v-for="item in content.content"
-      :key="item.path"
-      :content="item"
-      :depth="depth + 10"
-      :opened-file="openedFile"
-      @fileSelected="selectFile"
+    <span v-if="!isRenaming" class="name">{{ content.name }}</span>
+    <input
+      v-else
+      ref="inputRename"
+      v-model="newName"
+      class="name input"
+      @focusout="saveName"
+      @keyup.enter="saveName"
     />
+  </div>
+  <div
+    v-else
+    :style="
+      !isRoot
+        ? { marginLeft: depth + 'px', width: `calc(100% - ${depth}px)`, zIndex: 1000 - depth }
+        : ''
+    "
+  >
+    <div
+      :class="['node', isRoot && 'rootFolder', 'folder', canDropHere && 'dropHiglight']"
+      :draggable="!isRoot"
+      @dragstart="startDrag($event, content.path)"
+      @drop="onDrop($event, content.path)"
+      @dragenter="dragEnter"
+      @dragleave="dragLeave"
+      @dragover.prevent
+      @click="
+        () => {
+          if (!isRoot) isFolded = !isFolded;
+        }
+      "
+      @click.right="startRenaming"
+    >
+      <svg
+        :class="['folderArrow', !isFolded && 'opened']"
+        xmlns="http://www.w3.org/2000/svg"
+        width="8"
+        height="8"
+        viewBox="0 0 24 24"
+      >
+        <path d="M8.122 24l-4.122-4 8-8-8-8 4.122-4 11.878 12z" />
+      </svg>
+      <span v-if="!isRenaming" class="name">{{ content.name }}</span>
+      <input
+        v-else
+        ref="inputRename"
+        v-model="newName"
+        class="name input"
+        @focusout="saveName"
+        @keyup.enter="saveName"
+      />
+    </div>
+    <div
+      v-if="!isFolded"
+      :style="!isRoot ? { marginLeft: depth + 'px', zIndex: 1000 - depth - 10 } : ''"
+    >
+      <FileTree
+        v-for="item in content.content"
+        :key="item.path"
+        :content="item"
+        :depth="depth + 10"
+        :opened-file="openedFile"
+        @fileSelected="selectFile"
+      />
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { getCurrentInstance } from 'vue';
+import { getCurrentInstance, ref, watchEffect } from 'vue';
 import type { PropType } from 'vue';
 import type { IFolder, IFile } from '/@main/services/files';
+import { useElectron } from '/@/use/electron';
 
 const internalInstance = getCurrentInstance();
+
+const electron = useElectron();
 
 const props = defineProps({
   content: {
@@ -34,13 +93,16 @@ const props = defineProps({
   },
   depth: {
     type: Number,
-    default: 0,
+    default: -10,
   },
   openedFile: {
     type: Object as PropType<IFile | null>,
     default: null,
   },
 });
+
+const isRoot = props.depth < 0;
+const isFolded = ref<boolean>(false);
 
 const emit = defineEmits<{
   (e: 'fileSelected', file: IFile): void;
@@ -49,10 +111,113 @@ const emit = defineEmits<{
 const selectFile = (file: IFile) => {
   internalInstance?.emit('fileSelected', file);
 };
+
+///
+/// Drag and drop
+///
+const canDropHere = ref<boolean>(false);
+
+const startDrag = (devt: DragEvent, path: string) => {
+  if (devt.dataTransfer === null) {
+    return;
+  }
+  devt.dataTransfer.dropEffect = 'move';
+  devt.dataTransfer.effectAllowed = 'move';
+  devt.dataTransfer.setData('itemPath', path);
+};
+const onDrop = (e: DragEvent, targetPath: string) => {
+  const draggedPath = e.dataTransfer?.getData('itemPath');
+  canDropHere.value = false;
+  if (!draggedPath) {
+    throw 'no dragged path';
+  }
+  electron.files.move(draggedPath, targetPath);
+};
+
+const dragEnter = (e: DragEvent) => {
+  e.preventDefault();
+  canDropHere.value = true;
+};
+
+const dragLeave = (e: DragEvent) => {
+  e.preventDefault();
+  canDropHere.value = false;
+};
+
+///
+/// Renaming
+///
+const isRenaming = ref<boolean>(false);
+const newName = ref<string>('');
+
+const inputRename = ref(null);
+
+watchEffect(
+  () => {
+    if (inputRename.value) {
+      //@ts-expect-error TODO: figure out proper typing
+      inputRename.value.focus();
+    }
+  },
+  {
+    flush: 'post',
+  },
+);
+
+const startRenaming = () => {
+  console.log('onrename');
+  isRenaming.value = true;
+  newName.value = props.content.name;
+};
+
+const saveName = () => {
+  if (newName.value && newName.value !== props.content.name) {
+    electron.files.rename(props.content.path, newName.value);
+  }
+  isRenaming.value = false;
+};
 </script>
 
-<style scoped>
-.opened {
-  color: red;
+<style lang="scss" scoped>
+.node {
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  .name {
+    width: 100%;
+  }
+
+  // Must be set for all sub elements. Otherwirse the highlighting breaks.
+  .name,
+  .folderArrow {
+    pointer-events: none;
+  }
+
+  &.openedFile {
+    border-bottom: 2px solid black;
+  }
+}
+
+.rootFolder {
+  cursor: default;
+  .folderArrow {
+    display: none;
+  }
+}
+
+.folderArrow {
+  padding: 0 5px;
+  transition: transform 0.2s;
+  &.opened {
+    transform: rotate(90deg);
+  }
+}
+
+.dropHiglight {
+  border-left: 2px solid blue;
 }
 </style>

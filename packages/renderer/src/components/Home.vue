@@ -33,15 +33,18 @@ const currentFileContent = ref<string | null>(null);
 const currentFile = ref<IFile | null>(null);
 const isChangingFile = ref<boolean>(false);
 
-const updateFileContentCallback = (_: Event, newContent: string) => {
-  currentFileContent.value = newContent;
+const updateFileContentCallback = (_: Event, path: string, newContent: string) => {
+  if (currentFile.value?.path === path) {
+    currentFileContent.value = newContent;
+  }
 };
 
 const loadFileContentChoki = async (file: IFile) => {
   isChangingFile.value = true;
-  currentFile.value = file;
   currentFileContent.value = null;
-  await api.files.watchFile(updateFileContentCallback, file.path);
+  const fileData = await api.files.watchFile(updateFileContentCallback, file.path);
+  currentFileContent.value = fileData;
+  currentFile.value = file;
   isChangingFile.value = false;
 };
 
@@ -63,9 +66,8 @@ const updateFolderTreeCallback = (_: Event, newFolder: IFolder) => {
   // Cheking whether the currently opened file was deleted
   const filePath = currentFile.value?.path.split('/');
   console.log(filePath);
-
 };
-api.files.watchFolder(updateFolderTreeCallback);
+api.files.initWatcher(updateFolderTreeCallback);
 </script>
 
 <style scoped>

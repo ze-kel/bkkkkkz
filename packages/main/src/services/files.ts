@@ -25,19 +25,28 @@ type IWatcherSendUpdated = () => Promise<void>;
 type IWatcher = {
   watcher: FSWatcher | null;
   path: string | null;
-  ignoreUntill?: Date | null;
-  watch: (win: BrowserWindow, path: string) => Promise<void>;
-  unWatch: () => Promise<void>;
+  filesWeCareAbout: {
+    // If file key is here then we care about it.
+    // If we have a date it means we ignore changes in this file until the timestamp
+    [key: string]: Date | true;
+  };
+  init: (win: BrowserWindow, path: string) => Promise<void>;
+  destroy: () => Promise<void>;
+  watch: (path: string) => void;
+  unwatch: (path: string) => void;
   verifyPath: IWatcherVerifyPath;
   sendUpdated?: IWatcherSendUpdated;
+  ignoreNextUnlink: boolean;
 };
 
-const folderWatcher: IWatcher = {
+const theWatcher: IWatcher = {
   watcher: null,
   path: null,
-  watch: async function (win, path) {
+  filesWeCareAbout: {},
+  ignoreNextUnlink: false,
+  init: async function (win, path) {
     if (this.watcher) {
-      await this.unWatch();
+      await this.destroy();
     }
 
     this.verifyPath(path);
@@ -49,7 +58,11 @@ const folderWatcher: IWatcher = {
       persistent: true,
     });
 
-    const sendUpdated = async () => {
+    if (!this.watcher) {
+      throw 'Watcher was not created';
+    }
+
+    const sendUpdatedFolder = async () => {
       if (!this.path) {
         throw 'watcher triggered but has no path data';
       }
@@ -58,93 +71,63 @@ const folderWatcher: IWatcher = {
       win.webContents.send('watchFolder', newFiles);
     };
 
-    if (!this.watcher) {
-      throw 'Watcher was not created';
-    }
+    const sendUpdatedFile = async (path: string) => {
+      console.log('SEND UPDATED', path);
+      const careValue = this.filesWeCareAbout[path];
 
-    this.watcher
-      .on('add', sendUpdated)
-      .on('unlink', sendUpdated)
-      .on('addDir', sendUpdated)
-      .on('unlinkDir', sendUpdated);
-    this.watcher.on('ready', () => console.log('Initial scan complete. Ready for changes'));
-  },
-  unWatch: async function () {
-    if (this.watcher) {
-      await this.watcher.close();
-      this.watcher = null;
-    }
-    this.path = null;
-  },
-  verifyPath: function (path) {
-    if (fs.lstatSync(path).isDirectory()) {
-      return;
-    } else {
-      throw 'File path passed to folderWatcher';
-    }
-  },
-};
-
-const fileWatcher: IWatcher = {
-  watcher: null,
-  path: null,
-  ignoreUntill: null,
-  watch: async function (win, path) {
-    if (this.watcher) {
-      await this.unWatch();
-    }
-
-    if (fs.lstatSync(path).isDirectory()) {
-      throw 'Folder path passed into fileWatcher';
-    }
-
-    this.path = path;
-    this.ignoreUntill = null;
-
-    this.watcher = chokidar.watch(path, {
-      ignored: /(^|[/\\])\../, // ignore dotfiles
-      persistent: true,
-    });
-
-    const sendUpdated = async () => {
-      if (!this.path) {
-        throw 'watcher triggered but has no path data';
+      if (!this.filesWeCareAbout[path]) {
+        return;
       }
-      const currentTime = new Date();
 
-      if (this.ignoreUntill) {
-        if (currentTime < this.ignoreUntill) {
-          console.log('skippind send update cause we have ignoreUntill');
+      if (careValue instanceof Date) {
+        const currentTime = new Date();
+        if (currentTime < careValue) {
+          console.log('skip send update cause we have ignore date');
           return;
         } else {
-          this.ignoreUntill = null;
+          this.filesWeCareAbout[path] = true;
         }
       }
 
-      const newFile = await getFileContent(this.path);
+      const newFile = await getFileContent(path);
 
-      win.webContents.send('watchFile', newFile);
+      win.webContents.send('watchFile', path, newFile);
     };
 
-    if (!this.watcher) {
-      throw 'Watcher was not created';
-    }
+    const unlinkCheck = () => {
+      if (this.ignoreNextUnlink) {
+        this.ignoreNextUnlink = false;
+      } else {
+        sendUpdatedFolder();
+      }
+    };
 
-    this.watcher.on('add', sendUpdated).on('change', sendUpdated).on('unlink', sendUpdated);
+    this.watcher
+      .on('add', sendUpdatedFolder)
+      .on('unlink', unlinkCheck)
+      .on('addDir', sendUpdatedFolder)
+      .on('unlinkDir', unlinkCheck)
+      .on('change', sendUpdatedFile);
     this.watcher.on('ready', () => console.log('Initial scan complete. Ready for changes'));
   },
-  unWatch: async function () {
+  destroy: async function () {
     if (this.watcher) {
       await this.watcher.close();
       this.watcher = null;
     }
     this.path = null;
   },
+  watch: function (path) {
+    this.filesWeCareAbout[path] = true;
+  },
+  unwatch: function (path) {
+    delete this.filesWeCareAbout[path];
+  },
   verifyPath: function (path) {
-    if (!fs.lstatSync(path).isDirectory()) {
+    if (fs.lstatSync(path).isDirectory()) {
       return;
     } else {
-      throw 'Folder path passed to fileWatcher';
+      throw 'File path passed to watcher init';
     }
   },
 };
@@ -189,10 +172,17 @@ const saveFileContent = async (path: string, data: string): Promise<void> => {
   await fs.writeFile(path, data);
 };
 
+const move = async (srcPath: string, targetPath: string): Promise<void> => {
+  if (targetPath === srcPath) {
+    return;
+  }
+  await fs.move(srcPath, targetPath);
+};
+
 export default {
-  folderWatcher,
+  theWatcher,
   getFilesFromFolder,
   getFileContent,
   saveFileContent,
-  fileWatcher,
+  move,
 };
