@@ -10,7 +10,7 @@
     </div>
     <div class="textContainer">
       <div v-if="currentFile">{{ currentFile.path }}</div>
-      <template v-if="currentFileContent">
+      <template v-if="currentFileContent != null">
         <textarea v-model="currentFileContent" class="textInput" />
       </template>
       <div v-else>No file Loaded</div>
@@ -40,6 +40,7 @@ const updateFileContentCallback = (_: Event, newContent: string) => {
 const loadFileContentChoki = async (file: IFile) => {
   isChangingFile.value = true;
   currentFile.value = file;
+  currentFileContent.value = null;
   await api.files.watchFile(updateFileContentCallback, file.path);
   isChangingFile.value = false;
 };
@@ -47,7 +48,7 @@ const loadFileContentChoki = async (file: IFile) => {
 const debouncedSave = _debounce(api.files.saveFileContent, 1000);
 
 watchEffect(() => {
-  if (isChangingFile.value || !currentFile.value || !currentFileContent.value) {
+  if (isChangingFile.value || !currentFile.value || currentFileContent.value === null) {
     console.log('save triggered but we are ignoring it');
     return;
   }
@@ -58,6 +59,11 @@ watchEffect(() => {
 const updateFolderTreeCallback = (_: Event, newFolder: IFolder) => {
   console.log('got update from chokidar');
   files.value = newFolder;
+
+  // Cheking whether the currently opened file was deleted
+  const filePath = currentFile.value?.path.split('/');
+  console.log(filePath);
+
 };
 api.files.watchFolder(updateFolderTreeCallback);
 </script>
