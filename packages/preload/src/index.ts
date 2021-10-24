@@ -17,7 +17,7 @@ const api: ElectronApi = {
       return result;
     },
     saveFileContent: async (path, data) => {
-      console.log('api Save File Content');
+      console.log('api Save File Content', data);
       const result = await ipcRenderer.invoke('saveFileContent', path, data);
       return result;
     },
