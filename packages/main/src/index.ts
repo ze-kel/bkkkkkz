@@ -93,16 +93,16 @@ app
   .whenReady()
   .then(() => Object.entries(IpcHandles).forEach((pair) => ipcMain.handle(pair[0], pair[1])));
 
-ipcMain.handle('watchFolder', async (_, path = './files') => {
+ipcMain.handle('initWatcher', async (_, path = './files') => {
   if (mainWindow) {
-    await FileService.folderWatcher.watch(mainWindow, path);
+    await FileService.theWatcher.init(mainWindow, path);
   }
 });
 
 ipcMain.handle('watchFile', async (_, path) => {
-  if (mainWindow) {
-    await FileService.fileWatcher.watch(mainWindow, path);
-  }
+  await FileService.theWatcher.watch(path);
+  const result = await FileService.getFileContent(path);
+  return result;
 });
 
 // Auto-updates

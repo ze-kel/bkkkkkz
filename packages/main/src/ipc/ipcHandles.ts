@@ -1,3 +1,4 @@
+import * as path from 'path';
 import FileService from '../services/files';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -21,24 +22,43 @@ const getFileContent: IIpcHandle = async (_, path: string) => {
 const saveFileContent: IIpcHandle = async (_, path: string, data: string) => {
   const currentTime = new Date();
 
-  FileService.fileWatcher.ignoreUntill = new Date(currentTime.getTime() + 3000);
+  if (FileService.theWatcher.filesWeCareAbout[path]) {
+    FileService.theWatcher.filesWeCareAbout[path] = new Date(currentTime.getTime() + 3000);
+  }
+
   await FileService.saveFileContent(path, data);
 };
 
-const unwatchFolder: IIpcHandle = async () => {
-  await FileService.folderWatcher.unWatch();
+const closeWatcher: IIpcHandle = async () => {
+  await FileService.theWatcher.destroy();
 };
 
-const unwatchFile: IIpcHandle = async () => {
-  await FileService.fileWatcher.unWatch();
+const unwatchFile: IIpcHandle = async (_, path: string) => {
+  await FileService.theWatcher.unwatch(path);
+};
+
+const move: IIpcHandle = async (_, srcPath: string, targetPath: string) => {
+  // TargetPath we get looks like 'pathto/folder' where we want to place src. fs.move wants 'pathto/folder/fileName.md'
+  targetPath = path.join(targetPath, path.basename(srcPath));
+
+  FileService.theWatcher.ignoreNextUnlink = true;
+  await FileService.move(srcPath, targetPath);
+};
+
+const rename: IIpcHandle = async (_, srcPath: string, newName: string) => {
+  const onlyDir = path.dirname(srcPath);
+  const targetPath = path.join(onlyDir, newName);
+  await FileService.move(srcPath, targetPath);
 };
 
 const handles: IHandles = {
   getFilesFromFolder,
   getFileContent,
   saveFileContent,
-  unwatchFolder,
+  closeWatcher,
   unwatchFile,
+  move,
+  rename,
 };
 
 export default handles;
