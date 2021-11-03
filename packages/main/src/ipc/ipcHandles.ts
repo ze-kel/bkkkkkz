@@ -22,9 +22,7 @@ const getFileContent: IIpcHandle = async (_, path: string) => {
 const saveFileContent: IIpcHandle = async (_, path: string, data: string) => {
   const currentTime = new Date();
 
-  if (FileService.theWatcher.filesWeCareAbout[path]) {
-    FileService.theWatcher.filesWeCareAbout[path] = new Date(currentTime.getTime() + 3000);
-  }
+  FileService.theWatcher.filesIgnore[path] = new Date(currentTime.getTime() + 3000);
 
   await FileService.saveFileContent(path, data);
 };
@@ -33,22 +31,19 @@ const closeWatcher: IIpcHandle = async () => {
   await FileService.theWatcher.destroy();
 };
 
-const unwatchFile: IIpcHandle = async (_, path: string) => {
-  await FileService.theWatcher.unwatch(path);
-};
-
 const move: IIpcHandle = async (_, srcPath: string, targetPath: string) => {
   // TargetPath we get looks like 'pathto/folder' where we want to place src. fs.move wants 'pathto/folder/fileName.md'
   targetPath = path.join(targetPath, path.basename(srcPath));
-
   FileService.theWatcher.ignoreNextUnlink = true;
   await FileService.move(srcPath, targetPath);
+  return targetPath;
 };
 
 const rename: IIpcHandle = async (_, srcPath: string, newName: string) => {
   const onlyDir = path.dirname(srcPath);
   const targetPath = path.join(onlyDir, newName);
   await FileService.move(srcPath, targetPath);
+  return targetPath;
 };
 
 const handles: IHandles = {
@@ -56,7 +51,6 @@ const handles: IHandles = {
   getFileContent,
   saveFileContent,
   closeWatcher,
-  unwatchFile,
   move,
   rename,
 };

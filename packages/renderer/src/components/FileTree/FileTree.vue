@@ -2,10 +2,10 @@
   <div
     v-if="content.type === 'file'"
     :style="{ marginLeft: depth + 'px', width: `calc(100% - ${depth}px)`, zIndex: 1000 - depth }"
-    :class="['node', 'file', openedFile?.path === content.path && 'openedFile']"
+    :class="['node', 'file', openedEntity?.path === content.path && 'openedFile']"
     draggable="true"
     @dragstart="startDrag($event, content.path)"
-    @click="content.type === 'file' ? selectFile(content) : ''"
+    @click="select(content)"
     @click.right="startRenaming"
   >
     <span v-if="!isRenaming" class="name">{{ content.name }}</span>
@@ -34,22 +34,26 @@
       @dragenter="dragEnter"
       @dragleave="dragLeave"
       @dragover.prevent
-      @click="
-        () => {
-          if (!isRoot) isFolded = !isFolded;
-        }
-      "
+      @click="select(content)"
       @click.right="startRenaming"
     >
-      <svg
-        :class="['folderArrow', !isFolded && 'opened']"
-        xmlns="http://www.w3.org/2000/svg"
-        width="8"
-        height="8"
-        viewBox="0 0 24 24"
+      <div
+        @click="
+          () => {
+            if (!isRoot) isFolded = !isFolded;
+          }
+        "
       >
-        <path d="M8.122 24l-4.122-4 8-8-8-8 4.122-4 11.878 12z" />
-      </svg>
+        <svg
+          :class="['folderArrow', !isFolded && 'opened']"
+          xmlns="http://www.w3.org/2000/svg"
+          width="8"
+          height="8"
+          viewBox="0 0 24 24"
+        >
+          <path d="M8.122 24l-4.122-4 8-8-8-8 4.122-4 11.878 12z" />
+        </svg>
+      </div>
       <span v-if="!isRenaming" class="name">{{ content.name }}</span>
       <input
         v-else
@@ -69,8 +73,9 @@
         :key="item.path"
         :content="item"
         :depth="depth + 10"
-        :opened-file="openedFile"
-        @fileSelected="selectFile"
+        :opened-file="openedEntity"
+        @select="select"
+        @update-current-file-path="updateCurrentFilePath"
       />
     </div>
   </div>
@@ -95,8 +100,8 @@ const props = defineProps({
     type: Number,
     default: -10,
   },
-  openedFile: {
-    type: Object as PropType<IFile | null>,
+  openedEntity: {
+    type: Object as PropType<IFile | IFolder | null>,
     default: null,
   },
 });
@@ -105,11 +110,16 @@ const isRoot = props.depth < 0;
 const isFolded = ref<boolean>(false);
 
 const emit = defineEmits<{
-  (e: 'fileSelected', file: IFile): void;
+  (e: 'select', entity: IFile | IFolder): void;
+  (e: 'updateCurrentFilePath', path: string): void;
 }>();
 
-const selectFile = (file: IFile) => {
-  internalInstance?.emit('fileSelected', file);
+const select = (entity: IFile | IFolder) => {
+  internalInstance?.emit('select', entity);
+};
+
+const updateCurrentFilePath = (path: string) => {
+  internalInstance?.emit('updateCurrentFilePath', path);
 };
 
 ///
@@ -124,14 +134,21 @@ const startDrag = (devt: DragEvent, path: string) => {
   devt.dataTransfer.dropEffect = 'move';
   devt.dataTransfer.effectAllowed = 'move';
   devt.dataTransfer.setData('itemPath', path);
+  devt.dataTransfer.setData('isOpened', String(path === props.openedEntity?.path));
 };
-const onDrop = (e: DragEvent, targetPath: string) => {
+
+const onDrop = async (e: DragEvent, targetPath: string) => {
   const draggedPath = e.dataTransfer?.getData('itemPath');
+  const isOpened = e.dataTransfer?.getData('isOpened') === 'true' ? true : false;
   canDropHere.value = false;
   if (!draggedPath) {
     throw 'no dragged path';
   }
-  electron.files.move(draggedPath, targetPath);
+  console.log('dragTo', targetPath);
+  const newPath = await electron.files.move(draggedPath, targetPath);
+  if (isOpened) {
+    updateCurrentFilePath(newPath);
+  }
 };
 
 const dragEnter = (e: DragEvent) => {
@@ -170,9 +187,12 @@ const startRenaming = () => {
   newName.value = props.content.name;
 };
 
-const saveName = () => {
+const saveName = async () => {
   if (newName.value && newName.value !== props.content.name) {
-    electron.files.rename(props.content.path, newName.value);
+    const newPath = await electron.files.rename(props.content.path, newName.value);
+    if (props.content.path === props.openedEntity?.path) {
+      updateCurrentFilePath(newPath);
+    }
   }
   isRenaming.value = false;
 };

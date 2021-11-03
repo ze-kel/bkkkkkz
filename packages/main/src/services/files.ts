@@ -25,15 +25,11 @@ type IWatcherSendUpdated = () => Promise<void>;
 type IWatcher = {
   watcher: FSWatcher | null;
   path: string | null;
-  filesWeCareAbout: {
-    // If file key is here then we care about it.
-    // If we have a date it means we ignore changes in this file until the timestamp
-    [key: string]: Date | true;
+  filesIgnore: {
+    [key: string]: Date;
   };
   init: (win: BrowserWindow, path: string) => Promise<void>;
   destroy: () => Promise<void>;
-  watch: (path: string) => void;
-  unwatch: (path: string) => void;
   verifyPath: IWatcherVerifyPath;
   sendUpdated?: IWatcherSendUpdated;
   ignoreNextUnlink: boolean;
@@ -42,7 +38,7 @@ type IWatcher = {
 const theWatcher: IWatcher = {
   watcher: null,
   path: null,
-  filesWeCareAbout: {},
+  filesIgnore: {},
   ignoreNextUnlink: false,
   init: async function (win, path) {
     if (this.watcher) {
@@ -73,19 +69,15 @@ const theWatcher: IWatcher = {
 
     const sendUpdatedFile = async (path: string) => {
       console.log('SEND UPDATED', path);
-      const careValue = this.filesWeCareAbout[path];
+      const ignore = this.filesIgnore[path];
 
-      if (!this.filesWeCareAbout[path]) {
-        return;
-      }
-
-      if (careValue instanceof Date) {
+      if (ignore) {
         const currentTime = new Date();
-        if (currentTime < careValue) {
+        if (currentTime < ignore) {
           console.log('skip send update cause we have ignore date');
           return;
         } else {
-          this.filesWeCareAbout[path] = true;
+          delete this.filesIgnore[path];
         }
       }
 
@@ -116,12 +108,6 @@ const theWatcher: IWatcher = {
       this.watcher = null;
     }
     this.path = null;
-  },
-  watch: function (path) {
-    this.filesWeCareAbout[path] = true;
-  },
-  unwatch: function (path) {
-    delete this.filesWeCareAbout[path];
   },
   verifyPath: function (path) {
     if (fs.lstatSync(path).isDirectory()) {

@@ -28,27 +28,18 @@ const api: ElectronApi = {
     closeWatcher: async () => {
       await ipcRenderer.invoke('closeWatcher');
     },
-    watchFile: async (callback, path) => {
+    setFileHandler: (callback) => {
       ipcRenderer.on('watchFile', callback);
-      const result = await ipcRenderer.invoke('watchFile', path);
-      return result;
-    },
-    unwatchFile: async (path) => {
-      await ipcRenderer.invoke('watchFile', path);
     },
     move: async (srcPath, targetPath) => {
-      await ipcRenderer.invoke('move', srcPath, targetPath);
+      const result = await ipcRenderer.invoke('move', srcPath, targetPath);
+      return result;
     },
     rename: async (srcPath, newName) => {
-      await ipcRenderer.invoke('rename', srcPath, newName);
+      const result = await ipcRenderer.invoke('rename', srcPath, newName);
+      return result;
     },
   },
 };
 
-/**
- * The "Main World" is the JavaScript context that your main renderer code runs in.
- * By default, the page you load in your renderer executes code in this world.
- *
- * @see https://www.electronjs.org/docs/api/context-bridge
- */
 contextBridge.exposeInMainWorld(apiKey, api);

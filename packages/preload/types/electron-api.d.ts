@@ -7,13 +7,9 @@ interface ElectronApi {
     saveFileContent: (path: string, data: string) => Promise<void>;
     initWatcher: (callback: (_, newFolder: IFolder) => void, path?: string) => Promise<void>;
     closeWatcher: () => Promise<void>;
-    watchFile: (
-      callback: (_, path: string, fileContent: string) => void,
-      path: string,
-    ) => Promise<string>;
-    unwatchFile: (path: string) => Promise<void>;
-    move: (srcPath: string, targetPath: string) => Promise<void>;
-    rename: (srcPath: string, newName: string) => Promise<void>;
+    setFileHandler: (callback: (_, path: string, fileContent: string) => void) => void;
+    move: (srcPath: string, targetPath: string) => Promise<string>;
+    rename: (srcPath: string, newName: string) => Promise<string>;
   };
 }
 

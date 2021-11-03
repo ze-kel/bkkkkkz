@@ -4,70 +4,59 @@
       <FileTree
         v-if="files"
         :content="files"
-        :opened-file="currentFile"
-        @fileSelected="loadFileContentChoki"
+        :opened-entity="openedEntity"
+        @select="(entity: IFile | IFolder) => {
+          openedEntity = entity
+        }"
+        @update-current-file-path="updateCurrentFilePath"
       />
     </div>
-    <div class="textContainer">
-      <div v-if="currentFile">{{ currentFile.path }}</div>
-      <template v-if="currentFileContent != null">
-        <textarea v-model="currentFileContent" class="textInput" />
-      </template>
-      <div v-else>No file Loaded</div>
-    </div>
+    <Editor :opened-files="openedFiles" class="textContainer" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watchEffect } from 'vue';
+import { computed, ref, watch, watchEffect } from 'vue';
 import FileTree from './FileTree/FileTree.vue';
 import { useElectron } from '/@/use/electron';
 import type { IFile, IFolder } from '/@main/services/files';
 import _debounce from 'lodash-es/debounce';
+import Editor from './Editor/Editor.vue';
+import filesRouter from '../use/filesRouter';
 
 const api = useElectron();
 
 const files = ref<IFolder>();
 
-const currentFileContent = ref<string | null>(null);
-const currentFile = ref<IFile | null>(null);
-const isChangingFile = ref<boolean>(false);
+const openedEntity = ref<IFile | IFolder | null>(null);
+const openedFiles = computed(() => {
+  if (!openedEntity.value) return [];
+  if (openedEntity.value.type === 'file') return [openedEntity.value];
+  const entries = Object.entries(openedEntity.value.content);
+  const files: IFile[] = [];
+  entries.forEach((el) => {
+    if (el[1].type === 'file') {
+      files.push(el[1]);
+    }
+  });
+  return files;
+});
 
-const updateFileContentCallback = (_: Event, path: string, newContent: string) => {
-  if (currentFile.value?.path === path) {
-    currentFileContent.value = newContent;
-  }
-};
-
-const loadFileContentChoki = async (file: IFile) => {
-  isChangingFile.value = true;
-  currentFileContent.value = null;
-  const fileData = await api.files.watchFile(updateFileContentCallback, file.path);
-  currentFileContent.value = fileData;
-  currentFile.value = file;
-  isChangingFile.value = false;
-};
-
-const debouncedSave = _debounce(api.files.saveFileContent, 1000);
-
-watchEffect(() => {
-  if (isChangingFile.value || !currentFile.value || currentFileContent.value === null) {
-    console.log('save triggered but we are ignoring it');
+const updateCurrentFilePath = (newPath: string) => {
+  console.log('updateCurrentFilePath');
+  if (!openedEntity.value) {
     return;
   }
-  console.log('save');
-  debouncedSave(currentFile.value.path, currentFileContent.value);
-});
+  console.log('seeting currentfile.value.path');
+  //currentFile.value.path = newPath;
+};
 
 const updateFolderTreeCallback = (_: Event, newFolder: IFolder) => {
   console.log('got update from chokidar');
   files.value = newFolder;
-
-  // Cheking whether the currently opened file was deleted
-  const filePath = currentFile.value?.path.split('/');
-  console.log(filePath);
 };
 api.files.initWatcher(updateFolderTreeCallback);
+filesRouter.init();
 </script>
 
 <style scoped>
