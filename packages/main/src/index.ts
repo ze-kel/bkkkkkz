@@ -99,12 +99,6 @@ ipcMain.handle('initWatcher', async (_, path = './files') => {
   }
 });
 
-ipcMain.handle('watchFile', async (_, path) => {
-  await FileService.theWatcher.watch(path);
-  const result = await FileService.getFileContent(path);
-  return result;
-});
-
 // Auto-updates
 if (import.meta.env.PROD) {
   app
