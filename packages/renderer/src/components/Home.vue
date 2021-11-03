@@ -8,7 +8,6 @@
         @select="(entity: IFile | IFolder) => {
           openedEntity = entity
         }"
-        @update-current-file-path="updateCurrentFilePath"
       />
     </div>
     <Editor :opened-files="openedFiles" class="textContainer" />
@@ -42,15 +41,6 @@ const openedFiles = computed(() => {
   return files;
 });
 
-const updateCurrentFilePath = (newPath: string) => {
-  console.log('updateCurrentFilePath');
-  if (!openedEntity.value) {
-    return;
-  }
-  console.log('seeting currentfile.value.path');
-  //currentFile.value.path = newPath;
-};
-
 const updateFolderTreeCallback = (_: Event, newFolder: IFolder) => {
   console.log('got update from chokidar');
   files.value = newFolder;
@@ -62,6 +52,7 @@ filesRouter.init();
 <style scoped>
 .root {
   display: flex;
+  padding: 16px;
 }
 
 .treeContainer {
