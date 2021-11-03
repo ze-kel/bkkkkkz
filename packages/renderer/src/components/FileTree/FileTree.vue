@@ -75,7 +75,6 @@
         :depth="depth + 10"
         :opened-file="openedEntity"
         @select="select"
-        @update-current-file-path="updateCurrentFilePath"
       />
     </div>
   </div>
@@ -111,16 +110,12 @@ const isFolded = ref<boolean>(false);
 
 const emit = defineEmits<{
   (e: 'select', entity: IFile | IFolder): void;
-  (e: 'updateCurrentFilePath', path: string): void;
 }>();
 
 const select = (entity: IFile | IFolder) => {
   internalInstance?.emit('select', entity);
 };
 
-const updateCurrentFilePath = (path: string) => {
-  internalInstance?.emit('updateCurrentFilePath', path);
-};
 
 ///
 /// Drag and drop
@@ -139,16 +134,12 @@ const startDrag = (devt: DragEvent, path: string) => {
 
 const onDrop = async (e: DragEvent, targetPath: string) => {
   const draggedPath = e.dataTransfer?.getData('itemPath');
-  const isOpened = e.dataTransfer?.getData('isOpened') === 'true' ? true : false;
   canDropHere.value = false;
   if (!draggedPath) {
     throw 'no dragged path';
   }
   console.log('dragTo', targetPath);
   const newPath = await electron.files.move(draggedPath, targetPath);
-  if (isOpened) {
-    updateCurrentFilePath(newPath);
-  }
 };
 
 const dragEnter = (e: DragEvent) => {
@@ -190,9 +181,6 @@ const startRenaming = () => {
 const saveName = async () => {
   if (newName.value && newName.value !== props.content.name) {
     const newPath = await electron.files.rename(props.content.path, newName.value);
-    if (props.content.path === props.openedEntity?.path) {
-      updateCurrentFilePath(newPath);
-    }
   }
   isRenaming.value = false;
 };

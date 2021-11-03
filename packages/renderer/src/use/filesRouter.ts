@@ -3,7 +3,7 @@ import _debounce from 'lodash-es/debounce';
 
 const api = useElectron();
 
-type ICallback = (content: string) => void | Promise<void>;
+type ICallback = (val: string) => void | Promise<void>;
 
 const fileHandlers: {
   [path: string]: ICallback;
