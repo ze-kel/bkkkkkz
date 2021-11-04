@@ -1,54 +1,72 @@
 <template>
   <div class="root">
-    <div>{{ currentFile.path }}</div>
-    <textarea v-model="currentFileContent" class="textarea"></textarea>
+    <div>{{ currentFile.name }}</div>
+    <input v-model="titleProxy" placeholder="Title" type="text" />
+    <input v-model="authorProxy" placeholder="Author" type="text" />
+    <input v-model="yearProxy" placeholder="year" type="number" />
+    <input v-model="ratingProxy" placeholder="Rating" type="number" />
+    <textarea v-model="contentProxy" class="textarea"></textarea>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue';
+import { computed, getCurrentInstance, onMounted, ref, watch } from 'vue';
 import type { PropType } from 'vue';
-import type { IFile, IFolder } from '/@main/services/files';
+import type { ILoadedFile } from '/@main/services/files';
 import _debounce from 'lodash-es/debounce';
-import fileRouter from '/@/use/filesRouter';
+
+const internalInstance = getCurrentInstance();
 
 const props = defineProps({
   currentFile: {
-    type: Object as PropType<IFile>,
+    type: Object as PropType<ILoadedFile>,
     required: true,
   },
 });
 
-const currentFileContent = ref<string>('');
-const skipNextSave = ref<boolean>(true);
+const emit = defineEmits<{
+  (e: 'update', path: string, key: keyof ILoadedFile, data: string): void;
+}>();
 
-onMounted(async () => {
-  const initialContent = await fileRouter.watchFile(props.currentFile.path, (c: string) => {
-    currentFileContent.value = c;
-  });
-
-  currentFileContent.value = initialContent;
+const contentProxy = computed({
+  get: () => props.currentFile.content,
+  set: (val) => {
+    if (internalInstance) internalInstance.emit('update', props.currentFile.path, 'content', val);
+  },
 });
 
-const save = () => {
-  if (!currentFileContent.value) return;
-  fileRouter.save(props.currentFile.path, currentFileContent.value);
-  skipNextSave.value = true;
-};
+const authorProxy = computed({
+  get: () => props.currentFile.author,
+  set: (val) => {
+    if (internalInstance) internalInstance.emit('update', props.currentFile.path, 'author', val);
+  },
+});
 
-const debouncedSave = _debounce(save, 1000);
+const titleProxy = computed({
+  get: () => props.currentFile.title,
+  set: (val) => {
+    if (internalInstance) internalInstance.emit('update', props.currentFile.path, 'title', val);
+  },
+});
 
-watch(currentFileContent, () => {
-  if (skipNextSave.value) {
-    skipNextSave.value = false;
-    return;
-  }
-  debouncedSave();
+const yearProxy = computed({
+  get: () => props.currentFile.year,
+  set: (val) => {
+    if (internalInstance) internalInstance.emit('update', props.currentFile.path, 'year', val);
+  },
+});
+
+const ratingProxy = computed({
+  get: () => props.currentFile.myRating,
+  set: (val) => {
+    if (internalInstance) internalInstance.emit('update', props.currentFile.path, 'myRating', val);
+  },
 });
 </script>
 
 <style scoped>
-.textarea {
-  min-height: 250px;
+.root {
+  border: 2px solid greenyellow;
+  border-radius: 4px;
 }
 </style>

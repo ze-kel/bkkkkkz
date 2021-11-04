@@ -93,9 +93,9 @@ app
   .whenReady()
   .then(() => Object.entries(IpcHandles).forEach((pair) => ipcMain.handle(pair[0], pair[1])));
 
-ipcMain.handle('initWatcher', async (_, path = './files') => {
+app.whenReady().then(() => {
   if (mainWindow) {
-    await FileService.theWatcher.init(mainWindow, path);
+    FileService.theWatcher.init(mainWindow, './files');
   }
 });
 

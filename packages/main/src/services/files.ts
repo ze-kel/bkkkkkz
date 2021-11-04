@@ -1,22 +1,30 @@
+import * as path from 'path';
+import * as chokidar from 'chokidar';
+import * as fs from 'fs-extra';
+
+import { makeBookFile, makeEncodedBook } from './books';
+
 import type { FSWatcher } from 'chokidar';
 import type { BrowserWindow } from 'electron';
-const chokidar = require('chokidar');
-const fs = require('fs-extra');
-const path = require('path');
+import type { IBookData } from './books';
 
-export type IFile = {
-  type: 'file';
-  name: string;
-  path: string;
-};
-
-export type IFolder = {
+export type IFolderTree = {
   type: 'folder';
   name: string;
   path: string;
   content: {
-    [key: string]: IFile | IFolder;
+    [key: string]: IFolderTree;
   };
+};
+
+export interface ILoadedFile extends IBookData {
+  name: string;
+  path: string;
+  content: string;
+}
+
+export type ILoadedFiles = {
+  [key: string]: ILoadedFile;
 };
 
 type IWatcherVerifyPath = (path: string) => void;
@@ -24,7 +32,8 @@ type IWatcherSendUpdated = () => Promise<void>;
 
 type IWatcher = {
   watcher: FSWatcher | null;
-  path: string | null;
+  watchPath: string | null;
+  loadedPath: string | null;
   filesIgnore: {
     [key: string]: Date;
   };
@@ -32,24 +41,23 @@ type IWatcher = {
   destroy: () => Promise<void>;
   verifyPath: IWatcherVerifyPath;
   sendUpdated?: IWatcherSendUpdated;
-  ignoreNextUnlink: boolean;
 };
 
 const theWatcher: IWatcher = {
   watcher: null,
-  path: null,
+  watchPath: null,
+  loadedPath: null,
   filesIgnore: {},
-  ignoreNextUnlink: false,
-  init: async function (win, path) {
+  init: async function (win, initPath) {
     if (this.watcher) {
       await this.destroy();
     }
 
-    this.verifyPath(path);
+    this.verifyPath(initPath);
 
-    this.path = path;
+    this.watchPath = initPath;
 
-    this.watcher = chokidar.watch(path, {
+    this.watcher = chokidar.watch(initPath, {
       ignored: /(^|[/\\])\../, // ignore dotfiles
       persistent: true,
     });
@@ -59,22 +67,20 @@ const theWatcher: IWatcher = {
     }
 
     const sendUpdatedFolder = async () => {
-      if (!this.path) {
+      if (!this.watchPath) {
         throw 'watcher triggered but has no path data';
       }
-      const newFiles = await getFilesFromFolder(this.path);
+      const newFiles = await getFileTree(this.watchPath);
 
-      win.webContents.send('watchFolder', newFiles);
+      win.webContents.send('FOLDER_TREE', newFiles);
     };
 
     const sendUpdatedFile = async (path: string) => {
-      console.log('SEND UPDATED', path);
       const ignore = this.filesIgnore[path];
 
       if (ignore) {
         const currentTime = new Date();
         if (currentTime < ignore) {
-          console.log('skip send update cause we have ignore date');
           return;
         } else {
           delete this.filesIgnore[path];
@@ -83,31 +89,37 @@ const theWatcher: IWatcher = {
 
       const newFile = await getFileContent(path);
 
-      win.webContents.send('watchFile', path, newFile);
+      win.webContents.send('FILE_UPDATE', path, newFile);
     };
 
-    const unlinkCheck = () => {
-      if (this.ignoreNextUnlink) {
-        this.ignoreNextUnlink = false;
-      } else {
-        sendUpdatedFolder();
+    const sendUnlink = (unlinkedPath: string) => {
+      if (!this.loadedPath) return;
+      if (path.relative(this.loadedPath, unlinkedPath)) {
+        win.webContents.send('FILE_REMOVE', unlinkedPath);
+      }
+    };
+
+    const sendAdd = async (added: string) => {
+      if (!this.loadedPath) return;
+      if (path.relative(this.loadedPath, added)) {
+        const file = await getFileContent(added);
+        win.webContents.send('FILE_ADD', added, file);
       }
     };
 
     this.watcher
-      .on('add', sendUpdatedFolder)
-      .on('unlink', unlinkCheck)
+      .on('add', sendAdd)
+      .on('unlink', sendUnlink)
       .on('addDir', sendUpdatedFolder)
-      .on('unlinkDir', unlinkCheck)
+      .on('unlinkDir', sendUpdatedFolder)
       .on('change', sendUpdatedFile);
-    this.watcher.on('ready', () => console.log('Initial scan complete. Ready for changes'));
   },
   destroy: async function () {
     if (this.watcher) {
       await this.watcher.close();
       this.watcher = null;
     }
-    this.path = null;
+    this.watchPath = null;
   },
   verifyPath: function (path) {
     if (fs.lstatSync(path).isDirectory()) {
@@ -118,12 +130,12 @@ const theWatcher: IWatcher = {
   },
 };
 
-const getFilesFromFolder = (basePath: string): IFolder => {
+const getFileTree = (basePath: string): IFolderTree => {
   fs.ensureDirSync(basePath);
 
   const files = fs.readdirSync(basePath);
 
-  const output: IFolder = {
+  const output: IFolderTree = {
     type: 'folder',
     name: path.basename(basePath),
     path: basePath,
@@ -132,30 +144,42 @@ const getFilesFromFolder = (basePath: string): IFolder => {
 
   files.forEach((file: string) => {
     if (fs.statSync(path.join(basePath, file)).isDirectory()) {
-      output.content[file] = getFilesFromFolder(path.join(basePath, file));
-    } else {
-      output.content[file] = {
-        type: 'file',
-        name: file,
-        path: path.join(basePath, file),
-      };
+      output.content[file] = getFileTree(path.join(basePath, file));
     }
   });
 
   return output;
 };
 
-const getFileContent = async (path: string): Promise<string> => {
-  if (!fs.existsSync(path)) {
+const getFileContent = async (filePath: string): Promise<ILoadedFile> => {
+  if (!fs.existsSync(filePath)) {
     throw new Error('No such file');
   }
-  const file = await fs.readFile(path);
 
-  return file.toString();
+  return makeBookFile(filePath, path.basename(filePath));
 };
 
-const saveFileContent = async (path: string, data: string): Promise<void> => {
-  await fs.writeFile(path, data);
+const loadFilesFromFolder = async (basePath: string): Promise<ILoadedFiles> => {
+  fs.ensureDirSync(basePath);
+  const files = fs.readdirSync(basePath);
+
+  const result: ILoadedFiles = {};
+
+  await Promise.all(
+    files.map(async (file: string) => {
+      const fullPath = path.join(basePath, file);
+      if (fs.statSync(fullPath).isDirectory()) return;
+      const fileContent = await getFileContent(fullPath);
+      result[fullPath] = fileContent;
+    }),
+  );
+
+  return result;
+};
+
+const saveFileContent = async (file: ILoadedFile): Promise<void> => {
+  const encoded = makeEncodedBook(file);
+  await fs.writeFile(file.path, encoded);
 };
 
 const move = async (srcPath: string, targetPath: string): Promise<void> => {
@@ -167,8 +191,9 @@ const move = async (srcPath: string, targetPath: string): Promise<void> => {
 
 export default {
   theWatcher,
-  getFilesFromFolder,
+  getFileTree,
   getFileContent,
+  loadFilesFromFolder,
   saveFileContent,
   move,
 };
