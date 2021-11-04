@@ -1,13 +1,14 @@
-import type { IFolder } from '../../main/src/services/files';
+import type { IFolder, ILoadedFile, ILoadedFiles } from '../../main/src/services/files';
 
 interface ElectronApi {
   files: {
-    getFilesFromFolder: (path?: string) => Promise<IFolder>;
-    getFileContent: (path: string) => Promise<string>;
-    saveFileContent: (path: string, data: string) => Promise<void>;
-    initWatcher: (callback: (_, newFolder: IFolder) => void, path?: string) => Promise<void>;
-    closeWatcher: () => Promise<void>;
-    setFileHandler: (callback: (_, path: string, fileContent: string) => void) => void;
+    getFileTree: (path?: string) => Promise<IFolder>;
+    setTreeHandler: (callback: (_, newTree: IFolder) => void) => void;
+    loadFilesFromFolder: (path: string) => Promise<ILoadedFiles>;
+    saveFileContent: (file: ILoadedFile) => Promise<void>;
+    setFileHandler: (callback: (_, path: string, fileContent: ILoadedFile) => void) => void;
+    setLoadedAddHandler: (callback: (_, path: string, fileContent: ILoadedFile) => void) => void;
+    setLoadedRemoveHandler: (callback: (_, path: string) => void) => void;
     move: (srcPath: string, targetPath: string) => Promise<string>;
     rename: (srcPath: string, newName: string) => Promise<string>;
   };

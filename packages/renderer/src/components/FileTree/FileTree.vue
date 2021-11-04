@@ -1,25 +1,5 @@
 <template>
   <div
-    v-if="content.type === 'file'"
-    :style="{ marginLeft: depth + 'px', width: `calc(100% - ${depth}px)`, zIndex: 1000 - depth }"
-    :class="['node', 'file', openedEntity?.path === content.path && 'opened']"
-    draggable="true"
-    @dragstart="startDrag($event, content.path)"
-    @click="select(content)"
-    @click.right="startRenaming"
-  >
-    <span v-if="!isRenaming" class="name">{{ content.name }}</span>
-    <input
-      v-else
-      ref="inputRename"
-      v-model="newName"
-      class="name input"
-      @focusout="saveName"
-      @keyup.enter="saveName"
-    />
-  </div>
-  <div
-    v-else
     :style="
       !isRoot
         ? { marginLeft: depth + 'px', width: `calc(100% - ${depth}px)`, zIndex: 1000 - depth }
@@ -32,7 +12,7 @@
         isRoot && 'rootFolder',
         'folder',
         canDropHere && 'dropHiglight',
-        openedEntity?.path === content.path && 'opened',
+        openedEntity === content.path && 'opened',
       ]"
       :draggable="!isRoot"
       @dragstart="startDrag($event, content.path)"
@@ -51,6 +31,7 @@
         "
       >
         <svg
+          v-if="Object.keys(content.content).length > 0"
           :class="['folderArrow', !isFolded && 'opened']"
           xmlns="http://www.w3.org/2000/svg"
           width="8"
@@ -89,7 +70,7 @@
 <script setup lang="ts">
 import { getCurrentInstance, ref, watchEffect } from 'vue';
 import type { PropType } from 'vue';
-import type { IFolder, IFile } from '/@main/services/files';
+import type { IFolderTree } from '/@main/services/files';
 import { useElectron } from '/@/use/electron';
 
 const internalInstance = getCurrentInstance();
@@ -98,7 +79,7 @@ const electron = useElectron();
 
 const props = defineProps({
   content: {
-    type: Object as PropType<IFolder | IFile>,
+    type: Object as PropType<IFolderTree>,
     required: true,
   },
   depth: {
@@ -106,7 +87,7 @@ const props = defineProps({
     default: -10,
   },
   openedEntity: {
-    type: Object as PropType<IFile | IFolder | null>,
+    type: String as PropType<IFolderTree['path'] | null>,
     default: null,
   },
 });
@@ -115,10 +96,10 @@ const isRoot = props.depth < 0;
 const isFolded = ref<boolean>(false);
 
 const emit = defineEmits<{
-  (e: 'select', entity: IFile | IFolder): void;
+  (e: 'select', entity: IFolderTree): void;
 }>();
 
-const select = (entity: IFile | IFolder) => {
+const select = (entity: IFolderTree) => {
   internalInstance?.emit('select', entity);
 };
 
@@ -134,7 +115,6 @@ const startDrag = (devt: DragEvent, path: string) => {
   devt.dataTransfer.dropEffect = 'move';
   devt.dataTransfer.effectAllowed = 'move';
   devt.dataTransfer.setData('itemPath', path);
-  devt.dataTransfer.setData('isOpened', String(path === props.openedEntity?.path));
 };
 
 const onDrop = async (e: DragEvent, targetPath: string) => {

@@ -3,33 +3,31 @@ import { contextBridge, ipcRenderer } from 'electron';
 import type { ElectronApi } from 'types/electron-api';
 
 const apiKey = 'electron';
-/**
- * @see https://github.com/electron/electron/issues/21437#issuecomment-573522360
- */
 const api: ElectronApi = {
   files: {
-    getFilesFromFolder: async () => {
-      const result = await ipcRenderer.invoke('getFilesFromFolder');
+    getFileTree: async () => {
+      const result = await ipcRenderer.invoke('getFileTree');
       return result;
     },
-    getFileContent: async (path) => {
-      const result = await ipcRenderer.invoke('getFileContent', path);
+    loadFilesFromFolder: async (path) => {
+      const result = await ipcRenderer.invoke('loadFilesFromFolder', path);
       return result;
     },
-    saveFileContent: async (path, data) => {
-      console.log('api Save File Content', data);
-      const result = await ipcRenderer.invoke('saveFileContent', path, data);
+    saveFileContent: async (file) => {
+      const result = await ipcRenderer.invoke('saveFileContent', file);
       return result;
     },
-    initWatcher: async (callback) => {
-      ipcRenderer.on('watchFolder', callback);
-      await ipcRenderer.invoke('initWatcher');
-    },
-    closeWatcher: async () => {
-      await ipcRenderer.invoke('closeWatcher');
+    setTreeHandler: (callback) => {
+      ipcRenderer.on('FOLDER_TREE', callback);
     },
     setFileHandler: (callback) => {
-      ipcRenderer.on('watchFile', callback);
+      ipcRenderer.on('FILE_UPDATE', callback);
+    },
+    setLoadedAddHandler: (callback) => {
+      ipcRenderer.on('FILE_ADD', callback);
+    },
+    setLoadedRemoveHandler: (callback) => {
+      ipcRenderer.on('FILE_REMOVE', callback);
     },
     move: async (srcPath, targetPath) => {
       const result = await ipcRenderer.invoke('move', srcPath, targetPath);
