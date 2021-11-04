@@ -10,7 +10,9 @@
         }"
       />
     </div>
-    <Editor :opened-files="openedFiles" class="textContainer" />
+    <div class="editorContainer">
+      <Editor :opened-files="openedFiles" class="textContainer" />
+    </div>
   </div>
 </template>
 
@@ -49,23 +51,34 @@ api.files.initWatcher(updateFolderTreeCallback);
 filesRouter.init();
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .root {
   display: flex;
-  padding: 16px;
+  height: 100vh;
 }
 
 .treeContainer {
   width: 50%;
+  overflow-y: scroll;
+  height: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .textContainer {
   width: 100%;
+  box-sizing: border-box;
   padding: 0 25px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
+}
+
+.editorContainer {
+  overflow-y: scroll;
+  width: 100%;
+  height: 100%;
 }
 
 .textInput {

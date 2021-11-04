@@ -21,15 +21,14 @@ const props = defineProps({
   },
 });
 
-const currentFileContent = ref<string | null>(null);
-const isChangingFile = ref<boolean>(false);
-const skipNextSave = ref<boolean>(false);
 </script>
 
 <style scoped>
 .root {
   display: flex;
   flex-direction: column;
+  height: fit-content;
+  padding: 20px 0;
 }
 
 .card {

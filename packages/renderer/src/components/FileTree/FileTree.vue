@@ -2,7 +2,7 @@
   <div
     v-if="content.type === 'file'"
     :style="{ marginLeft: depth + 'px', width: `calc(100% - ${depth}px)`, zIndex: 1000 - depth }"
-    :class="['node', 'file', openedEntity?.path === content.path && 'openedFile']"
+    :class="['node', 'file', openedEntity?.path === content.path && 'opened']"
     draggable="true"
     @dragstart="startDrag($event, content.path)"
     @click="select(content)"
@@ -27,7 +27,13 @@
     "
   >
     <div
-      :class="['node', isRoot && 'rootFolder', 'folder', canDropHere && 'dropHiglight']"
+      :class="[
+        'node',
+        isRoot && 'rootFolder',
+        'folder',
+        canDropHere && 'dropHiglight',
+        openedEntity?.path === content.path && 'opened',
+      ]"
       :draggable="!isRoot"
       @dragstart="startDrag($event, content.path)"
       @drop="onDrop($event, content.path)"
@@ -73,7 +79,7 @@
         :key="item.path"
         :content="item"
         :depth="depth + 10"
-        :opened-file="openedEntity"
+        :opened-entity="openedEntity"
         @select="select"
       />
     </div>
@@ -115,7 +121,6 @@ const emit = defineEmits<{
 const select = (entity: IFile | IFolder) => {
   internalInstance?.emit('select', entity);
 };
-
 
 ///
 /// Drag and drop
@@ -194,6 +199,11 @@ const saveName = async () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 4px 3px;
+  font-size: 14px;
+  overflow-x: hidden;
+  border-radius: 3px;
+  box-sizing: border-box;
 
   .name {
     width: 100%;
@@ -205,13 +215,12 @@ const saveName = async () => {
     pointer-events: none;
   }
 
-  &.openedFile {
-    border-bottom: 2px solid black;
+  &.opened {
+    background: rgb(179, 255, 0);
   }
 }
 
 .rootFolder {
-  cursor: default;
   .folderArrow {
     display: none;
   }
