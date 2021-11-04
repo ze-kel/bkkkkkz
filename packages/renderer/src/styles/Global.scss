@@ -1,0 +1,23 @@
+* {
+  box-sizing: border-box;
+}
+
+svg,
+path {
+  box-sizing: initial;
+}
+
+::-webkit-scrollbar {
+  width: 12px;
+}
+::-webkit-scrollbar-thumb {
+  background: rgb(102, 102, 102);
+  border-radius: 0px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(48, 48, 48);
+}
+::-webkit-scrollbar-track {
+  background: #ffffff;
+  border-radius: 0px;
+}
