@@ -48,12 +48,12 @@ const updateHandlerApi = (_: Event, path: string, content: ILoadedFile) => {
 };
 
 const addHandlerApi = (_: Event, path: string, content: ILoadedFile) => {
-  console.log('ADD HANDLER API', path);
+  console.log('ADD HANDLER API', path, content);
   files.value[path] = content;
 };
 
 const removeHandlerApi = (_: Event, path: string) => {
-  console.log('ADD HANDLER API', path);
+  console.log('REMOVE HANDLER API', path);
   if (files.value[path]) {
     delete files.value[path];
   }
@@ -66,9 +66,12 @@ onMounted(async () => {
 });
 
 const sortedFiles = computed(() => {
+  console.log('files upd', files.value);
   const arr = Object.values(files.value);
 
   arr.sort((a, b) => a.name.localeCompare(b.name));
+
+  console.log('sortedFiles upd', arr);
 
   return arr;
 });

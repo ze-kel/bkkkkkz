@@ -27,9 +27,6 @@ export type ILoadedFiles = {
   [key: string]: ILoadedFile;
 };
 
-type IWatcherVerifyPath = (path: string) => void;
-type IWatcherSendUpdated = () => Promise<void>;
-
 type IWatcher = {
   watcher: FSWatcher | null;
   watchPath: string | null;
@@ -39,8 +36,6 @@ type IWatcher = {
   };
   init: (win: BrowserWindow, path: string) => Promise<void>;
   destroy: () => Promise<void>;
-  verifyPath: IWatcherVerifyPath;
-  sendUpdated?: IWatcherSendUpdated;
 };
 
 const theWatcher: IWatcher = {
@@ -53,7 +48,9 @@ const theWatcher: IWatcher = {
       await this.destroy();
     }
 
-    this.verifyPath(initPath);
+    if (!fs.lstatSync(initPath).isDirectory()) {
+      throw 'File path passed to watcher init';
+    }
 
     this.watchPath = initPath;
 
@@ -63,10 +60,10 @@ const theWatcher: IWatcher = {
     });
 
     if (!this.watcher) {
-      throw 'Watcher was not created';
+      throw 'Watcher was not created for some reason';
     }
 
-    const sendUpdatedFolder = async () => {
+    const sendUpdatedTree = async () => {
       if (!this.watchPath) {
         throw 'watcher triggered but has no path data';
       }
@@ -76,11 +73,11 @@ const theWatcher: IWatcher = {
     };
 
     const sendUpdatedFile = async (path: string) => {
-      const ignore = this.filesIgnore[path];
+      const ignoreDate = this.filesIgnore[path];
 
-      if (ignore) {
+      if (ignoreDate) {
         const currentTime = new Date();
-        if (currentTime < ignore) {
+        if (currentTime < ignoreDate) {
           return;
         } else {
           delete this.filesIgnore[path];
@@ -88,44 +85,35 @@ const theWatcher: IWatcher = {
       }
 
       const newFile = await getFileContent(path);
-
       win.webContents.send('FILE_UPDATE', path, newFile);
     };
 
     const sendUnlink = (unlinkedPath: string) => {
       if (!this.loadedPath) return;
 
-      if (this.loadedPath.recursive) {
-        if (path.relative(this.loadedPath.path, unlinkedPath)) {
-          win.webContents.send('FILE_REMOVE', unlinkedPath);
-        }
-      } else {
-        if (path.dirname(unlinkedPath) === this.loadedPath.path) {
-          win.webContents.send('FILE_REMOVE', unlinkedPath);
-        }
-      }
+      if (this.loadedPath.recursive && !path.relative(this.loadedPath.path, unlinkedPath)) return;
+
+      if (!(path.dirname(unlinkedPath) === this.loadedPath.path)) return;
+
+      win.webContents.send('FILE_REMOVE', unlinkedPath);
     };
 
     const sendAdd = async (added: string) => {
       if (!this.loadedPath) return;
-      if (this.loadedPath.recursive) {
-        if (path.relative(this.loadedPath.path, added)) {
-          const file = await getFileContent(added);
-          win.webContents.send('FILE_ADD', file);
-        }
-      } else {
-        if (path.dirname(added) === this.loadedPath.path) {
-          const file = await getFileContent(added);
-          win.webContents.send('FILE_ADD', file);
-        }
-      }
+
+      if (this.loadedPath.recursive && !path.relative(this.loadedPath.path, added)) return;
+
+      if (!(path.dirname(added) === this.loadedPath.path)) return;
+
+      const file = await getFileContent(added);
+      win.webContents.send('FILE_ADD', added, file);
     };
 
     this.watcher
       .on('add', sendAdd)
       .on('unlink', sendUnlink)
-      .on('addDir', sendUpdatedFolder)
-      .on('unlinkDir', sendUpdatedFolder)
+      .on('addDir', sendUpdatedTree)
+      .on('unlinkDir', sendUpdatedTree)
       .on('change', sendUpdatedFile);
   },
   destroy: async function () {
@@ -134,13 +122,6 @@ const theWatcher: IWatcher = {
       this.watcher = null;
     }
     this.watchPath = null;
-  },
-  verifyPath: function (path) {
-    if (fs.lstatSync(path).isDirectory()) {
-      return;
-    } else {
-      throw 'File path passed to watcher init';
-    }
   },
 };
 
