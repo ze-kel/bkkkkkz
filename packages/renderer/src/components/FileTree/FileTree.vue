@@ -20,8 +20,9 @@
       @dragenter="dragEnter"
       @dragleave="dragLeave"
       @dragover.prevent
-      @click="select(content)"
-      @click.right="startRenaming"
+      @click.exact="select(content, false)"
+      @click.alt.exact="select(content, true)"
+      @click.right.exact="startRenaming"
     >
       <div
         @click="
@@ -93,11 +94,11 @@ const isRoot = props.depth < 0;
 const isFolded = ref<boolean>(false);
 
 const emit = defineEmits<{
-  (e: 'select', entity: IFolderTree): void;
+  (e: 'select', entity: IFolderTree, recursive: boolean): void;
 }>();
 
-const select = (entity: IFolderTree) => {
-  internalInstance?.emit('select', entity);
+const select = (entity: IFolderTree, recursive: boolean) => {
+  internalInstance?.emit('select', entity, recursive);
 };
 
 ///

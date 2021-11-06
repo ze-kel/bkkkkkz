@@ -3,7 +3,7 @@
     <div class="cardWrapper">
       <BookCard
         v-for="item in sortedFiles"
-        :key="item.name"
+        :key="item.path"
         :current-file="item"
         class="card"
         @update="updateHandler"
@@ -36,7 +36,8 @@ const props = defineProps({
 const files = ref<ILoadedFiles>({});
 
 watchEffect(async () => {
-  files.value = await api.files.loadFilesFromFolder(props.openedPath);
+  console.log('loading recursive is ', props.recursive);
+  files.value = await api.files.loadFilesFromFolder(props.openedPath, props.recursive);
 });
 
 const updateHandlerApi = (_: Event, path: string, content: ILoadedFile) => {
@@ -99,5 +100,4 @@ const updateHandler = (path: string, key: keyof ILoadedFile, data: string | numb
     margin-top: 15px;
   }
 }
-
 </style>

@@ -33,7 +33,7 @@ type IWatcherSendUpdated = () => Promise<void>;
 type IWatcher = {
   watcher: FSWatcher | null;
   watchPath: string | null;
-  loadedPath: string | null;
+  loadedPath: { path: string; recursive: boolean } | null;
   filesIgnore: {
     [key: string]: Date;
   };
@@ -94,16 +94,30 @@ const theWatcher: IWatcher = {
 
     const sendUnlink = (unlinkedPath: string) => {
       if (!this.loadedPath) return;
-      if (path.relative(this.loadedPath, unlinkedPath)) {
-        win.webContents.send('FILE_REMOVE', unlinkedPath);
+
+      if (this.loadedPath.recursive) {
+        if (path.relative(this.loadedPath.path, unlinkedPath)) {
+          win.webContents.send('FILE_REMOVE', unlinkedPath);
+        }
+      } else {
+        if (path.dirname(unlinkedPath) === this.loadedPath.path) {
+          win.webContents.send('FILE_REMOVE', unlinkedPath);
+        }
       }
     };
 
     const sendAdd = async (added: string) => {
       if (!this.loadedPath) return;
-      if (path.relative(this.loadedPath, added)) {
-        const file = await getFileContent(added);
-        win.webContents.send('FILE_ADD', added, file);
+      if (this.loadedPath.recursive) {
+        if (path.relative(this.loadedPath.path, added)) {
+          const file = await getFileContent(added);
+          win.webContents.send('FILE_ADD', file);
+        }
+      } else {
+        if (path.dirname(added) === this.loadedPath.path) {
+          const file = await getFileContent(added);
+          win.webContents.send('FILE_ADD', file);
+        }
       }
     };
 
@@ -159,7 +173,7 @@ const getFileContent = async (filePath: string): Promise<ILoadedFile> => {
   return makeBookFile(filePath, path.basename(filePath));
 };
 
-const loadFilesFromFolder = async (basePath: string): Promise<ILoadedFiles> => {
+const loadFilesFromFolder = async (basePath: string, recursive: boolean): Promise<ILoadedFiles> => {
   fs.ensureDirSync(basePath);
   const files = fs.readdirSync(basePath);
 
@@ -168,9 +182,18 @@ const loadFilesFromFolder = async (basePath: string): Promise<ILoadedFiles> => {
   await Promise.all(
     files.map(async (file: string) => {
       const fullPath = path.join(basePath, file);
-      if (fs.statSync(fullPath).isDirectory()) return;
-      const fileContent = await getFileContent(fullPath);
-      result[fullPath] = fileContent;
+      if (fs.statSync(fullPath).isDirectory()) {
+        if (recursive) {
+          const moreFiles = await loadFilesFromFolder(fullPath, recursive);
+          Object.entries(moreFiles).forEach(async ([path, content]) => {
+            result[path] = content;
+          });
+        }
+        return;
+      } else {
+        const fileContent = await getFileContent(fullPath);
+        result[fullPath] = fileContent;
+      }
     }),
   );
 
