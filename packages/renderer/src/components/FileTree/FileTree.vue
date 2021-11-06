@@ -26,30 +26,27 @@
       <div
         @click="
           () => {
-            if (!isRoot) isFolded = !isFolded;
+            isFolded = !isFolded;
           }
         "
       >
-        <svg
+        <font-awesome-icon
           v-if="Object.keys(content.content).length > 0"
-          :class="['folderArrow', !isFolded && 'opened']"
-          xmlns="http://www.w3.org/2000/svg"
-          width="8"
-          height="8"
-          viewBox="0 0 24 24"
-        >
-          <path d="M8.122 24l-4.122-4 8-8-8-8 4.122-4 11.878 12z" />
-        </svg>
+          icon="angle-down"
+          :class="['fa-regular', 'folderArrow', !isFolded && 'opened']"
+        />
       </div>
-      <span v-if="!isRenaming" class="name">{{ content.name }}</span>
-      <input
-        v-else
-        ref="inputRename"
-        v-model="newName"
-        class="name input"
-        @focusout="saveName"
-        @keyup.enter="saveName"
-      />
+      <template v-if="isRoot"> <span class="name text-L">All Books</span></template>
+      <template v-else>
+        <span v-if="!isRenaming" class="name text-M">{{ content.name }}</span>
+        <input
+          v-else
+          ref="inputRename"
+          v-model="newName"
+          class="name input"
+          @focusout="saveName"
+          @keyup.enter="saveName"
+      /></template>
     </div>
     <div
       v-if="!isFolded"
@@ -196,21 +193,21 @@ const saveName = async () => {
   }
 
   &.opened {
-    background: rgb(179, 255, 0);
+    background: var(--accent-main);
   }
 }
 
 .rootFolder {
-  .folderArrow {
-    display: none;
-  }
+  font-weight: bold;
 }
 
 .folderArrow {
   padding: 0 5px;
   transition: transform 0.2s;
+
+  transform: rotate(-90deg);
   &.opened {
-    transform: rotate(90deg);
+    transform: rotate(0deg);
   }
 }
 

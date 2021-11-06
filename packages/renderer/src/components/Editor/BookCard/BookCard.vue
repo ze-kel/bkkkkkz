@@ -1,11 +1,12 @@
 <template>
-  <div class="root">
-    <div>{{ currentFile.name }}</div>
-    <input v-model="titleProxy" placeholder="Title" type="text" />
-    <input v-model="authorProxy" placeholder="Author" type="text" />
-    <input v-model="yearProxy" placeholder="year" type="number" />
-    <input v-model="ratingProxy" placeholder="Rating" type="number" />
-    <textarea v-model="contentProxy" class="textarea"></textarea>
+  <div class="bookCard">
+    <input v-model="titleProxy" placeholder="Title" class="title header-L bold" type="text" />
+    <input v-model="authorProxy" placeholder="Author" class="author header-S" type="text" />
+    <div class="smallInputs">
+      <SmallInput :value="ratingProxy" text="Rating:" />
+      <SmallInput :value="yearProxy" text="Year:" />
+    </div>
+    <div class="fileName header-XS">{{ currentFile.name }}</div>
   </div>
 </template>
 
@@ -14,6 +15,8 @@ import { computed, getCurrentInstance, onMounted, ref, watch } from 'vue';
 import type { PropType } from 'vue';
 import type { ILoadedFile } from '/@main/services/files';
 import _debounce from 'lodash-es/debounce';
+
+import SmallInput from './SmallInput/SmallInput.vue';
 
 const internalInstance = getCurrentInstance();
 
@@ -65,8 +68,31 @@ const ratingProxy = computed({
 </script>
 
 <style scoped>
-.root {
-  border: 2px solid greenyellow;
-  border-radius: 4px;
+.bookCard {
+  width: 100%;
+  border-bottom: 2px solid var(--accent-main);
+  align-items: center;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  padding-bottom: 5px;
+}
+
+.title,
+.author {
+  text-align: center;
+}
+
+.author {
+  color: var(--text-secondary);
+}
+
+.fileName {
+  color: var(--text-tertiary);
+}
+
+.smallInputs {
+  margin-top: 10px;
+  display: flex;
 }
 </style>
