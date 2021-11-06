@@ -1,7 +1,7 @@
 <template>
   <div class="root">
     <div class="cardWrapper">
-      <Card
+      <BookCard
         v-for="item in sortedFiles"
         :key="item.name"
         :current-file="item"
@@ -15,7 +15,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch, watchEffect } from 'vue';
 import type { PropType } from 'vue';
-import Card from './Card.vue';
+import BookCard from './BookCard/BookCard.vue';
 import { useElectron } from '/@/use/electron';
 import _debounce from 'lodash-es/debounce';
 import type { ILoadedFile, ILoadedFiles } from '/@main/services/files';
@@ -26,6 +26,10 @@ const props = defineProps({
   openedPath: {
     type: String as PropType<string>,
     required: true,
+  },
+  recursive: {
+    type: Boolean,
+    default: false,
   },
 });
 
@@ -83,16 +87,17 @@ const updateHandler = (path: string, key: keyof ILoadedFile, data: string | numb
 
 <style lang="scss" scoped>
 .root {
+  overflow-y: scroll;
   display: flex;
+  flex-grow: 4;
   flex-direction: column;
-  height: fit-content;
   padding: 20px 20px;
 }
 
 .cardWrapper {
-  width: 250px;
   .card:not(:first-child) {
-    margin-top: 25px;
+    margin-top: 15px;
   }
 }
+
 </style>

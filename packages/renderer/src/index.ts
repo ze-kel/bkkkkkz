@@ -2,6 +2,9 @@ import { createApp } from 'vue';
 import App from '/@/App.vue';
 import router from '/@/router';
 import 'normalize.css';
-import '/@/styles/global.scss';
+import '/@/styles/Global.scss';
+import '/@/styles/Variables.scss';
 
-createApp(App).use(router).mount('#app');
+import FontAwesomeIcon from './fa-icons';
+
+createApp(App).use(router).component('font-awesome-icon', FontAwesomeIcon).mount('#app');

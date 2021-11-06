@@ -1,12 +1,56 @@
-$textMain: hsl(0, 0%, 5%);
-$textMainLight: hsl(0, 0%, 20%);
-$textSecondary: hsl(0, 0%, 98%);
-$textSecondaryLight: hsl(0, 0%, 90%);
+* {
+  --bg-main: hsl(0, 0%, 99%);
+  --bg-secondary: hsl(0, 0%, 97%);
+  --bg-tertiary: hsl(0, 0%, 90%);
 
-$bgMain: hsl(0, 0%, 99%);
-$bgMainLight: hsl(0, 0%, 80%);
-$bgSecondary: hsl(0, 0%, 5%);
+  --text-main: hsl(0, 0%, 5%);
+  --text-main-hover: hsl(0, 0%, 50%);
 
-$accent: hsl(54, 100%, 50%);
-$accentLight: hsl(54, 91%, 75%);
-$accentDark: hsl(50, 63%, 20%);
+  --text-secondary: hsl(0, 0%, 30%);
+  --text-main-hover: hsl(0, 0%, 60%);
+
+  --text-tertiary: hsl(0, 0%, 60%);
+  --text-tertiary-hover: hsl(0, 0%, 80%);
+
+  --accent-main: hsl(93, 100%, 50%);
+  --accent-hover: hsl(100, 100%, 44%);
+  --accent-secondary: hsl(96, 99%, 37%);
+
+  --top-bar-size: 40px;
+}
+
+.bold {
+  font-weight: bold;
+}
+
+.header-XL {
+  font-size: 30px;
+}
+
+.header-L {
+  font-size: 24px;
+}
+
+.header-M {
+  font-size: 20px;
+}
+
+.header-S {
+  font-size: 16px;
+}
+
+.header-XS {
+  font-size: 14px;
+}
+
+.text-L {
+  font-size: 16px;
+}
+
+.text-M {
+  font-size: 14px;
+}
+
+.text-S {
+  font-size: 12px;
+}
