@@ -16,9 +16,9 @@ const getFileTree: IIpcHandle = async (_, path = './files') => {
   return files;
 };
 
-const loadFilesFromFolder: IIpcHandle = async (_, path: string) => {
-  const files = await FileService.loadFilesFromFolder(path);
-  FileService.theWatcher.loadedPath = path;
+const loadFilesFromFolder: IIpcHandle = async (_, path: string, recursive = false) => {
+  const files = await FileService.loadFilesFromFolder(path, recursive);
+  FileService.theWatcher.loadedPath = { path, recursive };
   return files;
 };
 
@@ -37,7 +37,7 @@ const closeWatcher: IIpcHandle = async () => {
 const move: IIpcHandle = async (_, srcPath: string, targetPath: string) => {
   // TargetPath we get looks like 'pathto/folder' where we want to place src. fs.move wants 'pathto/folder/fileName.md'
   targetPath = path.join(targetPath, path.basename(srcPath));
-  
+
   await FileService.move(srcPath, targetPath);
   return targetPath;
 };

@@ -11,13 +11,14 @@
           :content="fileTree"
           :opened-entity="openedPath"
           :style="{ minWidth: `${fileTreeSize}px`, width: `${fileTreeSize}px` }"
-          @select="(entity: IFolderTree) => {
+          @select="(entity: IFolderTree, recursive: boolean) => {
           openedPath = entity.path
+          recursivePathLoading = recursive
         }"
         />
       </div>
       <div ref="resizeHandle" :class="['resizeHandle', isResizing && 'show']"></div>
-      <Editor v-if="openedPath" :opened-path="openedPath" />
+      <Editor v-if="openedPath" :opened-path="openedPath" :recursive="recursivePathLoading" />
     </div>
   </div>
 </template>
@@ -38,6 +39,7 @@ const internalInstance = getCurrentInstance();
 const fileTree = ref<IFolderTree>();
 
 const openedPath = ref<IFolderTree['path'] | null>(null);
+const recursivePathLoading = ref(false);
 
 const updateFolderTreeCallback = (_: Event, newFolder: IFolderTree) => {
   fileTree.value = newFolder;

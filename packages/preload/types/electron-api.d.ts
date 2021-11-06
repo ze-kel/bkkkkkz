@@ -4,7 +4,7 @@ interface ElectronApi {
   files: {
     getFileTree: (path?: string) => Promise<IFolder>;
     setTreeHandler: (callback: (_, newTree: IFolder) => void) => void;
-    loadFilesFromFolder: (path: string) => Promise<ILoadedFiles>;
+    loadFilesFromFolder: (path: string, recursive?: boolean) => Promise<ILoadedFiles>;
     saveFileContent: (file: ILoadedFile) => Promise<void>;
     setFileHandler: (callback: (_, path: string, fileContent: ILoadedFile) => void) => void;
     setLoadedAddHandler: (callback: (_, path: string, fileContent: ILoadedFile) => void) => void;

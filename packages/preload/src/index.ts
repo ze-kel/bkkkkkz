@@ -9,8 +9,8 @@ const api: ElectronApi = {
       const result = await ipcRenderer.invoke('getFileTree');
       return result;
     },
-    loadFilesFromFolder: async (path) => {
-      const result = await ipcRenderer.invoke('loadFilesFromFolder', path);
+    loadFilesFromFolder: async (path, recursive) => {
+      const result = await ipcRenderer.invoke('loadFilesFromFolder', path, recursive);
       return result;
     },
     saveFileContent: async (file) => {
