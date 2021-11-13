@@ -6,7 +6,7 @@
       <SmallInput :value="ratingProxy" text="Rating:" />
       <SmallInput :value="yearProxy" text="Year:" />
     </div>
-    <div class="fileName header-XS">{{ currentFile.name }}</div>
+    <input v-model.lazy="fileNameProxy" class="fileName header-XS" />
   </div>
 </template>
 
@@ -65,6 +65,13 @@ const ratingProxy = computed({
     if (internalInstance) internalInstance.emit('update', props.currentFile.path, 'myRating', val);
   },
 });
+
+const fileNameProxy = computed({
+  get: () => props.currentFile.name,
+  set: (val) => {
+    if (internalInstance) internalInstance.emit('rename', props.currentFile.path, val);
+  },
+});
 </script>
 
 <style scoped>
@@ -79,7 +86,8 @@ const ratingProxy = computed({
 }
 
 .title,
-.author {
+.author,
+.fileName {
   text-align: center;
 }
 
