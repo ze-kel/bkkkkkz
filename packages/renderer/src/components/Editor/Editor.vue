@@ -7,6 +7,7 @@
         :current-file="item"
         class="card"
         @update="updateHandler"
+        @rename="renameHandler"
       />
     </div>
   </div>
@@ -77,6 +78,7 @@ const sortedFiles = computed(() => {
 });
 
 const debouncedSave = _debounce(api.files.saveFileContent, 500);
+const debouncedRename = _debounce(api.files.rename, 500);
 
 const updateHandler = (path: string, key: keyof ILoadedFile, data: string | number) => {
   if (!files.value[path]) {
@@ -86,6 +88,13 @@ const updateHandler = (path: string, key: keyof ILoadedFile, data: string | numb
   files.value[path][key] = data;
   const newFile = { ...files.value[path] };
   debouncedSave(newFile);
+};
+
+const renameHandler = (path: string, newName: string) => {
+  if (!files.value[path]) {
+    throw "Trying to rename file that isn't loaded";
+  }
+  debouncedRename(path,newName);
 };
 </script>
 
