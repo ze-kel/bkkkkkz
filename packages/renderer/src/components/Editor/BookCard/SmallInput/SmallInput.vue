@@ -1,8 +1,8 @@
 <template>
   <div class="smallInput">
     <div class="text-S text">{{ text }}</div>
+    <hr class="hr" />
     <input v-if="value" v-model="proxyValue" type="number" class="input header-S" />
-    <font-awesome-icon v-else icon="plus" />
   </div>
 </template>
 
@@ -42,13 +42,22 @@ const proxyValue = computed({
   align-items: center;
 
   .text {
-    color: var(--accent-secondary);
+    color: var(--text-secondary);
   }
 
   .input {
     text-align: center;
     -webkit-appearance: none;
     width: 100%;
+    color: var(--text-main);
+    font-weight: 500;
   }
+}
+
+.hr {
+  width: 66%;
+  height: 1px;
+  background: var(--accent-main-grad);
+  margin: 5px 0;
 }
 </style>

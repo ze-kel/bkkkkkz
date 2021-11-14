@@ -7,6 +7,7 @@ export type Status = 'read' | 'to-read' | 'reading';
 
 export interface IBookData {
   title?: string;
+  subtitle?: string;
   author?: string;
   year?: number;
   myRating?: number;
@@ -27,6 +28,10 @@ type BoodataProp = {
 const bookDataProps: BoodataProp[] = [
   {
     key: 'title',
+    verifier: stringVerifier,
+  },
+  {
+    key: 'subtitle',
     verifier: stringVerifier,
   },
   {

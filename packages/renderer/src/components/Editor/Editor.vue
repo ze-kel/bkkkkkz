@@ -94,7 +94,7 @@ const renameHandler = (path: string, newName: string) => {
   if (!files.value[path]) {
     throw "Trying to rename file that isn't loaded";
   }
-  debouncedRename(path,newName);
+  debouncedRename(path, newName);
 };
 </script>
 
@@ -108,6 +108,9 @@ const renameHandler = (path: string, newName: string) => {
 }
 
 .cardWrapper {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-gap: 15px;
   .card:not(:first-child) {
     margin-top: 15px;
   }

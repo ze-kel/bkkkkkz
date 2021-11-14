@@ -25,17 +25,26 @@
       @click.right.exact="startRenaming"
     >
       <div
+        v-if="!isRoot"
+        class="iconHolder"
         @click="
           () => {
             isFolded = !isFolded;
           }
         "
       >
-        <font-awesome-icon
+        <svg
           v-if="Object.keys(content.content).length > 0"
           icon="angle-down"
-          :class="['fa-regular', 'folderArrow', !isFolded && 'opened']"
-        />
+          :class="['folderArrow', !isFolded && 'opened']"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path d="M12 14.5L17 9.5H7L12 14.5Z" fill="#2E3A59" />
+        </svg>
       </div>
       <template v-if="isRoot"> <span class="name text-L">All Books</span></template>
       <template v-else>
@@ -177,13 +186,18 @@ const saveName = async () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 4px 3px;
+  padding: 2px 8px;
   font-size: 14px;
   overflow-x: hidden;
   border-radius: 3px;
   box-sizing: border-box;
 
+  font-weight: 400;
+
   .name {
+    display: flex;
+    align-items: center;
+    height: 24px;
     width: 100%;
   }
 
@@ -199,11 +213,18 @@ const saveName = async () => {
 }
 
 .rootFolder {
-  font-weight: bold;
+  font-weight: 700;
+}
+
+.iconHolder {
+  width: 24px;
+  padding-right: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .folderArrow {
-  padding: 0 5px;
   transition: transform 0.2s;
 
   transform: rotate(-90deg);

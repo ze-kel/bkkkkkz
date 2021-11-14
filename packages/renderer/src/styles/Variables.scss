@@ -1,22 +1,22 @@
 * {
   --bg-main: hsl(0, 0%, 99%);
   --bg-secondary: hsl(0, 0%, 97%);
-  --bg-tertiary: hsl(0, 0%, 90%);
 
-  --text-main: hsl(0, 0%, 5%);
-  --text-main-hover: hsl(0, 0%, 50%);
+  --text-main: #151617;
+  --text-main-hover: #151617;
 
-  --text-secondary: hsl(0, 0%, 30%);
-  --text-main-hover: hsl(0, 0%, 60%);
+  --text-secondary: #343f4f;
+  --text-secondary-hover: #343f4f;
 
-  --text-tertiary: hsl(0, 0%, 60%);
-  --text-tertiary-hover: hsl(0, 0%, 80%);
+  --accent-main: #06ff3d;
+  --accent-main-b: #62f94a;
+  --accent-main-grad: linear-gradient(
+    103.92deg,
+    var(--accent-main) 0%,
+    var(--accent-main-b) 101.02%
+  );
 
-  --accent-main: hsl(93, 100%, 50%);
-  --accent-hover: hsl(100, 100%, 44%);
-  --accent-secondary: hsl(96, 99%, 37%);
-
-  --top-bar-size: 40px;
+  --top-bar-size: 35px;
 }
 
 .bold {

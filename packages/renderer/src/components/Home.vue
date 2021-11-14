@@ -5,7 +5,6 @@
       <div class=""></div>
       <LeftMenu />
       <div class="sourceSelect">
-        <h4 class="header-M filesHeader">Files:</h4>
         <FileTree
           v-if="fileTree"
           :content="fileTree"
@@ -97,10 +96,10 @@ onMounted(async () => {
 }
 
 .sourceSelect {
-  padding: 0 7px;
+  padding: 25px 7px;
   box-sizing: border-box;
 
-  background-color: var(--bg-tertiary);
+  background-color: var(--bg-secondary);
 
   .filesHeader {
     margin-top: 20px;
@@ -114,10 +113,10 @@ onMounted(async () => {
   cursor: col-resize;
 
   &.show {
-    background: greenyellow;
+    background: var(--accent-main-grad);
   }
   &:hover {
-    background: greenyellow;
+    background: var(--accent-main-grad);
   }
 }
 </style>

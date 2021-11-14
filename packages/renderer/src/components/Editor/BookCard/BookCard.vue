@@ -1,12 +1,14 @@
 <template>
   <div class="bookCard">
+    <input v-model="authorProxy" placeholder="Author" class="author header-L" type="text" />
+    <hr class="hr" />
     <input v-model="titleProxy" placeholder="Title" class="title header-L bold" type="text" />
-    <input v-model="authorProxy" placeholder="Author" class="author header-S" type="text" />
+    <input v-model="subtitleProxy" placeholder="Subtitle" class="subtitle header-XS" type="text" />
     <div class="smallInputs">
-      <SmallInput :value="ratingProxy" text="Rating:" />
-      <SmallInput :value="yearProxy" text="Year:" />
+      <SmallInput :value="ratingProxy" text="Rating" />
+      <SmallInput :value="yearProxy" text="Year" />
     </div>
-    <input v-model.lazy="fileNameProxy" class="fileName header-XS" />
+    <input v-if="false" v-model.lazy="fileNameProxy" class="fileName header-XS" />
   </div>
 </template>
 
@@ -52,6 +54,13 @@ const titleProxy = computed({
   },
 });
 
+const subtitleProxy = computed({
+  get: () => props.currentFile.subtitle,
+  set: (val) => {
+    if (internalInstance) internalInstance.emit('update', props.currentFile.path, 'subtitle', val);
+  },
+});
+
 const yearProxy = computed({
   get: () => props.currentFile.year,
   set: (val) => {
@@ -77,30 +86,54 @@ const fileNameProxy = computed({
 <style scoped>
 .bookCard {
   width: 100%;
-  border-bottom: 2px solid var(--accent-main);
   align-items: center;
   display: flex;
   align-items: center;
   flex-direction: column;
   padding-bottom: 5px;
+  padding: 17px;
+  box-shadow: 0px 0px 50px -15px hsla(0, 0%, 2%, 0.05);
+  box-shadow: 4px 4px 10px 0px hsla(0, 0%, 0%, 0.06);
+  border-radius: 5px;
+  max-width: 333px;
 }
 
 .title,
 .author,
+.subtitle,
 .fileName {
   text-align: center;
+  width: 100%;
+}
+
+.hr {
+  width: 66%;
+  height: 2px;
+  background: var(--accent-main-grad);
+  margin: 7px 0 4px 0;
 }
 
 .author {
   color: var(--text-secondary);
+  font-weight: 300;
+}
+
+.subtitle {
+  margin-top: 4px;
+  color: var(--text-secondary);
+}
+
+.title {
+  font-weight: 500;
+  color: var(--text-main);
 }
 
 .fileName {
-  color: var(--text-tertiary);
+  color: var(--text-secondary);
 }
 
 .smallInputs {
-  margin-top: 10px;
+  margin-top: 16px;
   display: flex;
 }
 </style>
