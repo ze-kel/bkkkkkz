@@ -1,11 +1,11 @@
 import * as path from 'path';
 import * as chokidar from 'chokidar';
 import * as fs from 'fs-extra';
+import mainWindow from '..';
 
 import { makeBookFile, makeEncodedBook } from './books';
 
 import type { FSWatcher } from 'chokidar';
-import type { BrowserWindow } from 'electron';
 import type { IBookData } from './books';
 
 export type IFolderTree = {
@@ -34,7 +34,7 @@ type IWatcher = {
   filesIgnore: {
     [key: string]: Date;
   };
-  init: (win: BrowserWindow, path: string) => Promise<void>;
+  init: (path: string) => Promise<void>;
   destroy: () => Promise<void>;
 };
 
@@ -43,9 +43,13 @@ const theWatcher: IWatcher = {
   watchPath: null,
   loadedPath: null,
   filesIgnore: {},
-  init: async function (win, initPath) {
+  init: async function (initPath) {
     if (this.watcher) {
       await this.destroy();
+    }
+
+    if (!mainWindow) {
+      throw 'no main Window something is fuckedup';
     }
 
     if (!fs.lstatSync(initPath).isDirectory()) {
@@ -68,8 +72,10 @@ const theWatcher: IWatcher = {
         throw 'watcher triggered but has no path data';
       }
       const newFiles = await getFileTree(this.watchPath);
-
-      win.webContents.send('FOLDER_TREE', newFiles);
+      if (!mainWindow) {
+        throw 'NO MAIN WINDOW WTF BRUH';
+      }
+      mainWindow.webContents.send('FOLDER_TREE', newFiles);
     };
 
     const sendUpdatedFile = async (path: string) => {
@@ -85,20 +91,31 @@ const theWatcher: IWatcher = {
       }
 
       const newFile = await getFileContent(path);
-      win.webContents.send('FILE_UPDATE', path, newFile);
+      if (!mainWindow) {
+        throw 'NO MAIN WINDOW WTF BRUH';
+      }
+      mainWindow.webContents.send('FILE_UPDATE', path, newFile);
     };
 
     const sendUnlink = (unlinkedPath: string) => {
+      if (!mainWindow) {
+        throw 'NO MAIN WINDOW WTF BRUH';
+      }
+
       if (!this.loadedPath) return;
 
       if (this.loadedPath.recursive && !path.relative(this.loadedPath.path, unlinkedPath)) return;
 
       if (!(path.dirname(unlinkedPath) === this.loadedPath.path)) return;
 
-      win.webContents.send('FILE_REMOVE', unlinkedPath);
+      mainWindow.webContents.send('FILE_REMOVE', unlinkedPath);
     };
 
     const sendAdd = async (added: string) => {
+      if (!mainWindow) {
+        throw 'NO MAIN WINDOW WTF BRUH';
+      }
+
       if (!this.loadedPath) return;
 
       if (this.loadedPath.recursive && !path.relative(this.loadedPath.path, added)) return;
@@ -106,7 +123,7 @@ const theWatcher: IWatcher = {
       if (!(path.dirname(added) === this.loadedPath.path)) return;
 
       const file = await getFileContent(added);
-      win.webContents.send('FILE_ADD', added, file);
+      mainWindow.webContents.send('FILE_ADD', added, file);
     };
 
     this.watcher

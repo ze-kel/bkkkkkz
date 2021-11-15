@@ -1,7 +1,6 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
 import { join } from 'path';
 import { URL } from 'url';
-import FileService from './services/files';
 import IpcHandles from './ipc/ipcHandles';
 
 const isSingleInstance = app.requestSingleInstanceLock();
@@ -95,12 +94,6 @@ app
   .whenReady()
   .then(() => Object.entries(IpcHandles).forEach((pair) => ipcMain.handle(pair[0], pair[1])));
 
-app.whenReady().then(() => {
-  if (mainWindow) {
-    FileService.theWatcher.init(mainWindow, './files');
-  }
-});
-
 // Auto-updates
 if (import.meta.env.PROD) {
   app
@@ -109,3 +102,5 @@ if (import.meta.env.PROD) {
     .then(({ autoUpdater }) => autoUpdater.checkForUpdatesAndNotify())
     .catch((e) => console.error('Failed check updates:', e));
 }
+
+export default mainWindow;
