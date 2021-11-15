@@ -12,6 +12,10 @@ interface ElectronApi {
     move: (srcPath: string, targetPath: string) => Promise<string>;
     rename: (srcPath: string, newName: string) => Promise<string>;
   };
+  core: {
+    init: () => Promise<boolean>;
+    newRootPath: () => Promise<boolean>;
+  };
 }
 
 declare interface Window {

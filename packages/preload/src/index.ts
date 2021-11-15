@@ -38,6 +38,16 @@ const api: ElectronApi = {
       return result;
     },
   },
+  core: {
+    init: async () => {
+      const result = await ipcRenderer.invoke('init');
+      return result;
+    },
+    newRootPath: async () => {
+      const result = await ipcRenderer.invoke('newRootPath');
+      return result;
+    },
+  },
 };
 
 contextBridge.exposeInMainWorld(apiKey, api);

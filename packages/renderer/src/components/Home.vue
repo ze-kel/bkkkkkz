@@ -1,8 +1,10 @@
 <template>
   <div ref="rootElement" class="root">
     <TopBar />
-    <div class="mainContainer">
-      <div class=""></div>
+    <div v-if="!gotFileTreePath" class="fullScreen">
+      <Welcome @set-path="newRootPath" />
+    </div>
+    <div v-if="gotFileTreePath" class="mainContainer">
       <LeftMenu />
       <div class="sourceSelect">
         <FileTree
@@ -24,17 +26,22 @@
 
 <script setup lang="ts">
 import { computed, getCurrentInstance, onMounted, ref, watch, watchEffect } from 'vue';
-import FileTree from './FileTree/FileTree.vue';
 import { useElectron } from '/@/use/electron';
+
 import type { IFolderTree } from '/@main/services/files';
+
 import _debounce from 'lodash-es/debounce';
+
 import Editor from './Editor/Editor.vue';
 import LeftMenu from './LeftMenu/LeftMenu.vue';
 import TopBar from './TopBar/TopBar.vue';
+import FileTree from './FileTree/FileTree.vue';
+import Welcome from './WelcomeScreen/Welcome.vue';
 
 const api = useElectron();
 const internalInstance = getCurrentInstance();
 
+const gotFileTreePath = ref<boolean>();
 const fileTree = ref<IFolderTree>();
 
 const openedPath = ref<IFolderTree['path'] | null>(null);
@@ -61,9 +68,27 @@ const changeFileTreeSize = (ev: any) => {
   }
 };
 
+const init = async () => {
+  const allGood = await api.core.init();
+  if (allGood) {
+    const initial = await api.files.getFileTree();
+    fileTree.value = initial;
+    gotFileTreePath.value = true;
+  } else {
+    gotFileTreePath.value = false;
+  }
+};
+
+const newRootPath = async () => {
+  const allGood = await api.core.newRootPath();
+  if (allGood) {
+    init();
+  }
+};
+
 onMounted(async () => {
-  const initial = await api.files.getFileTree();
-  fileTree.value = initial;
+  init();
+
   api.files.setTreeHandler(updateFolderTreeCallback);
 
   if (resizeHandle.value) {
@@ -118,5 +143,17 @@ onMounted(async () => {
   &:hover {
     background: var(--accent-main-grad);
   }
+}
+
+.fullScreen {
+  width: 100%;
+  height: calc(100% - var(--top-bar-size));
+  position: absolute;
+  top: var(--top-bar-size);
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--bg-secondary);
 }
 </style>

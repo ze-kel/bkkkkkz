@@ -1,5 +1,6 @@
 import * as path from 'path';
 import FileService from '../services/files';
+import GlobalSettings from '../services/globalSettings';
 
 import type { ILoadedFile } from '../services/files';
 
@@ -10,6 +11,9 @@ type IHandles = {
   [key: string]: IIpcHandle;
 };
 
+///
+/// Files
+///
 const getFileTree: IIpcHandle = async (_, path = './files') => {
   console.log(path);
   const files = await FileService.getFileTree(path);
@@ -49,6 +53,28 @@ const rename: IIpcHandle = async (_, srcPath: string, newName: string) => {
   return targetPath;
 };
 
+///
+/// Core
+///
+const init: IIpcHandle = async () => {
+  const rootPath = GlobalSettings.getRootPath();
+  if (rootPath) {
+    FileService.theWatcher.init(rootPath);
+    return true;
+  } else {
+    return false;
+  }
+};
+
+const newRootPath: IIpcHandle = async () => {
+  try {
+    await GlobalSettings.setRootPath();
+    return true;
+  } catch (e) {
+    return false;
+  }
+};
+
 const handles: IHandles = {
   getFileTree,
   loadFilesFromFolder,
@@ -56,6 +82,9 @@ const handles: IHandles = {
   closeWatcher,
   move,
   rename,
+
+  init,
+  newRootPath,
 };
 
 export default handles;
