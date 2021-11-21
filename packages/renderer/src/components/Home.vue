@@ -41,7 +41,7 @@ import Welcome from './WelcomeScreen/Welcome.vue';
 const api = useElectron();
 const internalInstance = getCurrentInstance();
 
-const gotFileTreePath = ref<boolean>();
+const gotFileTreePath = ref<boolean>(true);
 const fileTree = ref<IFolderTree>();
 
 const openedPath = ref<IFolderTree['path'] | null>(null);

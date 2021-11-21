@@ -1,6 +1,7 @@
 <template>
+  <Popup :opened="settingsOpened" @close="flipSettings"><Settings /></Popup>
   <div class="menu">
-    <div class="icon">
+    <div class="icon" @click="flipSettings">
       <svg
         width="24"
         height="24"
@@ -17,7 +18,16 @@
   </div>
 </template>
 
-<script lang="ts" setup></script>
+<script lang="ts" setup>
+import { ref } from 'vue';
+import Popup from '../Popup/Popup.vue';
+import Settings from '../Settings/Settings.vue';
+
+const settingsOpened = ref(false);
+const flipSettings = () => {
+  settingsOpened.value = !settingsOpened.value;
+};
+</script>
 
 <style lang="scss" scoped>
 .menu {

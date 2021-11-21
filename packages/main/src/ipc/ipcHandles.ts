@@ -2,7 +2,7 @@ import * as path from 'path';
 import FileService from '../services/files';
 import GlobalSettings from '../services/globalSettings';
 
-import type { ILoadedFile } from '../services/files';
+import type { ISavedFile } from '../services/files';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type IIpcHandle = (...args: any) => any;
@@ -26,7 +26,7 @@ const loadFilesFromFolder: IIpcHandle = async (_, path: string, recursive = fals
   return files;
 };
 
-const saveFileContent: IIpcHandle = async (_, file: ILoadedFile) => {
+const saveFileContent: IIpcHandle = async (_, file: ISavedFile) => {
   const currentTime = new Date();
 
   FileService.theWatcher.filesIgnore[file.path] = new Date(currentTime.getTime() + 3000);

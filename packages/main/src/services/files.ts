@@ -17,14 +17,18 @@ export type IFolderTree = {
   };
 };
 
-export interface ILoadedFile extends IBookData {
+export type IUnsavedFile = IBookData;
+
+export interface ISavedFile extends IUnsavedFile {
   name: string;
   path: string;
   content: string;
 }
 
-export type ILoadedFiles = {
-  [key: string]: ILoadedFile;
+export type IFile = ISavedFile;
+
+export type IFiles = {
+  [key: string]: IFile;
 };
 
 type IWatcher = {
@@ -163,7 +167,7 @@ const getFileTree = (basePath: string): IFolderTree => {
   return output;
 };
 
-const getFileContent = async (filePath: string): Promise<ILoadedFile> => {
+const getFileContent = async (filePath: string): Promise<ISavedFile> => {
   if (!fs.existsSync(filePath)) {
     throw new Error('No such file');
   }
@@ -171,11 +175,11 @@ const getFileContent = async (filePath: string): Promise<ILoadedFile> => {
   return makeBookFile(filePath, path.basename(filePath));
 };
 
-const loadFilesFromFolder = async (basePath: string, recursive: boolean): Promise<ILoadedFiles> => {
+const loadFilesFromFolder = async (basePath: string, recursive: boolean): Promise<IFiles> => {
   fs.ensureDirSync(basePath);
   const files = fs.readdirSync(basePath);
 
-  const result: ILoadedFiles = {};
+  const result: IFiles = {};
 
   await Promise.all(
     files.map(async (file: string) => {
@@ -198,7 +202,7 @@ const loadFilesFromFolder = async (basePath: string, recursive: boolean): Promis
   return result;
 };
 
-const saveFileContent = async (file: ILoadedFile): Promise<void> => {
+const saveFileContent = async (file: ISavedFile): Promise<void> => {
   const encoded = makeEncodedBook(file);
   await fs.writeFile(file.path, encoded);
 };
