@@ -1,16 +1,21 @@
 import * as matter from 'gray-matter';
-import type { ILoadedFile } from './files';
+import type { ISavedFile } from './files';
 
 export type DateRead = { started?: Date; finished?: Date };
 
 export type Status = 'read' | 'to-read' | 'reading';
 
+export type numbersOnlyString = string;
 export interface IBookData {
   title?: string;
-  subtitle?: string;
   author?: string;
   year?: number;
   myRating?: number;
+  read?: DateRead[];
+  tags?: string[];
+  cover?: string;
+  ISBN?: numbersOnlyString;
+  ISBN13?: numbersOnlyString;
 }
 
 const numberVerifier = (v: unknown) => {
@@ -31,10 +36,6 @@ const bookDataProps: BoodataProp[] = [
     verifier: stringVerifier,
   },
   {
-    key: 'subtitle',
-    verifier: stringVerifier,
-  },
-  {
     key: 'author',
     verifier: stringVerifier,
   },
@@ -48,10 +49,10 @@ const bookDataProps: BoodataProp[] = [
   },
 ];
 
-export const makeBookFile = (path: string, name: string): ILoadedFile => {
+export const makeBookFile = (path: string, name: string): ISavedFile => {
   const parsed = matter.read(path);
 
-  const file: ILoadedFile = {
+  const file: ISavedFile = {
     content: parsed.content,
     path,
     name,
@@ -67,7 +68,7 @@ export const makeBookFile = (path: string, name: string): ILoadedFile => {
   return file;
 };
 
-export const makeEncodedBook = (file: ILoadedFile): string => {
+export const makeEncodedBook = (file: ISavedFile): string => {
   const data: IBookData = {};
 
   bookDataProps.forEach((prop) => {

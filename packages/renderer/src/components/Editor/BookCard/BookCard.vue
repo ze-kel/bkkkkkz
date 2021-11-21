@@ -3,7 +3,6 @@
     <input v-model="authorProxy" placeholder="Author" class="author header-L" type="text" />
     <hr class="hr" />
     <input v-model="titleProxy" placeholder="Title" class="title header-L bold" type="text" />
-    <input v-model="subtitleProxy" placeholder="Subtitle" class="subtitle header-XS" type="text" />
     <div class="smallInputs">
       <SmallInput :value="ratingProxy" text="Rating" />
       <SmallInput :value="yearProxy" text="Year" />
@@ -15,7 +14,7 @@
 <script setup lang="ts">
 import { computed, getCurrentInstance, onMounted, ref, watch } from 'vue';
 import type { PropType } from 'vue';
-import type { ILoadedFile } from '/@main/services/files';
+import type { IFile } from '/@main/services/files';
 import _debounce from 'lodash-es/debounce';
 
 import SmallInput from './SmallInput/SmallInput.vue';
@@ -24,13 +23,13 @@ const internalInstance = getCurrentInstance();
 
 const props = defineProps({
   currentFile: {
-    type: Object as PropType<ILoadedFile>,
+    type: Object as PropType<IFile>,
     required: true,
   },
 });
 
 const emit = defineEmits<{
-  (e: 'update', path: string, key: keyof ILoadedFile, data: string): void;
+  (e: 'update', path: string, key: keyof IFile, data: string): void;
 }>();
 
 const contentProxy = computed({
@@ -51,13 +50,6 @@ const titleProxy = computed({
   get: () => props.currentFile.title,
   set: (val) => {
     if (internalInstance) internalInstance.emit('update', props.currentFile.path, 'title', val);
-  },
-});
-
-const subtitleProxy = computed({
-  get: () => props.currentFile.subtitle,
-  set: (val) => {
-    if (internalInstance) internalInstance.emit('update', props.currentFile.path, 'subtitle', val);
   },
 });
 
@@ -95,7 +87,7 @@ const fileNameProxy = computed({
   box-shadow: 0px 0px 50px -15px hsla(0, 0%, 2%, 0.05);
   box-shadow: 4px 4px 10px 0px hsla(0, 0%, 0%, 0.06);
   border-radius: 5px;
-  max-width: 333px;
+  width: 100%;
 }
 
 .title,

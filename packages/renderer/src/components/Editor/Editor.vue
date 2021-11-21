@@ -1,6 +1,14 @@
 <template>
-  <div class="root">
-    <div class="cardWrapper">
+  <div ref="rootElement" class="root">
+    <Popup
+      :opened="opened"
+      @close="
+        () => {
+          opened = false;
+        }
+      "
+    ></Popup>
+    <div class="cardWrapper" :style="cardWrapperStyle">
       <BookCard
         v-for="item in sortedFiles"
         :key="item.path"
@@ -14,14 +22,18 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch, watchEffect } from 'vue';
+import { computed, getCurrentInstance, onMounted, ref, watch, watchEffect } from 'vue';
 import type { PropType } from 'vue';
 import BookCard from './BookCard/BookCard.vue';
+import Popup from '../Popup/Popup.vue';
 import { useElectron } from '/@/use/electron';
 import _debounce from 'lodash-es/debounce';
-import type { ILoadedFile, ILoadedFiles } from '/@main/services/files';
+import type { IFile, IFiles } from '/@main/services/files';
 
 const api = useElectron();
+const internalInstance = getCurrentInstance();
+
+const opened = ref(false);
 
 const props = defineProps({
   openedPath: {
@@ -34,21 +46,21 @@ const props = defineProps({
   },
 });
 
-const files = ref<ILoadedFiles>({});
+const files = ref<IFiles>({});
 
 watchEffect(async () => {
   console.log('loading recursive is ', props.recursive);
   files.value = await api.files.loadFilesFromFolder(props.openedPath, props.recursive);
 });
 
-const updateHandlerApi = (_: Event, path: string, content: ILoadedFile) => {
+const updateHandlerApi = (_: Event, path: string, content: IFile) => {
   console.log('UPDATE HANDLER API', path);
   if (files.value[path]) {
     files.value[path] = content;
   }
 };
 
-const addHandlerApi = (_: Event, path: string, content: ILoadedFile) => {
+const addHandlerApi = (_: Event, path: string, content: IFile) => {
   console.log('ADD HANDLER API', path, content);
   files.value[path] = content;
 };
@@ -71,16 +83,14 @@ const sortedFiles = computed(() => {
   const arr = Object.values(files.value);
 
   arr.sort((a, b) => a.name.localeCompare(b.name));
-
-  console.log('sortedFiles upd', arr);
-
+  
   return arr;
 });
 
 const debouncedSave = _debounce(api.files.saveFileContent, 500);
 const debouncedRename = _debounce(api.files.rename, 500);
 
-const updateHandler = (path: string, key: keyof ILoadedFile, data: string | number) => {
+const updateHandler = (path: string, key: keyof IFile, data: string | number) => {
   if (!files.value[path]) {
     throw "Trying to edit file that isn't loaded";
   }
@@ -96,6 +106,26 @@ const renameHandler = (path: string, newName: string) => {
   }
   debouncedRename(path, newName);
 };
+
+const rootElement = ref<Element | null>(null);
+const numberOfColumns = ref(1);
+onMounted(async () => {
+  const updateNumberOfColumns = () => {
+    if (rootElement.value) {
+      numberOfColumns.value = Math.floor(rootElement.value.clientWidth / 300);
+    }
+  };
+
+  updateNumberOfColumns();
+
+  if (rootElement.value) {
+    new ResizeObserver(updateNumberOfColumns).observe(rootElement.value);
+    //window.addEventListener('resize', updateNumberOfColumns);
+  }
+});
+const cardWrapperStyle = computed(() => {
+  return { gridTemplateColumns: `repeat(${numberOfColumns.value}, 1fr)` };
+});
 </script>
 
 <style lang="scss" scoped>
@@ -109,10 +139,6 @@ const renameHandler = (path: string, newName: string) => {
 
 .cardWrapper {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
   grid-gap: 15px;
-  .card:not(:first-child) {
-    margin-top: 15px;
-  }
 }
 </style>
