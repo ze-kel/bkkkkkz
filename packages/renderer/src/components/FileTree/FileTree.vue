@@ -191,6 +191,7 @@ const saveName = async () => {
   overflow-x: hidden;
   border-radius: 3px;
   box-sizing: border-box;
+  white-space: nowrap;
 
   font-weight: 400;
 

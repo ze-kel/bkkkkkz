@@ -44,6 +44,8 @@ const close = () => {
   background: var(--bg-secondary);
   min-width: 450px;
   min-height: 200px;
+  box-sizing: border-box;
+  padding: 30px;
   border-radius: 5px;
   display: flex;
   align-items: center;

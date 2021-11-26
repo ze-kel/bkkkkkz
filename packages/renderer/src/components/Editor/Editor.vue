@@ -1,13 +1,6 @@
 <template>
   <div ref="rootElement" class="root">
-    <Popup
-      :opened="opened"
-      @close="
-        () => {
-          opened = false;
-        }
-      "
-    ></Popup>
+    <input v-model="searchQueryPreDebounce" class="search" placeholder="Search Books" />
     <div class="cardWrapper" :style="cardWrapperStyle">
       <BookCard
         v-for="item in sortedFiles"
@@ -15,7 +8,6 @@
         :current-file="item"
         class="card"
         @update="updateHandler"
-        @rename="renameHandler"
       />
     </div>
   </div>
@@ -28,7 +20,8 @@ import BookCard from './BookCard/BookCard.vue';
 import Popup from '../Popup/Popup.vue';
 import { useElectron } from '/@/use/electron';
 import _debounce from 'lodash-es/debounce';
-import type { IFile, IFiles } from '/@main/services/files';
+import type { IFile, IFiles, ISavedFile } from '/@main/services/files';
+import Fuse from 'fuse.js';
 
 const api = useElectron();
 const internalInstance = getCurrentInstance();
@@ -49,24 +42,20 @@ const props = defineProps({
 const files = ref<IFiles>({});
 
 watchEffect(async () => {
-  console.log('loading recursive is ', props.recursive);
   files.value = await api.files.loadFilesFromFolder(props.openedPath, props.recursive);
 });
 
 const updateHandlerApi = (_: Event, path: string, content: IFile) => {
-  console.log('UPDATE HANDLER API', path);
   if (files.value[path]) {
     files.value[path] = content;
   }
 };
 
 const addHandlerApi = (_: Event, path: string, content: IFile) => {
-  console.log('ADD HANDLER API', path, content);
   files.value[path] = content;
 };
 
 const removeHandlerApi = (_: Event, path: string) => {
-  console.log('REMOVE HANDLER API', path);
   if (files.value[path]) {
     delete files.value[path];
   }
@@ -78,13 +67,39 @@ onMounted(async () => {
   api.files.setLoadedRemoveHandler(removeHandlerApi);
 });
 
-const sortedFiles = computed(() => {
-  console.log('files upd', files.value);
-  const arr = Object.values(files.value);
+const filesArray = computed(() => {
+  return Object.values(files.value);
+});
 
-  arr.sort((a, b) => a.name.localeCompare(b.name));
-  
-  return arr;
+const fuse = new Fuse<IFile>(filesArray.value, {
+  keys: ['name', 'title', 'author', 'year'],
+  threshold: 0.2,
+});
+watchEffect(() => {
+  console.log('fuse upd', filesArray.value[0]);
+  fuse.setCollection(filesArray.value);
+});
+
+const searchQueryPreDebounce = ref('');
+const searchQuery = ref('');
+watch(
+  searchQueryPreDebounce,
+  _debounce(() => {
+    searchQuery.value = searchQueryPreDebounce.value;
+  }, 250),
+);
+const filteredFiles = computed(() => {
+  if (!searchQuery.value) return filesArray.value;
+  const res = fuse.search(searchQuery.value);
+  return res.map((el) => el.item);
+});
+
+const sortedFiles = computed(() => {
+  if (searchQuery.value) {
+    return filteredFiles.value;
+  } else {
+    return [...filteredFiles.value].sort((a, b) => a.name.localeCompare(b.name));
+  }
 });
 
 const debouncedSave = _debounce(api.files.saveFileContent, 500);
@@ -112,7 +127,7 @@ const numberOfColumns = ref(1);
 onMounted(async () => {
   const updateNumberOfColumns = () => {
     if (rootElement.value) {
-      numberOfColumns.value = Math.floor(rootElement.value.clientWidth / 300);
+      numberOfColumns.value = Math.floor(rootElement.value.clientWidth / 280);
     }
   };
 
@@ -135,6 +150,10 @@ const cardWrapperStyle = computed(() => {
   flex-grow: 4;
   flex-direction: column;
   padding: 20px 20px;
+}
+
+.search {
+  padding: 7px 12px;
 }
 
 .cardWrapper {

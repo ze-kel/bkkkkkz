@@ -1,12 +1,15 @@
 import * as path from 'path';
 import * as chokidar from 'chokidar';
 import * as fs from 'fs-extra';
-import mainWindow from '..';
 
 import { makeBookFile, makeEncodedBook } from './books';
 
 import type { FSWatcher } from 'chokidar';
 import type { IBookData } from './books';
+import type { BrowserWindow } from 'electron';
+
+const FILENAME_REGEX = /[\\/:"*?<>|]+/g;
+const DOTFILE_REGEX = /(?:^|[\\/])(\.(?!\.)[^\\/]+)$/;
 
 export type IFolderTree = {
   type: 'folder';
@@ -38,7 +41,7 @@ type IWatcher = {
   filesIgnore: {
     [key: string]: Date;
   };
-  init: (path: string) => Promise<void>;
+  init: (win: BrowserWindow, path: string) => Promise<void>;
   destroy: () => Promise<void>;
 };
 
@@ -47,23 +50,18 @@ const theWatcher: IWatcher = {
   watchPath: null,
   loadedPath: null,
   filesIgnore: {},
-  init: async function (initPath) {
+  init: async function (mainWindow, initPath) {
     if (this.watcher) {
       await this.destroy();
-    }
-
-    if (!mainWindow) {
-      throw 'no main Window something is fuckedup';
     }
 
     if (!fs.lstatSync(initPath).isDirectory()) {
       throw 'File path passed to watcher init';
     }
-
     this.watchPath = initPath;
 
     this.watcher = chokidar.watch(initPath, {
-      ignored: /(^|[/\\])\../, // ignore dotfiles
+      ignored: (path: string) => DOTFILE_REGEX.test(path),
       persistent: true,
     });
 
@@ -75,10 +73,10 @@ const theWatcher: IWatcher = {
       if (!this.watchPath) {
         throw 'watcher triggered but has no path data';
       }
-      const newFiles = await getFileTree(this.watchPath);
       if (!mainWindow) {
-        throw 'NO MAIN WINDOW WTF BRUH';
+        return;
       }
+      const newFiles = await getFileTree(this.watchPath);
       mainWindow.webContents.send('FOLDER_TREE', newFiles);
     };
 
@@ -95,15 +93,16 @@ const theWatcher: IWatcher = {
       }
 
       const newFile = await getFileContent(path);
+
       if (!mainWindow) {
-        throw 'NO MAIN WINDOW WTF BRUH';
+        return;
       }
       mainWindow.webContents.send('FILE_UPDATE', path, newFile);
     };
 
     const sendUnlink = (unlinkedPath: string) => {
       if (!mainWindow) {
-        throw 'NO MAIN WINDOW WTF BRUH';
+        return;
       }
 
       if (!this.loadedPath) return;
@@ -117,7 +116,7 @@ const theWatcher: IWatcher = {
 
     const sendAdd = async (added: string) => {
       if (!mainWindow) {
-        throw 'NO MAIN WINDOW WTF BRUH';
+        return;
       }
 
       if (!this.loadedPath) return;
@@ -159,6 +158,7 @@ const getFileTree = (basePath: string): IFolderTree => {
   };
 
   files.forEach((file: string) => {
+    if (DOTFILE_REGEX.test(file)) return;
     if (fs.statSync(path.join(basePath, file)).isDirectory()) {
       output.content[file] = getFileTree(path.join(basePath, file));
     }
@@ -184,6 +184,8 @@ const loadFilesFromFolder = async (basePath: string, recursive: boolean): Promis
   await Promise.all(
     files.map(async (file: string) => {
       const fullPath = path.join(basePath, file);
+      if (DOTFILE_REGEX.test(file)) return;
+
       if (fs.statSync(fullPath).isDirectory()) {
         if (recursive) {
           const moreFiles = await loadFilesFromFolder(fullPath, recursive);
@@ -207,6 +209,28 @@ const saveFileContent = async (file: ISavedFile): Promise<void> => {
   await fs.writeFile(file.path, encoded);
 };
 
+const saveNewFile = async (basePath: string, file: IUnsavedFile): Promise<void> => {
+  const baseName = `${file.author ? file.author : 'unknown'} — ${
+    file.title ? file.title : 'unknown'
+  }`.replace(FILENAME_REGEX, '');
+  let newName = baseName;
+  let uniquenessNumber = 2;
+
+  while (fs.existsSync(path.join(basePath, newName))) {
+    newName = `${baseName} (${uniquenessNumber})`;
+    uniquenessNumber++;
+  }
+
+  const fileToSave: ISavedFile = {
+    ...file,
+    name: newName,
+    path: path.join(basePath, newName),
+    content: '',
+  };
+
+  await saveFileContent(fileToSave);
+};
+
 const move = async (srcPath: string, targetPath: string): Promise<void> => {
   if (targetPath === srcPath) {
     return;
@@ -220,5 +244,6 @@ export default {
   getFileContent,
   loadFilesFromFolder,
   saveFileContent,
+  saveNewFile,
   move,
 };

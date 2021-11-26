@@ -1,4 +1,5 @@
-import type { IFolder, ILoadedFile, ILoadedFiles } from '../../main/src/services/files';
+import type { IFolder, ILoadedFile, ILoadedFiles } from '/@main/services/files';
+import type { ILocalSettings } from '/@main/services/localSettings';
 
 interface ElectronApi {
   files: {
@@ -14,7 +15,15 @@ interface ElectronApi {
   };
   core: {
     init: () => Promise<boolean>;
+  };
+  settings: {
     newRootPath: () => Promise<boolean>;
+    getSettings: () => Promise<ILocalSettings>;
+    saveSettings: (_, newSettings: ILocalSettings) => Promise<void>;
+    newImagesPath: () => Promise<ILocalSettings>;
+  };
+  parsers: {
+    parseGoodreadsCsv: () => Promise<void>;
   };
 }
 
