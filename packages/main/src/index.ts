@@ -1,7 +1,7 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
 import { join } from 'path';
 import { URL } from 'url';
-import IpcHandles from './ipc/ipcHandles';
+import initHandles from './ipc/ipcHandles';
 
 const isSingleInstance = app.requestSingleInstanceLock();
 
@@ -90,9 +90,12 @@ app
   .then(createWindow)
   .catch((e) => console.error('Failed create window:', e));
 
-app
-  .whenReady()
-  .then(() => Object.entries(IpcHandles).forEach((pair) => ipcMain.handle(pair[0], pair[1])));
+app.whenReady().then(() => {
+  if (!mainWindow) {
+    throw 'No main window, but app is ready, something is really wrong';
+  }
+  initHandles(ipcMain, mainWindow);
+});
 
 // Auto-updates
 if (import.meta.env.PROD) {

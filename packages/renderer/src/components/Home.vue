@@ -5,7 +5,7 @@
       <Welcome @set-path="newRootPath" />
     </div>
     <div v-if="gotFileTreePath" class="mainContainer">
-      <LeftMenu />
+      <LeftMenu @change-root-path="init" />
       <div class="sourceSelect">
         <FileTree
           v-if="fileTree"
@@ -37,6 +37,7 @@ import LeftMenu from './LeftMenu/LeftMenu.vue';
 import TopBar from './TopBar/TopBar.vue';
 import FileTree from './FileTree/FileTree.vue';
 import Welcome from './WelcomeScreen/Welcome.vue';
+import ContextMenu from './_UI/ContextMenu.vue';
 
 const api = useElectron();
 const internalInstance = getCurrentInstance();
@@ -80,31 +81,25 @@ const init = async () => {
 };
 
 const newRootPath = async () => {
-  const allGood = await api.core.newRootPath();
+  const allGood = await api.settings.newRootPath();
   if (allGood) {
     init();
   }
 };
 
 onMounted(async () => {
-  init();
+  await init();
 
   api.files.setTreeHandler(updateFolderTreeCallback);
 
-  if (resizeHandle.value) {
-    resizeHandle.value.addEventListener('mousedown', () => {
-      isResizing.value = true;
-      if (rootElement.value) {
-        rootElement.value.addEventListener('mousemove', changeFileTreeSize);
-        rootElement.value.addEventListener('mouseup', () => {
-          isResizing.value = false;
-          if (rootElement.value) {
-            rootElement.value.removeEventListener('mousemove', changeFileTreeSize);
-          }
-        });
-      }
+  resizeHandle.value?.addEventListener('mousedown', () => {
+    isResizing.value = true;
+    rootElement.value?.addEventListener('mousemove', changeFileTreeSize);
+    rootElement.value?.addEventListener('mouseup', () => {
+      isResizing.value = false;
+      rootElement.value?.removeEventListener('mousemove', changeFileTreeSize);
     });
-  }
+  });
 });
 </script>
 

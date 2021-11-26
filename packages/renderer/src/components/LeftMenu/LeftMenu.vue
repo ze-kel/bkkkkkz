@@ -1,5 +1,7 @@
 <template>
-  <Popup :opened="settingsOpened" @close="flipSettings"><Settings /></Popup>
+  <Popup :opened="settingsOpened" @close="flipSettings"
+    ><Settings @change-root-path="emit('changeRootPath')"
+  /></Popup>
   <div class="menu">
     <div class="icon" @click="flipSettings">
       <svg
@@ -27,6 +29,9 @@ const settingsOpened = ref(false);
 const flipSettings = () => {
   settingsOpened.value = !settingsOpened.value;
 };
+const emit = defineEmits<{
+  (e: 'changeRootPath'): void;
+}>();
 </script>
 
 <style lang="scss" scoped>
@@ -35,6 +40,7 @@ const flipSettings = () => {
   flex-direction: column-reverse;
   align-items: center;
   padding: 15px 0;
+  flex-shrink: 0;
   width: 50px;
   background-color: var(--bg-secondary);
 }

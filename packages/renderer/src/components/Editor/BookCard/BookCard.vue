@@ -1,13 +1,12 @@
 <template>
   <div class="bookCard">
-    <input v-model="authorProxy" placeholder="Author" class="author header-L" type="text" />
+    <div placeholder="Author" class="author header-L" type="text">{{ authorProxy }}</div>
     <hr class="hr" />
-    <input v-model="titleProxy" placeholder="Title" class="title header-L bold" type="text" />
+    <div placeholder="Title" class="title header-L bold" type="text">{{ mainTitle }}</div>
     <div class="smallInputs">
       <SmallInput :value="ratingProxy" text="Rating" />
       <SmallInput :value="yearProxy" text="Year" />
     </div>
-    <input v-if="false" v-model.lazy="fileNameProxy" class="fileName header-XS" />
   </div>
 </template>
 
@@ -52,6 +51,8 @@ const titleProxy = computed({
     if (internalInstance) internalInstance.emit('update', props.currentFile.path, 'title', val);
   },
 });
+
+const mainTitle = computed(() => titleProxy.value?.split(':')[0]);
 
 const yearProxy = computed({
   get: () => props.currentFile.year,

@@ -43,8 +43,28 @@ const api: ElectronApi = {
       const result = await ipcRenderer.invoke('init');
       return result;
     },
+  },
+  settings: {
     newRootPath: async () => {
       const result = await ipcRenderer.invoke('newRootPath');
+      return result;
+    },
+    getSettings: async () => {
+      const result = await ipcRenderer.invoke('getSettings');
+      return result;
+    },
+    saveSettings: (newSettings) => {
+      const result = ipcRenderer.invoke('saveSettings', newSettings);
+      return result;
+    },
+    newImagesPath: async () => {
+      const result = ipcRenderer.invoke('newImagesPath');
+      return result;
+    },
+  },
+  parsers: {
+    parseGoodreadsCsv: async () => {
+      const result = await ipcRenderer.invoke('parseGoodreadsCsv');
       return result;
     },
   },
