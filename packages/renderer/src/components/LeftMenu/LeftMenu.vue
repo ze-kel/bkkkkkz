@@ -1,7 +1,7 @@
 <template>
-  <Popup :opened="settingsOpened" @close="flipSettings"
-    ><Settings @change-root-path="emit('changeRootPath')"
-  /></Popup>
+  <Popup :opened="settingsOpened" @close="flipSettings">
+    <Settings @change-root-path="emit('changeRootPath')" />
+  </Popup>
   <div class="menu">
     <div class="icon" @click="flipSettings">
       <svg
@@ -22,7 +22,7 @@
 
 <script lang="ts" setup>
 import { ref } from 'vue';
-import Popup from '../Popup/Popup.vue';
+import Popup from '../_UI/Popup.vue';
 import Settings from '../Settings/Settings.vue';
 
 const settingsOpened = ref(false);

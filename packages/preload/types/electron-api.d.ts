@@ -12,6 +12,7 @@ interface ElectronApi {
     setLoadedRemoveHandler: (callback: (_, path: string) => void) => void;
     move: (srcPath: string, targetPath: string) => Promise<string>;
     rename: (srcPath: string, newName: string) => Promise<string>;
+    delete: (path: string) => void;
   };
   core: {
     init: () => Promise<boolean>;

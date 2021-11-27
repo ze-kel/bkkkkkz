@@ -17,7 +17,7 @@
 import { computed, getCurrentInstance, onMounted, ref, watch, watchEffect } from 'vue';
 import type { PropType } from 'vue';
 import BookCard from './BookCard/BookCard.vue';
-import Popup from '../Popup/Popup.vue';
+import Popup from '../_UI/Popup.vue';
 import { useElectron } from '/@/use/electron';
 import _debounce from 'lodash-es/debounce';
 import type { IFile, IFiles, ISavedFile } from '/@main/services/files';
@@ -135,7 +135,6 @@ onMounted(async () => {
 
   if (rootElement.value) {
     new ResizeObserver(updateNumberOfColumns).observe(rootElement.value);
-    //window.addEventListener('resize', updateNumberOfColumns);
   }
 });
 const cardWrapperStyle = computed(() => {

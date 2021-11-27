@@ -46,14 +46,17 @@ const initHandles = (ipcMain: Electron.IpcMain, mainWindow: BrowserWindow) => {
       // TargetPath we get looks like 'pathto/folder'. fs.move wants 'pathto/folder/fileName.md'
       targetPath = path.join(targetPath, path.basename(srcPath));
 
-      await FileService.move(srcPath, targetPath);
+      await FileService.moveFile(srcPath, targetPath);
       return targetPath;
     },
     rename: async (_, srcPath: string, newName: string) => {
       const onlyDir = path.dirname(srcPath);
       const targetPath = path.join(onlyDir, newName);
-      await FileService.move(srcPath, targetPath);
+      await FileService.moveFile(srcPath, targetPath);
       return targetPath;
+    },
+    delete: async (_, path: string) => {
+      await FileService.deleteFile(path);
     },
 
     ///
