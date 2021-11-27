@@ -1,6 +1,7 @@
 <template>
   <div ref="rootElement" class="root">
     <TopBar />
+    <ContextMenu />
     <div v-if="!gotFileTreePath" class="fullScreen">
       <Welcome @set-path="newRootPath" />
     </div>

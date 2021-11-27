@@ -22,7 +22,7 @@
       @dragover.prevent
       @click.exact="select(content, false)"
       @click.alt.exact="select(content, true)"
-      @click.right.exact="startRenaming"
+      @click.right.exact="openContextMenu"
     >
       <div
         v-if="!isRoot"
@@ -79,6 +79,8 @@ import { getCurrentInstance, ref, watchEffect } from 'vue';
 import type { PropType } from 'vue';
 import type { IFolderTree } from '/@main/services/files';
 import { useElectron } from '/@/use/electron';
+import { openMenu } from '/@/use/contextMenu';
+import type { ContextMenu } from '/@/use/contextMenu';
 
 const internalInstance = getCurrentInstance();
 
@@ -165,7 +167,6 @@ watchEffect(
 );
 
 const startRenaming = () => {
-  console.log('onrename');
   isRenaming.value = true;
   newName.value = props.content.name;
 };
@@ -175,6 +176,24 @@ const saveName = async () => {
     const newPath = await electron.files.rename(props.content.path, newName.value);
   }
   isRenaming.value = false;
+};
+
+///
+/// Right click
+///
+const menu: ContextMenu = [
+  {
+    label: 'Rename',
+    handler: startRenaming,
+  },
+  {
+    label: 'Delete',
+    handler: () => electron.files.delete(props.content.path),
+  },
+];
+
+const openContextMenu = (e: MouseEvent) => {
+  openMenu(menu, e.x, e.y);
 };
 </script>
 

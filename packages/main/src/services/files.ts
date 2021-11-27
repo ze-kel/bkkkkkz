@@ -3,6 +3,7 @@ import * as chokidar from 'chokidar';
 import * as fs from 'fs-extra';
 
 import { makeBookFile, makeEncodedBook } from './books';
+import Settings from './settings';
 
 import type { FSWatcher } from 'chokidar';
 import type { IBookData } from './books';
@@ -231,11 +232,19 @@ const saveNewFile = async (basePath: string, file: IUnsavedFile): Promise<void> 
   await saveFileContent(fileToSave);
 };
 
-const move = async (srcPath: string, targetPath: string): Promise<void> => {
+const moveFile = async (srcPath: string, targetPath: string): Promise<void> => {
   if (targetPath === srcPath) {
     return;
   }
   await fs.move(srcPath, targetPath);
+};
+
+const deleteFile = async (delPath: string): Promise<void> => {
+  const folderFolDeleted = '/.trash/';
+  const root = Settings.getRootPath();
+  if (!root) return;
+  const targetPath = path.join(root, folderFolDeleted, path.basename(delPath));
+  await fs.move(delPath, targetPath);
 };
 
 export default {
@@ -245,5 +254,6 @@ export default {
   loadFilesFromFolder,
   saveFileContent,
   saveNewFile,
-  move,
+  deleteFile,
+  moveFile,
 };
