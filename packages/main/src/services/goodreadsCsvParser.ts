@@ -9,8 +9,6 @@ import type { IUnsavedFile } from './files';
 import { parse, format } from 'date-fns';
 
 const ParseGoodreadsCSV = async (csvPath: string): Promise<Array<IUnsavedFile>> => {
-  console.log(csvPath);
-  console.log('extname', path.extname(csvPath));
   if (path.extname(csvPath) !== '.csv') {
     throw 'Not a csv';
   }

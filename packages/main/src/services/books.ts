@@ -1,7 +1,7 @@
 import * as matter from 'gray-matter';
 import type { ISavedFile } from './files';
 
-export type DateRead = { started?: Date; finished?: Date };
+export type IDateRead = { started?: Date; finished?: Date };
 
 export type Status = 'read' | 'to-read' | 'reading';
 
@@ -11,7 +11,7 @@ export interface IBookData {
   author?: string;
   year?: number;
   myRating?: number;
-  read?: DateRead[];
+  read?: IDateRead[];
   tags?: string[];
   cover?: string;
   ISBN?: numbersOnlyString;

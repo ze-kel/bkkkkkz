@@ -2,7 +2,7 @@
   <div class="smallInput">
     <div class="text-S text">{{ text }}</div>
     <hr class="hr" />
-    <input v-if="value" v-model="proxyValue" type="number" class="input header-S" />
+    <div type="number" class="input header-S">{{ displayed }}</div>
   </div>
 </template>
 
@@ -20,18 +20,15 @@ const props = defineProps({
     type: String,
     required: true,
   },
-});
-
-const emit = defineEmits<{
-  (e: 'update', newRating: number): void;
-}>();
-
-const proxyValue = computed({
-  get: () => props.value,
-  set: (val) => {
-    if (internalInstance) internalInstance.emit('update', val);
+  placeholder: {
+    type: String,
+    default: '—',
   },
 });
+
+const displayed = computed(() =>
+  props.value && props.value > 0 ? props.value : props.placeholder,
+);
 </script>
 
 <style lang="scss" scoped>

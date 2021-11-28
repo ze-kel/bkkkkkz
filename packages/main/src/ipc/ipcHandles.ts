@@ -95,12 +95,10 @@ const initHandles = (ipcMain: Electron.IpcMain, mainWindow: BrowserWindow) => {
       const parsingResult = await ParseGoodreadsCSV(file.filePaths[0]);
 
       const saveTo = path.join(rootPath, `GoodReads Import ${format(new Date(), 'MM-dd HH-mm')}`);
-      console.log('saveTo', saveTo);
 
       fs.ensureDirSync(saveTo);
 
       parsingResult.forEach(async (book) => {
-        console.log('saving', book.title);
         await FileService.saveNewFile(saveTo, book);
       });
     },
