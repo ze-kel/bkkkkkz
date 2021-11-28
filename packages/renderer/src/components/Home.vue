@@ -6,21 +6,25 @@
       <Welcome @set-path="newRootPath" />
     </div>
     <div v-if="gotFileTreePath" class="mainContainer">
-      <LeftMenu @change-root-path="init" />
-      <div class="sourceSelect">
+      <div class="leftMenuContainer">
+        <LeftMenu @change-root-path="init" />
+      </div>
+      <div class="sourceSelectContainer">
         <FileTree
           v-if="fileTree"
           :content="fileTree"
           :opened-entity="openedPath"
-          :style="{ minWidth: `${fileTreeSize}px`, width: `${fileTreeSize}px` }"
+          :style="{ width: `${fileTreeSize}px` }"
           @select="(entity: IFolderTree, recursive: boolean) => {
           openedPath = entity.path
           recursivePathLoading = recursive
         }"
         />
       </div>
-      <div ref="resizeHandle" :class="['resizeHandle', isResizing && 'show']"></div>
-      <Editor v-if="openedPath" :opened-path="openedPath" :recursive="recursivePathLoading" />
+      <div class="editorContainer">
+        <div ref="resizeHandle" :class="['resizeHandle', isResizing && 'show']"></div>
+        <Editor v-if="openedPath" :opened-path="openedPath" :recursive="recursivePathLoading" />
+      </div>
     </div>
   </div>
 </template>
@@ -64,9 +68,9 @@ const changeFileTreeSize = (ev: any) => {
   console.log(ev);
   const newVal = ev.clientX;
   if (newVal < 500 && newVal > 150) {
-    // 50 is left menu, 14 is sourceSelect padding
+    // 40 is left menu, 14 is sourceSelect padding, 3 is half the size of resize handle
     // TODO: make it dynamically calculated
-    fileTreeSize.value = ev.clientX - 50 - 14;
+    fileTreeSize.value = ev.clientX - 40 - 14 - 3;
   }
 };
 
@@ -108,6 +112,7 @@ onMounted(async () => {
 .root {
   display: flex;
   flex-direction: column;
+  background-color: var(--bg-secondary);
 }
 
 .mainContainer {
@@ -116,16 +121,27 @@ onMounted(async () => {
   height: calc(100vh - var(--top-bar-size));
 }
 
-.sourceSelect {
+.leftMenuContainer {
+  display: flex;
+  flex-direction: column-reverse;
+}
+
+.sourceSelectContainer {
   padding: 25px 7px;
   box-sizing: border-box;
 
-  background-color: var(--bg-secondary);
-
   .filesHeader {
     margin-top: 20px;
-    margin-bottom: 10px;
+    margin-bottom: 7px;
   }
+}
+
+.editorContainer {
+  display: flex;
+  width: 100%;
+  border-radius: 10px 0 0 0;
+  overflow: hidden;
+  background-color: var(--bg-main);
 }
 
 .resizeHandle {

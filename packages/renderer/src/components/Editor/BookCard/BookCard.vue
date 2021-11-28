@@ -1,8 +1,8 @@
 <template>
   <div class="bookCard">
-    <div placeholder="Author" class="author header-L" type="text">{{ authorProxy }}</div>
+    <div placeholder="Title" class="title header-L" type="text">{{ mainTitle }}</div>
     <hr class="hr" />
-    <div placeholder="Title" class="title header-L bold" type="text">{{ mainTitle }}</div>
+    <div placeholder="Author" class="author header-M" type="text">{{ authorProxy }}</div>
     <div class="smallInputs">
       <SmallInput :value="ratingProxy" text="Rating" />
       <SmallInput :value="yearProxy" text="Year" />
@@ -102,7 +102,8 @@ const fileNameProxy = computed({
 .hr {
   width: 66%;
   height: 2px;
-  background: var(--accent-main-grad);
+  border-radius: 2px;
+  background: var(--bg-secondary);
   margin: 7px 0 4px 0;
 }
 

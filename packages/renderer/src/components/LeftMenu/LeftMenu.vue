@@ -41,8 +41,9 @@ const emit = defineEmits<{
   align-items: center;
   padding: 15px 0;
   flex-shrink: 0;
-  width: 50px;
-  background-color: var(--bg-secondary);
+  width: 40px;
+  background: var(--bg-main);
+  border-radius: 0 10px 0 0;
 }
 
 .icon {

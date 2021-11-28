@@ -1,5 +1,5 @@
 <template>
-  <div ref="rootElement" class="root">
+  <div ref="rootElement" class="editorRoot">
     <input v-model="searchQueryPreDebounce" class="search" placeholder="Search Books" />
     <div class="cardWrapper" :style="cardWrapperStyle">
       <BookCard
@@ -143,7 +143,7 @@ const cardWrapperStyle = computed(() => {
 </script>
 
 <style lang="scss" scoped>
-.root {
+.editorRoot {
   overflow-y: scroll;
   display: flex;
   flex-grow: 4;
