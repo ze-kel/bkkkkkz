@@ -1,6 +1,6 @@
 <template>
-  <div v-if="opened" class="overlay" @click.self="close">
-    <div class="popup">
+  <div v-if="opened" class="overlay" @mousedown.self="close">
+    <div class="popup" @click.stop="">
       <slot></slot>
     </div>
   </div>

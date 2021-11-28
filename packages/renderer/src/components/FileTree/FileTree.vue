@@ -132,7 +132,6 @@ const onDrop = async (e: DragEvent, targetPath: string) => {
   if (!draggedPath) {
     throw 'no dragged path';
   }
-  console.log('dragTo', targetPath);
   const newPath = await electron.files.move(draggedPath, targetPath);
 };
 

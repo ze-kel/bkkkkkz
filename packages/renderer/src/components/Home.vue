@@ -23,7 +23,7 @@
       </div>
       <div class="editorContainer">
         <div ref="resizeHandle" :class="['resizeHandle', isResizing && 'show']"></div>
-        <Editor v-if="openedPath" :opened-path="openedPath" :recursive="recursivePathLoading" />
+        <BookView v-if="openedPath" :opened-path="openedPath" :recursive="recursivePathLoading" />
       </div>
     </div>
   </div>
@@ -37,7 +37,7 @@ import type { IFolderTree } from '/@main/services/files';
 
 import _debounce from 'lodash-es/debounce';
 
-import Editor from './Editor/Editor.vue';
+import BookView from './BookView/BookView.vue';
 import LeftMenu from './LeftMenu/LeftMenu.vue';
 import TopBar from './TopBar/TopBar.vue';
 import FileTree from './FileTree/FileTree.vue';
@@ -65,7 +65,6 @@ const rootElement = ref<Element | null>(null);
 const isResizing = ref<boolean>(false);
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const changeFileTreeSize = (ev: any) => {
-  console.log(ev);
   const newVal = ev.clientX;
   if (newVal < 500 && newVal > 150) {
     // 40 is left menu, 14 is sourceSelect padding, 3 is half the size of resize handle
