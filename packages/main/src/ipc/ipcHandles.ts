@@ -16,6 +16,11 @@ type IHandles = {
   [key: string]: IIpcHandle;
 };
 
+// eslint-disable-next-line @typescript-eslint/ban-types
+const callWithoutEvent = (func: Function) => {
+  return (_: never, ...args: unknown[]) => func(...args);
+};
+
 const initHandles = (ipcMain: Electron.IpcMain, mainWindow: BrowserWindow) => {
   const handles: IHandles = {
     ///
@@ -39,25 +44,10 @@ const initHandles = (ipcMain: Electron.IpcMain, mainWindow: BrowserWindow) => {
 
       await FileService.saveFileContent(file);
     },
-    closeWatcher: async () => {
-      await FileService.theWatcher.destroy();
-    },
-    move: async (_, srcPath: string, targetPath: string) => {
-      // TargetPath we get looks like 'pathto/folder'. fs.move wants 'pathto/folder/fileName.md'
-      targetPath = path.join(targetPath, path.basename(srcPath));
-
-      await FileService.moveFile(srcPath, targetPath);
-      return targetPath;
-    },
-    rename: async (_, srcPath: string, newName: string) => {
-      const onlyDir = path.dirname(srcPath);
-      const targetPath = path.join(onlyDir, newName);
-      await FileService.moveFile(srcPath, targetPath);
-      return targetPath;
-    },
-    delete: async (_, path: string) => {
-      await FileService.deleteFile(path);
-    },
+    closeWatcher: FileService.theWatcher.destroy,
+    move: callWithoutEvent(FileService.moveToFolder),
+    rename: callWithoutEvent(FileService.rename),
+    delete: callWithoutEvent(FileService.remove),
 
     ///
     /// Core
@@ -71,7 +61,7 @@ const initHandles = (ipcMain: Electron.IpcMain, mainWindow: BrowserWindow) => {
         return false;
       }
     },
-    newRootPath: async () => await Setting.setRootPath(),
+    newRootPath: Setting.setRootPath,
     ///
     /// Settings
     ///

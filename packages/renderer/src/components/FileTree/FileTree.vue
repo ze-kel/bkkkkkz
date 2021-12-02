@@ -54,8 +54,8 @@
           ref="inputRename"
           v-model="newName"
           class="name input"
-          @focusout="saveName"
-          @keyup.enter="saveName"
+          @blur="saveName"
+          @keyup.enter="removeFocus"
       /></template>
     </div>
     <div
@@ -155,15 +155,18 @@ const inputRename = ref(null);
 
 watchEffect(
   () => {
-    if (inputRename.value) {
-      //@ts-expect-error TODO: figure out proper typing
-      inputRename.value.focus();
-    }
+    //@ts-expect-error TODO: figure out proper typing
+    inputRename.value?.focus();
   },
   {
     flush: 'post',
   },
 );
+
+const removeFocus = () => {
+  //@ts-expect-error TODO: figure out proper typing
+  inputRename.value?.blur();
+};
 
 const startRenaming = () => {
   isRenaming.value = true;
