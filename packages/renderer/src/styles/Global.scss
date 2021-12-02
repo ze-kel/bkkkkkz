@@ -2,7 +2,7 @@
 @import 'Variables.scss';
 
 ::-webkit-scrollbar {
-  width: 12px;
+  width: var(--scroll-bar-size);
 }
 ::-webkit-scrollbar-thumb {
   background: rgb(102, 102, 102);

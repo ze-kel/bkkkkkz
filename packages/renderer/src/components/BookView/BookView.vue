@@ -1,5 +1,5 @@
 <template>
-  <div ref="rootElement" class="editorRoot">
+  <div ref="rootElement" class="bookViewRoot">
     <input v-model="searchQueryPreDebounce" class="search" placeholder="Search Books" />
     <div class="cardWrapper" :style="cardWrapperStyle">
       <BookItem
@@ -14,7 +14,17 @@
 </template>
 
 <script setup lang="ts">
-import { computed, getCurrentInstance, onMounted, ref, watch, watchEffect } from 'vue';
+import {
+  computed,
+  getCurrentInstance,
+  onMounted,
+  onRenderTracked,
+  onRenderTriggered,
+  onUpdated,
+  ref,
+  watch,
+  watchEffect,
+} from 'vue';
 import type { PropType } from 'vue';
 import BookItem from './BookItem/BookItem.vue';
 import Popup from '../_UI/Popup.vue';
@@ -141,7 +151,7 @@ const cardWrapperStyle = computed(() => {
 </script>
 
 <style lang="scss" scoped>
-.editorRoot {
+.bookViewRoot {
   overflow-y: scroll;
   display: flex;
   flex-grow: 4;
