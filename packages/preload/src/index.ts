@@ -34,7 +34,9 @@ const api: ElectronApi = {
       return result;
     },
     rename: async (srcPath, newName) => {
+      console.log('call rename');
       const result = await ipcRenderer.invoke('rename', srcPath, newName);
+      console.log('called rename', result);
       return result;
     },
     delete: async (path) => {

@@ -232,14 +232,20 @@ const saveNewFile = async (basePath: string, file: IUnsavedFile): Promise<void> 
   await saveFileContent(fileToSave);
 };
 
-const moveFile = async (srcPath: string, targetPath: string): Promise<void> => {
-  if (targetPath === srcPath) {
-    return;
-  }
-  await fs.move(srcPath, targetPath);
+const moveToFolder = async (moveItemPath: string, toFolderPath: string): Promise<void> => {
+  const target = path.join(toFolderPath, path.basename(moveItemPath));
+  if (target === moveItemPath) return;
+  await fs.move(moveItemPath, target);
 };
 
-const deleteFile = async (delPath: string): Promise<void> => {
+const rename = async (srcPath: string, newName: string) => {
+  const onlyDir = path.dirname(srcPath);
+  const targetPath = path.join(onlyDir, newName);
+  await fs.move(srcPath, targetPath);
+  return targetPath;
+};
+
+const remove = async (delPath: string): Promise<void> => {
   const folderFolDeleted = '/.trash/';
   const root = Settings.getRootPath();
   if (!root) return;
@@ -254,6 +260,7 @@ export default {
   loadFilesFromFolder,
   saveFileContent,
   saveNewFile,
-  deleteFile,
-  moveFile,
+  remove,
+  moveToFolder,
+  rename,
 };
