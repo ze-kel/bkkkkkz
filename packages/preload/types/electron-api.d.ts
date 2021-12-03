@@ -1,19 +1,30 @@
 import type { IFolder, ILoadedFile, ILoadedFiles } from '/@main/services/files';
 import type { ILocalSettings } from '/@main/services/localSettings';
 
+import type {
+  I_FILE_ADD,
+  I_FILE_REMOVE,
+  I_FILE_UPDATE,
+  I_TREE_UPDATE,
+} from '/@main/ipc/webContents';
+
 interface ElectronApi {
   files: {
     getFileTree: (path?: string) => Promise<IFolder>;
-    setTreeHandler: (callback: (_, newTree: IFolder) => void) => void;
     loadFilesFromFolder: (path: string, recursive?: boolean) => Promise<ILoadedFiles>;
     saveFileContent: (file: ILoadedFile) => Promise<void>;
-    setFileHandler: (callback: (_, path: string, fileContent: ILoadedFile) => void) => void;
-    setLoadedAddHandler: (callback: (_, path: string, fileContent: ILoadedFile) => void) => void;
-    setLoadedRemoveHandler: (callback: (_, path: string) => void) => void;
+
     move: (srcPath: string, targetPath: string) => Promise<string>;
     rename: (srcPath: string, newName: string) => Promise<string>;
     delete: (path: string) => void;
   };
+  subscriptions: {
+    TREE_UPDATE: (callback: I_TREE_UPDATE) => void;
+    FILE_UPDATE: (callback: I_FILE_UPDATE) => void;
+    FILE_ADD: (callback: I_FILE_ADD) => void;
+    FILE_REMOVE: (callback: I_FILE_REMOVE) => void;
+  };
+
   core: {
     init: () => Promise<boolean>;
   };
