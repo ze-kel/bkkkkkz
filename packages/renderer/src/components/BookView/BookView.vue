@@ -55,26 +55,26 @@ watchEffect(async () => {
   files.value = await api.files.loadFilesFromFolder(props.openedPath, props.recursive);
 });
 
-const updateHandlerApi = (_: Event, path: string, content: IFile) => {
+const updateHandlerApi = (path: string, content: IFile) => {
   if (files.value[path]) {
     files.value[path] = content;
   }
 };
 
-const addHandlerApi = (_: Event, path: string, content: IFile) => {
+const addHandlerApi = (path: string, content: IFile) => {
   files.value[path] = content;
 };
 
-const removeHandlerApi = (_: Event, path: string) => {
+const removeHandlerApi = (path: string) => {
   if (files.value[path]) {
     delete files.value[path];
   }
 };
 
 onMounted(async () => {
-  api.files.setFileHandler(updateHandlerApi);
-  api.files.setLoadedAddHandler(addHandlerApi);
-  api.files.setLoadedRemoveHandler(removeHandlerApi);
+  api.subscriptions.FILE_UPDATE(updateHandlerApi);
+  api.subscriptions.FILE_ADD(addHandlerApi);
+  api.subscriptions.FILE_REMOVE(removeHandlerApi);
 });
 
 const filesArray = computed(() => {

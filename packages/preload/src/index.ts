@@ -1,4 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron';
+import { callWithoutEvent } from '/@main/helpers/utils';
 
 import type { ElectronApi } from 'types/electron-api';
 
@@ -17,18 +18,7 @@ const api: ElectronApi = {
       const result = await ipcRenderer.invoke('saveFileContent', file);
       return result;
     },
-    setTreeHandler: (callback) => {
-      ipcRenderer.on('FOLDER_TREE', callback);
-    },
-    setFileHandler: (callback) => {
-      ipcRenderer.on('FILE_UPDATE', callback);
-    },
-    setLoadedAddHandler: (callback) => {
-      ipcRenderer.on('FILE_ADD', callback);
-    },
-    setLoadedRemoveHandler: (callback) => {
-      ipcRenderer.on('FILE_REMOVE', callback);
-    },
+
     move: async (srcPath, targetPath) => {
       const result = await ipcRenderer.invoke('move', srcPath, targetPath);
       return result;
@@ -43,6 +33,21 @@ const api: ElectronApi = {
       await ipcRenderer.invoke('delete', path);
     },
   },
+  subscriptions: {
+    TREE_UPDATE: (callback) => {
+      ipcRenderer.on('TREE_UPDATE', callWithoutEvent(callback));
+    },
+    FILE_UPDATE: (callback) => {
+      ipcRenderer.on('FILE_UPDATE', callWithoutEvent(callback));
+    },
+    FILE_ADD: (callback) => {
+      ipcRenderer.on('FILE_ADD', callWithoutEvent(callback));
+    },
+    FILE_REMOVE: (callback) => {
+      ipcRenderer.on('FILE_REMOVE', callWithoutEvent(callback));
+    },
+  },
+
   core: {
     init: async () => {
       const result = await ipcRenderer.invoke('init');

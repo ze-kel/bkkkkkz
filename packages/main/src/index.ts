@@ -2,6 +2,7 @@ import { app, BrowserWindow, ipcMain } from 'electron';
 import { join } from 'path';
 import { URL } from 'url';
 import initHandles from './ipc/ipcHandles';
+import WebContentsProxy from './ipc/webContents';
 
 const isSingleInstance = app.requestSingleInstanceLock();
 
@@ -94,7 +95,8 @@ app.whenReady().then(() => {
   if (!mainWindow) {
     throw 'No main window, but app is ready, something is really wrong';
   }
-  initHandles(ipcMain, mainWindow);
+  WebContentsProxy.setWindow(mainWindow);
+  initHandles(ipcMain);
 });
 
 // Auto-updates

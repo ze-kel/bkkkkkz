@@ -1,16 +1,11 @@
 import * as path from 'path';
-import * as chokidar from 'chokidar';
 import * as fs from 'fs-extra';
 
 import { makeBookFile, makeEncodedBook } from './books';
 import Settings from './settings';
-
-import type { FSWatcher } from 'chokidar';
 import type { IBookData } from './books';
-import type { BrowserWindow } from 'electron';
 
-const FILENAME_REGEX = /[\\/:"*?<>|]+/g;
-const DOTFILE_REGEX = /(?:^|[\\/])(\.(?!\.)[^\\/]+)$/;
+import { DOTFILE_REGEX, FILENAME_REGEX } from '../helpers/utils';
 
 export type IFolderTree = {
   type: 'folder';
@@ -33,117 +28,6 @@ export type IFile = ISavedFile;
 
 export type IFiles = {
   [key: string]: IFile;
-};
-
-type IWatcher = {
-  watcher: FSWatcher | null;
-  watchPath: string | null;
-  loadedPath: { path: string; recursive: boolean } | null;
-  filesIgnore: {
-    [key: string]: Date;
-  };
-  init: (win: BrowserWindow, path: string) => Promise<void>;
-  destroy: () => Promise<void>;
-};
-
-const theWatcher: IWatcher = {
-  watcher: null,
-  watchPath: null,
-  loadedPath: null,
-  filesIgnore: {},
-  init: async function (mainWindow, initPath) {
-    if (this.watcher) {
-      await this.destroy();
-    }
-
-    if (!fs.lstatSync(initPath).isDirectory()) {
-      throw 'File path passed to watcher init';
-    }
-    this.watchPath = initPath;
-
-    this.watcher = chokidar.watch(initPath, {
-      ignored: (path: string) => DOTFILE_REGEX.test(path),
-      persistent: true,
-    });
-
-    if (!this.watcher) {
-      throw 'Watcher was not created for some reason';
-    }
-
-    const sendUpdatedTree = async () => {
-      if (!this.watchPath) {
-        throw 'watcher triggered but has no path data';
-      }
-      if (!mainWindow) {
-        return;
-      }
-      const newFiles = await getFileTree(this.watchPath);
-      mainWindow.webContents.send('FOLDER_TREE', newFiles);
-    };
-
-    const sendUpdatedFile = async (path: string) => {
-      const ignoreDate = this.filesIgnore[path];
-
-      if (ignoreDate) {
-        const currentTime = new Date();
-        if (currentTime < ignoreDate) {
-          return;
-        } else {
-          delete this.filesIgnore[path];
-        }
-      }
-
-      const newFile = await getFileContent(path);
-
-      if (!mainWindow) {
-        return;
-      }
-      mainWindow.webContents.send('FILE_UPDATE', path, newFile);
-    };
-
-    const sendUnlink = (unlinkedPath: string) => {
-      if (!mainWindow) {
-        return;
-      }
-
-      if (!this.loadedPath) return;
-
-      if (this.loadedPath.recursive && !path.relative(this.loadedPath.path, unlinkedPath)) return;
-
-      if (!(path.dirname(unlinkedPath) === this.loadedPath.path)) return;
-
-      mainWindow.webContents.send('FILE_REMOVE', unlinkedPath);
-    };
-
-    const sendAdd = async (added: string) => {
-      if (!mainWindow) {
-        return;
-      }
-
-      if (!this.loadedPath) return;
-
-      if (this.loadedPath.recursive && !path.relative(this.loadedPath.path, added)) return;
-
-      if (!(path.dirname(added) === this.loadedPath.path)) return;
-
-      const file = await getFileContent(added);
-      mainWindow.webContents.send('FILE_ADD', added, file);
-    };
-
-    this.watcher
-      .on('add', sendAdd)
-      .on('unlink', sendUnlink)
-      .on('addDir', sendUpdatedTree)
-      .on('unlinkDir', sendUpdatedTree)
-      .on('change', sendUpdatedFile);
-  },
-  destroy: async function () {
-    if (this.watcher) {
-      await this.watcher.close();
-      this.watcher = null;
-    }
-    this.watchPath = null;
-  },
 };
 
 const getFileTree = (basePath: string): IFolderTree => {
@@ -254,7 +138,6 @@ const remove = async (delPath: string): Promise<void> => {
 };
 
 export default {
-  theWatcher,
   getFileTree,
   getFileContent,
   loadFilesFromFolder,

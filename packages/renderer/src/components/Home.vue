@@ -53,7 +53,7 @@ const fileTree = ref<IFolderTree>();
 const openedPath = ref<IFolderTree['path'] | null>(null);
 const recursivePathLoading = ref(false);
 
-const updateFolderTreeCallback = (_: Event, newFolder: IFolderTree) => {
+const updateFolderTreeCallback = (newFolder: IFolderTree) => {
   fileTree.value = newFolder;
 };
 
@@ -94,7 +94,7 @@ const newRootPath = async () => {
 onMounted(async () => {
   await init();
 
-  api.files.setTreeHandler(updateFolderTreeCallback);
+  api.subscriptions.TREE_UPDATE(updateFolderTreeCallback);
 
   resizeHandle.value?.addEventListener('mousedown', () => {
     isResizing.value = true;
