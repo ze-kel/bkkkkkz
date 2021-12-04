@@ -3,6 +3,7 @@ import * as fs from 'fs-extra';
 
 import { makeBookFile, makeEncodedBook } from './books';
 import Settings from './settings';
+import TagsStore from './tags';
 import type { IBookData } from './books';
 
 import { DOTFILE_REGEX, FILENAME_REGEX } from '../helpers/utils';
@@ -89,6 +90,21 @@ const loadFilesFromFolder = async (basePath: string, recursive: boolean): Promis
   return result;
 };
 
+const loadFilesFromTag = async (tag: string): Promise<IFiles> => {
+  const result: IFiles = {};
+
+  const filesToGet = TagsStore.getTagPaths(tag);
+
+  await Promise.all(
+    filesToGet.map(async (filePath) => {
+      const fileContent = await getFileContent(filePath);
+      result[filePath] = fileContent;
+    }),
+  );
+
+  return result;
+};
+
 const saveFileContent = async (file: ISavedFile): Promise<void> => {
   const encoded = makeEncodedBook(file);
   await fs.writeFile(file.path, encoded);
@@ -137,13 +153,20 @@ const remove = async (delPath: string): Promise<void> => {
   await fs.move(delPath, targetPath);
 };
 
+const loadTags = async (rootPath: string): Promise<void> => {
+  const allFiles = await loadFilesFromFolder(rootPath, true);
+  TagsStore.addFilesBatch(Object.values(allFiles));
+};
+
 export default {
   getFileTree,
   getFileContent,
   loadFilesFromFolder,
+  loadFilesFromTag,
   saveFileContent,
   saveNewFile,
   remove,
   moveToFolder,
   rename,
+  loadTags,
 };

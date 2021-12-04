@@ -13,17 +13,15 @@
         <FileTree
           v-if="fileTree"
           :content="fileTree"
-          :opened-entity="openedPath"
+          :opened="opened"
           :style="{ width: `${fileTreeSize}px` }"
-          @select="(entity: IFolderTree, recursive: boolean) => {
-          openedPath = entity.path
-          recursivePathLoading = recursive
-        }"
+          @select="newOpened"
         />
+        <Tags :opened="opened" @select="newOpened" />
       </div>
       <div class="editorContainer">
         <div ref="resizeHandle" :class="['resizeHandle', isResizing && 'show']"></div>
-        <BookView v-if="openedPath" :opened-path="openedPath" :recursive="recursivePathLoading" />
+        <BookView v-if="opened" :opened-thing="opened" />
       </div>
     </div>
   </div>
@@ -34,6 +32,7 @@ import { computed, getCurrentInstance, onMounted, ref, watch, watchEffect } from
 import { useElectron } from '/@/use/electron';
 
 import type { IFolderTree } from '/@main/services/files';
+import type { IOpened } from '/@main/services/watcher';
 
 import _debounce from 'lodash-es/debounce';
 
@@ -43,6 +42,7 @@ import TopBar from './TopBar/TopBar.vue';
 import FileTree from './FileTree/FileTree.vue';
 import Welcome from './WelcomeScreen/Welcome.vue';
 import ContextMenu from './_UI/ContextMenu.vue';
+import Tags from './Tags/Tags.vue';
 
 const api = useElectron();
 const internalInstance = getCurrentInstance();
@@ -50,8 +50,10 @@ const internalInstance = getCurrentInstance();
 const gotFileTreePath = ref<boolean>(true);
 const fileTree = ref<IFolderTree>();
 
-const openedPath = ref<IFolderTree['path'] | null>(null);
-const recursivePathLoading = ref(false);
+const opened = ref<IOpened | null>(null);
+const newOpened = (newOne: IOpened) => {
+  opened.value = newOne;
+};
 
 const updateFolderTreeCallback = (newFolder: IFolderTree) => {
   fileTree.value = newFolder;

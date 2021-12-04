@@ -24,6 +24,15 @@ const numberVerifier = (v: unknown) => {
 };
 const stringVerifier = (v: unknown) => (typeof v === 'string' ? v : '');
 
+const stringArrayVerifier = (v: unknown) => {
+  if (!Array.isArray(v)) return [];
+  return v.reduce((acc, el) => {
+    const newS = stringVerifier(el);
+    if (newS) acc.push(newS);
+    return acc;
+  }, []);
+};
+
 type BoodataProp = {
   key: keyof IBookData;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -46,6 +55,10 @@ const bookDataProps: BoodataProp[] = [
   {
     key: 'myRating',
     verifier: numberVerifier,
+  },
+  {
+    key: 'tags',
+    verifier: stringArrayVerifier,
   },
 ];
 

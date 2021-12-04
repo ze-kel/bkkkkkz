@@ -30,8 +30,9 @@ import BookItem from './BookItem/BookItem.vue';
 import Popup from '../_UI/Popup.vue';
 import { useElectron } from '/@/use/electron';
 import _debounce from 'lodash-es/debounce';
-import type { IFile, IFiles, ISavedFile } from '/@main/services/files';
+import type { IFile, IFiles } from '/@main/services/files';
 import Fuse from 'fuse.js';
+import type { IOpened } from '/@main/services/watcher';
 
 const api = useElectron();
 const internalInstance = getCurrentInstance();
@@ -39,20 +40,24 @@ const internalInstance = getCurrentInstance();
 const opened = ref(false);
 
 const props = defineProps({
-  openedPath: {
-    type: String as PropType<string>,
+  openedThing: {
+    type: Object as PropType<IOpened>,
     required: true,
-  },
-  recursive: {
-    type: Boolean,
-    default: false,
   },
 });
 
 const files = ref<IFiles>({});
 
 watchEffect(async () => {
-  files.value = await api.files.loadFilesFromFolder(props.openedPath, props.recursive);
+  if (props.openedThing.type === 'path') {
+    files.value = await api.files.loadFilesFromFolder(
+      props.openedThing.thing,
+      props.openedThing.recursive,
+    );
+  }
+  if (props.openedThing.type === 'tag') {
+    files.value = await api.files.loadFilesFromTag(props.openedThing.thing);
+  }
 });
 
 const updateHandlerApi = (path: string, content: IFile) => {
