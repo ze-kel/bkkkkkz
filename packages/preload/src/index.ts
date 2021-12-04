@@ -14,6 +14,10 @@ const api: ElectronApi = {
       const result = await ipcRenderer.invoke('loadFilesFromFolder', path, recursive);
       return result;
     },
+    loadFilesFromTag: async (tag) => {
+      const result = await ipcRenderer.invoke('loadFilesFromTag', tag);
+      return result;
+    },
     saveFileContent: async (file) => {
       const result = await ipcRenderer.invoke('saveFileContent', file);
       return result;
@@ -24,13 +28,16 @@ const api: ElectronApi = {
       return result;
     },
     rename: async (srcPath, newName) => {
-      console.log('call rename');
       const result = await ipcRenderer.invoke('rename', srcPath, newName);
-      console.log('called rename', result);
       return result;
     },
     delete: async (path) => {
       await ipcRenderer.invoke('delete', path);
+    },
+
+    getTags: async () => {
+      const result = await ipcRenderer.invoke('getTags');
+      return result;
     },
   },
   subscriptions: {
@@ -45,6 +52,9 @@ const api: ElectronApi = {
     },
     FILE_REMOVE: (callback) => {
       ipcRenderer.on('FILE_REMOVE', callWithoutEvent(callback));
+    },
+    TAGS_UPDATE: (callback) => {
+      ipcRenderer.on('TAGS_UPDATE', callWithoutEvent(callback));
     },
   },
 

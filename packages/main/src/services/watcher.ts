@@ -3,14 +3,28 @@ import * as path from 'path';
 import * as fs from 'fs-extra';
 import WebContentsProxy from '../ipc/webContents';
 import FileService from './files';
+import TagsStore from './tags';
 
 import type { FSWatcher } from 'chokidar';
 import { DOTFILE_REGEX } from '../helpers/utils';
 
+type IOpenedPath = {
+  type: 'path';
+  thing: string;
+  recursive: boolean;
+};
+
+type IOpenedTag = {
+  type: 'tag';
+  thing: string;
+};
+
+export type IOpened = IOpenedTag | IOpenedPath;
+
 type IWatcher = {
   watcher: FSWatcher | null;
   watchPath: string | null;
-  loadedPath: { path: string; recursive: boolean } | null;
+  opened: IOpened | null;
   filesIgnore: {
     [key: string]: Date;
   };
@@ -18,10 +32,27 @@ type IWatcher = {
   destroy: () => Promise<void>;
 };
 
+const isRelevant = (loaded: IOpened | null, pathInQuestion: string): boolean => {
+  if (!loaded) return false;
+  if (loaded.type === 'path') {
+    if (loaded.recursive) {
+      const relative = path.relative(loaded.thing, pathInQuestion);
+      return Boolean(relative) && !relative.startsWith('..') && !path.isAbsolute(relative);
+    }
+
+    return path.dirname(pathInQuestion) === loaded.thing;
+  }
+
+  if (loaded.type === 'tag') {
+    TagsStore.hasTag(loaded.thing, pathInQuestion);
+  }
+  return false;
+};
+
 const TheWatcher: IWatcher = {
   watcher: null,
   watchPath: null,
-  loadedPath: null,
+  opened: null,
   filesIgnore: {},
   init: async function (initPath) {
     if (this.watcher) {
@@ -51,6 +82,8 @@ const TheWatcher: IWatcher = {
     };
 
     const sendUpdatedFile = async (path: string) => {
+      const newFile = await FileService.getFileContent(path);
+      TagsStore.processUpdatedFile(newFile, this.opened);
       const ignoreDate = this.filesIgnore[path];
 
       if (ignoreDate) {
@@ -62,30 +95,26 @@ const TheWatcher: IWatcher = {
         }
       }
 
-      const newFile = await FileService.getFileContent(path);
-
       WebContentsProxy.FILE_UPDATE(path, newFile);
     };
 
     const sendUnlink = (unlinkedPath: string) => {
-      if (!this.loadedPath) return;
+      TagsStore.processDeletedFile(unlinkedPath);
 
-      if (this.loadedPath.recursive && !path.relative(this.loadedPath.path, unlinkedPath)) return;
-
-      if (!(path.dirname(unlinkedPath) === this.loadedPath.path)) return;
+      if (!isRelevant(this.opened, unlinkedPath)) {
+        TagsStore.processDeletedFile(unlinkedPath);
+        return;
+      }
 
       WebContentsProxy.FILE_REMOVE(unlinkedPath);
     };
 
-    const sendAdd = async (added: string) => {
-      if (!this.loadedPath) return;
+    const sendAdd = async (addedPath: string) => {
+      const file = await FileService.getFileContent(addedPath);
+      TagsStore.processAddedFile(file);
+      if (!isRelevant(this.opened, addedPath)) return;
 
-      if (this.loadedPath.recursive && !path.relative(this.loadedPath.path, added)) return;
-
-      if (!(path.dirname(added) === this.loadedPath.path)) return;
-
-      const file = await FileService.getFileContent(added);
-      WebContentsProxy.FILE_ADD(added, file);
+      WebContentsProxy.FILE_ADD(addedPath, file);
     };
 
     this.watcher

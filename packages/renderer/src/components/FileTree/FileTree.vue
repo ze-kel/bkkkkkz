@@ -12,7 +12,7 @@
         isRoot && 'rootFolder',
         'folder',
         canDropHere && 'dropHiglight',
-        openedEntity === content.path && 'opened',
+        isOpened && 'opened',
       ]"
       :draggable="!isRoot"
       @dragstart="startDrag($event, content.path)"
@@ -20,8 +20,8 @@
       @dragenter="dragEnter"
       @dragleave="dragLeave"
       @dragover.prevent
-      @click.exact="select(content, false)"
-      @click.alt.exact="select(content, true)"
+      @click.exact="makeNewOpenedAndSelect(false)"
+      @click.alt.exact="makeNewOpenedAndSelect(true)"
       @click.right.exact="openContextMenu"
     >
       <div
@@ -75,11 +75,12 @@
 </template>
 
 <script setup lang="ts">
-import { getCurrentInstance, ref, watchEffect } from 'vue';
+import { computed, getCurrentInstance, ref, watchEffect } from 'vue';
 import type { PropType } from 'vue';
 import type { IFolderTree } from '/@main/services/files';
 import { useElectron } from '/@/use/electron';
 import { openMenu } from '/@/use/contextMenu';
+import type { IOpened } from '/@main/services/watcher';
 import type { ContextMenu } from '/@/use/contextMenu';
 
 const internalInstance = getCurrentInstance();
@@ -96,20 +97,35 @@ const props = defineProps({
     default: -10,
   },
   openedEntity: {
-    type: String as PropType<IFolderTree['path'] | null>,
+    type: Object as PropType<IOpened | null>,
     default: null,
   },
 });
 
 const isRoot = props.depth < 0;
 const isFolded = ref<boolean>(false);
+const isOpened = computed(() => {
+  if (!props.openedEntity) return false;
+  
+  if (props.openedEntity.type !== 'path') return false;
+
+  return props.openedEntity.thing === props.content.path;
+});
 
 const emit = defineEmits<{
-  (e: 'select', entity: IFolderTree, recursive: boolean): void;
+  (e: 'select', thing: IOpened): void;
 }>();
 
-const select = (entity: IFolderTree, recursive: boolean) => {
-  internalInstance?.emit('select', entity, recursive);
+const makeNewOpenedAndSelect = (recursive: boolean) => {
+  const newOpened: IOpened = {
+    type: 'path',
+    thing: props.content.path,
+    recursive,
+  };
+  select(newOpened);
+};
+const select = (newOpened: IOpened) => {
+  internalInstance?.emit('select', newOpened);
 };
 
 ///

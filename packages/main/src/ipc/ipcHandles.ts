@@ -1,6 +1,7 @@
 import * as path from 'path';
 import * as fs from 'fs-extra';
 import FileService from '../services/files';
+import TagsStore from '../services/tags';
 import TheWatcher from '../services/watcher';
 import ParseGoodreadsCSV from '../services/goodreadsCsvParser';
 import Setting from '../services/settings';
@@ -29,7 +30,12 @@ const handles: IHandles = {
   },
   loadFilesFromFolder: async (_, path: string, recursive = false) => {
     const files = await FileService.loadFilesFromFolder(path, recursive);
-    TheWatcher.loadedPath = { path, recursive };
+    TheWatcher.opened = { type: 'path', thing: path, recursive };
+    return files;
+  },
+  loadFilesFromTag: async (_, tag: string) => {
+    const files = await FileService.loadFilesFromTag(tag);
+    TheWatcher.opened = { type: 'tag', thing: tag };
     return files;
   },
   saveFileContent: async (_, file: ISavedFile) => {
@@ -43,6 +49,7 @@ const handles: IHandles = {
   move: callWithoutEvent(FileService.moveToFolder),
   rename: callWithoutEvent(FileService.rename),
   delete: callWithoutEvent(FileService.remove),
+  getTags: callWithoutEvent(TagsStore.getTags),
 
   ///
   /// Core
@@ -50,7 +57,8 @@ const handles: IHandles = {
   init: async () => {
     const rootPath = Setting.getRootPath();
     if (rootPath) {
-      TheWatcher.init(rootPath);
+      await TheWatcher.init(rootPath);
+      await FileService.loadTags(rootPath);
       return true;
     } else {
       return false;
