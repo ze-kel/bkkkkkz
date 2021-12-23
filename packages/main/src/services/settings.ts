@@ -2,6 +2,7 @@ import * as path from 'path';
 import * as fs from 'fs-extra';
 import { dialog } from 'electron';
 import type * as IStore from 'electron-store';
+import WebContentsProxy from '../ipc/webContents';
 const Store = require('electron-store');
 
 const SETTINGS_PATH = '.bkz';
@@ -14,16 +15,21 @@ const SCHEMA = {
     type: 'boolean',
     default: false,
   },
+  dateFormat: {
+    type: 'string',
+    default: 'yyyy-MM-dd',
+  },
 };
 
 export type ILocalSettings = {
   imagesPath: string;
   recursiveFolders: boolean;
   rootPath: string;
+  dateFormat: string;
 };
 
 const globalStore: IStore = new Store();
-let localStore: IStore | undefined;
+let localStore: IStore<ILocalSettings> | undefined;
 
 const getRootPath = (): string | null => {
   const data = globalStore.get('rootPath');
@@ -50,6 +56,10 @@ const initStore = () => {
   const rootPath = getRootPath();
   if (rootPath) {
     localStore = new Store({ cwd: path.join(rootPath, SETTINGS_PATH), schema: SCHEMA });
+    localStore?.onDidAnyChange((newValue) => {
+      if (!newValue) return;
+      WebContentsProxy.SETTINGS_UPDATE({ ...newValue, rootPath });
+    });
   }
 };
 

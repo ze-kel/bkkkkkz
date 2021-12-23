@@ -12,7 +12,7 @@
       tag="div"
       class="editable author header-M"
     />
-    {{ fileProxy.read }}
+    <ReadDetails v-model="fileProxy.read" />
   </div>
 </template>
 
@@ -21,6 +21,7 @@ import { getCurrentInstance, computed, onBeforeUnmount } from 'vue';
 import type { PropType } from 'vue';
 import type { IFile } from '/@main/services/files';
 import ContentEditable from 'vue-contenteditable';
+import ReadDetails from '../ReadDetails/ReadDetails.vue';
 
 const internalInstance = getCurrentInstance();
 

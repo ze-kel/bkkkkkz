@@ -13,7 +13,7 @@
         <FileTree
           v-if="fileTree"
           :content="fileTree"
-          :opened="opened"
+          :opened-entity="opened"
           :style="{ width: `${fileTreeSize}px` }"
           @select="newOpened"
         />
@@ -30,6 +30,7 @@
 <script setup lang="ts">
 import { computed, getCurrentInstance, onMounted, ref, watch, watchEffect } from 'vue';
 import { useElectron } from '/@/use/electron';
+import useSettings from '/@/use/settings';
 
 import type { IFolderTree } from '/@main/services/files';
 import type { IOpened } from '/@main/services/watcher';
@@ -78,6 +79,7 @@ const changeFileTreeSize = (ev: any) => {
 const init = async () => {
   const allGood = await api.core.init();
   if (allGood) {
+    await useSettings.initSettings()
     const initial = await api.files.getFileTree();
     fileTree.value = initial;
     gotFileTreePath.value = true;

@@ -56,6 +56,9 @@ const api: ElectronApi = {
     TAGS_UPDATE: (callback) => {
       ipcRenderer.on('TAGS_UPDATE', callWithoutEvent(callback));
     },
+    SETTINGS_UPDATE: (callback) => {
+      ipcRenderer.on('SETTINGS_UPDATE', callWithoutEvent(callback));
+    },
   },
 
   core: {

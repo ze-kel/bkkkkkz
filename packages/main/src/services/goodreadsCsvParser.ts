@@ -3,6 +3,7 @@
 import Papa from 'papaparse';
 import path from 'path';
 import fs from 'fs';
+import Settings from './settings';
 
 import type { IUnsavedFile } from './files';
 
@@ -20,6 +21,9 @@ const ParseGoodreadsCSV = async (csvPath: string): Promise<Array<IUnsavedFile>> 
   const data = parsed.data;
 
   const arr: IUnsavedFile[] = [];
+
+  const stngs = Settings.getStore();
+  const dateFormat = stngs.dateFormat;
 
   data.forEach((book) => {
     if (typeof book !== 'object') {
@@ -48,10 +52,7 @@ const ParseGoodreadsCSV = async (csvPath: string): Promise<Array<IUnsavedFile>> 
     if (book['Date Read']) {
       const parsed = parse(book['Date Read'], 'yyyy/MM/dd', new Date());
 
-      newBook.read = [
-        //@ts-expect-error later i'll connect vuex
-        { finished: format(parsed, 'yyyy-MM-dd') },
-      ];
+      newBook.read.push({ finished: format(parsed, dateFormat) });
     }
 
     if (book['My Rating']) {

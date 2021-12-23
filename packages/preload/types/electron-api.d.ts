@@ -7,6 +7,7 @@ import type {
   I_FILE_UPDATE,
   I_TREE_UPDATE,
   I_TAGS_UPDATE,
+  I_SETTINGS_UPDATE,
 } from '/@main/ipc/webContents';
 import type { ITags } from '/@main/services/tags';
 
@@ -29,6 +30,7 @@ interface ElectronApi {
     FILE_ADD: (callback: I_FILE_ADD) => void;
     FILE_REMOVE: (callback: I_FILE_REMOVE) => void;
     TAGS_UPDATE: (callback: I_TAGS_UPDATE) => void;
+    SETTINGS_UPDATE: (callback: I_SETTINGS_UPDATE) => void;
   };
 
   core: {
@@ -37,7 +39,7 @@ interface ElectronApi {
   settings: {
     newRootPath: () => Promise<boolean>;
     getSettings: () => Promise<ILocalSettings>;
-    saveSettings: (_, newSettings: ILocalSettings) => Promise<void>;
+    saveSettings: (newSettings: ILocalSettings) => Promise<void>;
     newImagesPath: () => Promise<ILocalSettings>;
   };
   parsers: {
