@@ -1,7 +1,9 @@
 import * as matter from 'gray-matter';
 import type { ISavedFile } from './files';
+import settings from './settings';
+import { parse, isValid } from 'date-fns';
 
-export type IDateRead = { started?: Date; finished?: Date };
+export type IDateRead = { started?: string; finished?: string };
 
 export type Status = 'read' | 'to-read' | 'reading';
 
@@ -33,6 +35,42 @@ const stringArrayVerifier = (v: unknown) => {
   }, []);
 };
 
+const dateVerifier = (date: unknown, dateFormat: string): string | null => {
+  if (typeof date !== 'string') return null;
+  const parsed = parse(date, dateFormat, new Date());
+  if (!isValid(parsed)) return null;
+  return date;
+};
+
+const readDatesVerifier = (v: unknown) => {
+  console.log('read dates verifier', v);
+  if (!Array.isArray(v)) return [];
+  const stngs = settings.getStore();
+  const dateFormat = stngs.dateFormat;
+  return v.reduce((acc, dates) => {
+    const verifiedDate: IDateRead = {};
+
+    console.log('verifying', dates);
+
+    const from = dateVerifier(dates.started, dateFormat);
+
+    if (from) {
+      verifiedDate.started = from;
+    }
+    const to = dateVerifier(dates.finished, dateFormat);
+
+    if (to) {
+      verifiedDate.finished = to;
+    }
+
+    if (Object.values(verifiedDate).length > 0) {
+      console.log('SAVING DDDD');
+      acc.push(verifiedDate);
+    }
+    return acc;
+  }, []);
+};
+
 type BoodataProp = {
   key: keyof IBookData;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -59,6 +97,10 @@ const bookDataProps: BoodataProp[] = [
   {
     key: 'tags',
     verifier: stringArrayVerifier,
+  },
+  {
+    key: 'read',
+    verifier: readDatesVerifier,
   },
 ];
 

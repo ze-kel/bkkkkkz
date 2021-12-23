@@ -1,11 +1,5 @@
 <template>
-  <div
-    :style="
-      !isRoot
-        ? { marginLeft: depth + 'px', width: `calc(100% - ${depth}px)`, zIndex: 1000 - depth }
-        : ''
-    "
-  >
+  <div>
     <div
       :class="[
         'node',
@@ -25,7 +19,7 @@
       @click.right.exact="openContextMenu"
     >
       <div
-        v-if="!isRoot"
+        v-if="!isRoot && Object.keys(content.content).length > 0"
         class="iconHolder"
         @click="
           () => {
@@ -34,7 +28,6 @@
         "
       >
         <svg
-          v-if="Object.keys(content.content).length > 0"
           icon="angle-down"
           :class="['folderArrow', !isFolded && 'opened']"
           width="24"
@@ -60,7 +53,7 @@
     </div>
     <div
       v-if="!isFolded"
-      :style="!isRoot ? { marginLeft: depth + 'px', zIndex: 1000 - depth - 10 } : ''"
+      :style="!isRoot ? { zIndex: 1000 - depth - 10 } : ''"
     >
       <FileTree
         v-for="item in content.content"
@@ -106,7 +99,7 @@ const isRoot = props.depth < 0;
 const isFolded = ref<boolean>(false);
 const isOpened = computed(() => {
   if (!props.openedEntity) return false;
-  
+
   if (props.openedEntity.type !== 'path') return false;
 
   return props.openedEntity.thing === props.content.path;
