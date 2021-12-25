@@ -4,13 +4,13 @@
       <Editor :file="currentFile" @update="passUpdate" />
     </div>
   </Popup>
-  <Card
+  <Cover
     v-if="style === 'CARDS'"
     :title="currentFile.title"
     :author="currentFile.author"
     :year="currentFile.year"
     :rating="currentFile.myRating"
-    class="bookRepresentation"
+    class="cursor-pointer"
     @click="triggerFullEditor"
   />
 </template>
@@ -21,7 +21,7 @@ import type { PropType } from 'vue';
 import type { IFile } from '/@main/services/files';
 import _debounce from 'lodash-es/debounce';
 
-import Card from './Card/Card.vue';
+import Cover from './Cover.vue';
 import Popup from '../../_UI/Popup.vue';
 import Editor from '../../Editor/Editor.vue';
 
@@ -51,10 +51,6 @@ const triggerFullEditor = () => (editorOpened.value = !editorOpened.value);
 </script>
 
 <style scoped>
-.bookRepresentation {
-  cursor: pointer;
-}
-
 .editorWrapper {
   width: 66vw;
   height: 66vh;

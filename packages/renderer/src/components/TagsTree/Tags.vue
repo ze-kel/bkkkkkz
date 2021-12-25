@@ -1,14 +1,13 @@
 <template>
-  <div class="tags">
-    <div class="name text-L">Tags</div>
-    <div
+  <div>
+    <div class="font-semibold px-2 py-0.5">Tags</div>
+    <Tag
       v-for="tag in tags"
       :key="tag"
-      :class="['tag', openedTag === tag && 'opened']"
+      :is-opened="openedTag === tag"
+      :tag="tag"
       @click="select(tag)"
-    >
-      {{ tag }}
-    </div>
+    />
   </div>
 </template>
 
@@ -18,6 +17,7 @@ import type { ITags } from '/@main/services/tags';
 import { useElectron } from '/@/use/electron';
 import type { IOpened } from '/@main/services/watcher';
 import type { PropType } from 'vue';
+import Tag from './Tag.vue';
 
 const api = useElectron();
 const internalInstance = getCurrentInstance();
@@ -55,34 +55,4 @@ const select = (tag: string) => {
 };
 </script>
 
-<style lang="scss" scoped>
-.tag {
-  display: flex;
-  flex-direction: column;
-}
-
-.tag {
-  cursor: pointer;
-  border-bottom: 2px solid transparent;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: 2px 8px;
-  font-size: 14px;
-  border-radius: 3px;
-  box-sizing: border-box;
-  white-space: nowrap;
-
-  font-weight: 400;
-
-  &.opened {
-    background: var(--accent-main);
-  }
-}
-
-.name {
-  padding: 2px 8px;
-  font-weight: 700;
-}
-</style>
+<style scoped></style>

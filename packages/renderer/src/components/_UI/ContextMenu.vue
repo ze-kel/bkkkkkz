@@ -49,7 +49,7 @@ onMounted(() => {
 });
 </script>
 
-<style lang="scss" scoped>
+<style scoped>
 .overlay {
   position: absolute;
   width: 100%;

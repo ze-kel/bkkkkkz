@@ -1,5 +1,6 @@
 <template>
-  <div class="editor">
+  <div class="">
+    <div></div>
     <SingleDate
       v-for="(_, index) in dates"
       :key="index"
@@ -47,4 +48,4 @@ const dates = computed({
 });
 </script>
 
-<style lang="scss" scoped></style>
+<style scoped></style>

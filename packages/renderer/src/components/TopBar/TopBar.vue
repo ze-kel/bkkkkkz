@@ -1,17 +1,13 @@
 <template>
-  <div class="topBar"></div>
+  <div class="topBar bg-gray-100 h-8"></div>
 </template>
 
 <script lang="ts" setup></script>
 
-<style lang="scss" scoped>
+<style scoped>
 .topBar {
-  height: var(--top-bar-size);
-  width: 100%;
-  position: sticky;
-  -webkit-user-select: none;
   user-select: none;
   -webkit-app-region: drag;
-  background-color: var(--bg-secondary);
+  -webkit-user-select: none;
 }
 </style>

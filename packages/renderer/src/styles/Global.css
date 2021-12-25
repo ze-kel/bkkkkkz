@@ -1,23 +1,28 @@
-@import 'Reset.scss';
-@import 'Variables.scss';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 ::-webkit-scrollbar {
-  width: var(--scroll-bar-size);
+  @apply w-2;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgb(102, 102, 102);
-  border-radius: 0px;
+  @apply bg-gray-400;
+  @apply rounded-lg;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgb(48, 48, 48);
+  @apply bg-gray-500;
 }
 ::-webkit-scrollbar-track {
-  background: #ffffff;
-  border-radius: 0px;
 }
 
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
+}
+
+@layer components {
+  .hr-default {
+    @apply bg-gray-300 h-px border-0  w-full;
+  }
 }
