@@ -1,16 +1,16 @@
 <template>
-  <div class="editor">
+  <div class="">
     <ContentEditable
       v-model="fileProxy.title"
       spellcheck="false"
       tag="div"
-      class="editable title header-L"
+      class="focus:outline-none w-fit text-xl border-b border-transparent focus:border-indigo-600"
     />
     <ContentEditable
       v-model="fileProxy.author"
       spellcheck="false"
       tag="div"
-      class="editable author header-M"
+      class="focus:outline-none w-fit text-md border-b border-transparent focus:border-indigo-600"
     />
     <ReadDetails v-model="fileProxy.read" />
   </div>
@@ -51,12 +51,4 @@ onBeforeUnmount(() => {
 });
 </script>
 
-<style lang="scss" scoped>
-.editable:focus {
-  outline: none;
-}
-
-.author {
-  margin-top: 15px;
-}
-</style>
+<style scoped></style>

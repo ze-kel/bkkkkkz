@@ -1,6 +1,21 @@
 <template>
-  <div v-if="opened" class="overlay" @mousedown.self="close">
-    <div class="popup" @click.stop="">
+  <div
+    v-if="opened"
+    class="
+      bg-gray-800 bg-opacity-25
+      absolute
+      top-0
+      left-0
+      w-full
+      h-full
+      flex
+      items-center
+      justify-center
+      z-50
+    "
+    @mousedown.self="close"
+  >
+    <div class="bg-white flex items-center justify-center p-8 rounded-lg popup" @click.stop="">
       <slot></slot>
     </div>
   </div>
@@ -27,28 +42,10 @@ const close = () => {
 };
 </script>
 
-<style lang="scss" scoped>
-.overlay {
-  background: rgba(0, 0, 0, 0.33);
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
+<style scoped>
 .popup {
-  background: var(--bg-secondary);
   min-width: 450px;
   min-height: 200px;
   box-sizing: border-box;
-  padding: 30px;
-  border-radius: 5px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 </style>

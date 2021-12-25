@@ -1,15 +1,15 @@
 <template>
-  <div ref="rootElement" class="root">
+  <div ref="rootElement" class="bg-gray-100 h-screen flex flex-col">
     <TopBar />
     <ContextMenu />
     <div v-if="!gotFileTreePath" class="fullScreen">
       <Welcome @set-path="newRootPath" />
     </div>
-    <div v-if="gotFileTreePath" class="mainContainer">
-      <div class="leftMenuContainer">
+    <div v-if="gotFileTreePath" class="h-full max-h-full flex overflow-hidden">
+      <div class="flex flex-col-reverse">
         <LeftMenu @change-root-path="init" />
       </div>
-      <div class="sourceSelectContainer">
+      <div class="flex-auto py-6 px-2">
         <FileTree
           v-if="fileTree"
           :content="fileTree"
@@ -17,10 +17,16 @@
           :style="{ width: `${fileTreeSize}px` }"
           @select="newOpened"
         />
+
+        <hr class="hr-default my-3" />
         <Tags :opened="opened" @select="newOpened" />
       </div>
-      <div class="editorContainer">
-        <div ref="resizeHandle" :class="['resizeHandle', isResizing && 'show']"></div>
+      <div class="bg-white flex w-full max-h-full rounded-tl-lg overflow-hidden">
+        <div
+          ref="resizeHandle"
+          class="w-1 hover:bg-indigo-500 cursor-col-resize transition-colors"
+          :class="isResizing && 'bg-indigo-700'"
+        ></div>
         <BookView v-if="opened" :opened-thing="opened" />
       </div>
     </div>
@@ -43,7 +49,7 @@ import TopBar from './TopBar/TopBar.vue';
 import FileTree from './FileTree/FileTree.vue';
 import Welcome from './WelcomeScreen/Welcome.vue';
 import ContextMenu from './_UI/ContextMenu.vue';
-import Tags from './Tags/Tags.vue';
+import Tags from './TagsTree/Tags.vue';
 
 const api = useElectron();
 const internalInstance = getCurrentInstance();
@@ -79,7 +85,7 @@ const changeFileTreeSize = (ev: any) => {
 const init = async () => {
   const allGood = await api.core.init();
   if (allGood) {
-    await useSettings.initSettings()
+    await useSettings.initSettings();
     const initial = await api.files.getFileTree();
     fileTree.value = initial;
     gotFileTreePath.value = true;
@@ -111,64 +117,4 @@ onMounted(async () => {
 });
 </script>
 
-<style lang="scss" scoped>
-.root {
-  display: flex;
-  flex-direction: column;
-  background-color: var(--bg-secondary);
-}
-
-.mainContainer {
-  display: flex;
-  overflow: hidden;
-  height: calc(100vh - var(--top-bar-size));
-}
-
-.leftMenuContainer {
-  display: flex;
-  flex-direction: column-reverse;
-}
-
-.sourceSelectContainer {
-  padding: 25px 7px;
-  box-sizing: border-box;
-
-  .filesHeader {
-    margin-top: 20px;
-    margin-bottom: 7px;
-  }
-}
-
-.editorContainer {
-  display: flex;
-  width: 100%;
-  border-radius: 10px 0 0 0;
-  overflow: hidden;
-  background-color: var(--bg-main);
-}
-
-.resizeHandle {
-  width: 7px;
-  background: transparent;
-  cursor: col-resize;
-
-  &.show {
-    background: var(--accent-main-grad);
-  }
-  &:hover {
-    background: var(--accent-main-grad);
-  }
-}
-
-.fullScreen {
-  width: 100%;
-  height: calc(100% - var(--top-bar-size));
-  position: absolute;
-  top: var(--top-bar-size);
-  left: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: var(--bg-secondary);
-}
-</style>
+<style scoped></style>

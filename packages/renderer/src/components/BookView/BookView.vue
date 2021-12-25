@@ -1,7 +1,35 @@
 <template>
-  <div ref="rootElement" class="bookViewRoot">
-    <input v-model="searchQueryPreDebounce" class="search" placeholder="Search Books" />
-    <div class="cardWrapper" :style="cardWrapperStyle">
+  <div ref="rootElement" class="h-full flex flex-col pt-4">
+    <div class="px-4">
+      <input
+        v-model="searchQueryPreDebounce"
+        class="
+          w-3/12
+          px-2
+          py-1
+          mb-1
+          border-2
+          rounded-md
+          border-indigo-200
+          shadow-md shadow-indigo-100
+          focus:outline-none focus:border-indigo-600 focus:shadow-indigo-400
+          transition-colors
+        "
+        placeholder="Search Books"
+      />
+    </div>
+    <div
+      class="
+        w-full
+        h-full
+        box-border
+        grid grid-cols-5
+        gap-4
+        overflow-y-auto overflow-x-hidden
+        px-4
+        py-2
+      "
+    >
       <BookItem
         v-for="item in sortedFiles"
         :key="item.path"
@@ -14,17 +42,7 @@
 </template>
 
 <script setup lang="ts">
-import {
-  computed,
-  getCurrentInstance,
-  onMounted,
-  onRenderTracked,
-  onRenderTriggered,
-  onUpdated,
-  ref,
-  watch,
-  watchEffect,
-} from 'vue';
+import { computed, getCurrentInstance, onMounted, ref, watch, watchEffect } from 'vue';
 import type { PropType } from 'vue';
 import BookItem from './BookItem/BookItem.vue';
 import Popup from '../_UI/Popup.vue';
@@ -140,7 +158,7 @@ const numberOfColumns = ref(1);
 onMounted(async () => {
   const updateNumberOfColumns = () => {
     if (rootElement.value) {
-      numberOfColumns.value = Math.floor(rootElement.value.clientWidth / 280);
+      numberOfColumns.value = Math.floor(rootElement.value.clientWidth / 175);
     }
   };
 
@@ -155,21 +173,4 @@ const cardWrapperStyle = computed(() => {
 });
 </script>
 
-<style lang="scss" scoped>
-.bookViewRoot {
-  overflow-y: scroll;
-  display: flex;
-  flex-grow: 4;
-  flex-direction: column;
-  padding: 20px 20px;
-}
-
-.search {
-  padding: 7px 12px;
-}
-
-.cardWrapper {
-  display: grid;
-  grid-gap: 15px;
-}
-</style>
+<style lang="scss" scoped></style>

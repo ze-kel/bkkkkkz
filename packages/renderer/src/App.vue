@@ -6,7 +6,7 @@
 import Home from './components/Home.vue';
 </script>
 
-<style lang="scss">
+<style>
 #app {
   font-family: BlinkMacSystemFont, 'SF PRO DISPLAY', 'Roboto', 'Segoe UI';
   -webkit-font-smoothing: antialiased;

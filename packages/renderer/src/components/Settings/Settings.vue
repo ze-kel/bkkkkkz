@@ -1,17 +1,30 @@
 <template>
-  <div class="settings">
-    <PathControllerVue class="block" title="Root Path" :path="rootPath" @change="changeRootPath" />
+  <div class="w-full">
+    <PathControllerVue title="Root Path" :path="rootPath" @change="changeRootPath" />
     <PathControllerVue
-      class="block"
+      class="mt-3"
       title="Images Path"
       :path="imagesPath"
       @change="changeImagesPath"
     />
-    <hr />
+    <hr class="hr-default" />
 
     <div class="block">
-      <h2 class="title">Import Goodread .csv</h2>
-      <Button text="Import" @click="importGoodreads" />
+      <h2 class="font-semibold mb-1">Import Goodread .csv</h2>
+      <button
+        class="
+          bg-indigo-600
+          hover:bg-indigo-700 hover:shadow-md hover:shadow-indigo-200
+          text-white
+          px-3
+          py-1
+          rounded-md
+          transition-colors
+        "
+        @click="importGoodreads"
+      >
+        Select
+      </button>
     </div>
   </div>
 </template>
@@ -22,7 +35,6 @@ import { useElectron } from '/@/use/electron';
 import PathControllerVue from './PathController.vue';
 
 import type { ILocalSettings } from '/@main/services/settings';
-import Button from '../_UI/Button.vue';
 
 const emit = defineEmits<{
   (e: 'changeRootPath'): void;
@@ -53,16 +65,4 @@ onBeforeMount(async () => {
 });
 </script>
 
-<style lang="scss" scoped>
-.settings {
-  width: 100%;
-}
-.title {
-  font-weight: 400;
-  margin-bottom: 8px;
-}
-
-.block {
-  margin-top: 16px;
-}
-</style>
+<style scoped></style>

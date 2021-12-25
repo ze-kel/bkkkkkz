@@ -12,7 +12,7 @@ const emit = defineEmits<{
 }>();
 </script>
 
-<style lang="scss" scoped>
+<style scoped>
 .root {
   background: var(--bg-main);
   display: flex;

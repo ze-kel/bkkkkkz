@@ -90,12 +90,5 @@ const fullRange = computed(() => {
 });
 </script>
 
-<style lang="scss" scoped>
-.dates {
-  display: flex;
-}
-
-.picker {
-  border: 1px solid red;
-}
+<style scoped>
 </style>

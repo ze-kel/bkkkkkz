@@ -1,16 +1,27 @@
 <template>
-  <div class="pathController">
-    <h2 class="title">{{ title }}</h2>
-    <div class="container">
-      <div v-if="path" class="currentPath">{{ path }}</div>
-      <Button :text="path ? 'Change' : 'Set'" class="button" @click="emit('change')" />
+  <div class="">
+    <h2 class="font-semibold mb-1">{{ title }}</h2>
+    <div class="">
+      <div class="currentPath mb-0.5 font-mono">{{ path ? path : 'Not Set' }}</div>
+      <button
+        class="
+          bg-indigo-600
+          hover:bg-indigo-700 hover:shadow-md hover:shadow-indigo-200
+          text-white
+          px-3
+          py-1
+          rounded-md
+          transition-colors
+        "
+        @click="emit('change')"
+      >
+        {{ path ? 'Change' : 'Set' }}
+      </button>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import Button from '/@/components/_UI/Button.vue';
-
 const props = defineProps({
   title: {
     type: String,
@@ -27,17 +38,4 @@ const emit = defineEmits<{
 }>();
 </script>
 
-<style lang="scss" scoped>
-.title {
-  font-weight: 400;
-  margin-bottom: 8px;
-}
-
-.container {
-  display: flex;
-  align-items: center;
-  .button:not(:first-child) {
-    margin-left: 8px;
-  }
-}
-</style>
+<style scoped></style>

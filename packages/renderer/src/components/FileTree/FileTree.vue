@@ -1,13 +1,8 @@
 <template>
   <div>
     <div
-      :class="[
-        'node',
-        isRoot && 'rootFolder',
-        'folder',
-        canDropHere && 'dropHiglight',
-        isOpened && 'opened',
-      ]"
+      class="px-2 py-0.5 border"
+      :class="nodeClasses"
       :draggable="!isRoot"
       @dragstart="startDrag($event, content.path)"
       @drop="onDrop($event, content.path)"
@@ -19,8 +14,7 @@
       @click.right.exact="openContextMenu"
     >
       <div
-        v-if="!isRoot && Object.keys(content.content).length > 0"
-        class="iconHolder"
+        v-if="foldable"
         @click="
           () => {
             isFolded = !isFolded;
@@ -29,32 +23,31 @@
       >
         <svg
           icon="angle-down"
-          :class="['folderArrow', !isFolded && 'opened']"
+          class="pointer-events-none"
+          :class="[isFolded && '-rotate-90', isOpened && 'fill-white']"
           width="24"
           height="24"
           viewBox="0 0 24 24"
-          fill="none"
           xmlns="http://www.w3.org/2000/svg"
         >
-          <path d="M12 14.5L17 9.5H7L12 14.5Z" fill="#2E3A59" />
+          <path d="M12 14.5L17 9.5H7L12 14.5Z" />
         </svg>
       </div>
-      <template v-if="isRoot"> <span class="name text-L">All Books</span></template>
+      <template v-if="isRoot">
+        <span class="pointer-events-none font-bold">All Books</span></template
+      >
       <template v-else>
-        <span v-if="!isRenaming" class="name text-M">{{ content.name }}</span>
+        <span v-if="!isRenaming" class="pointer-events-none truncate">{{ content.name }}</span>
         <input
           v-else
           ref="inputRename"
           v-model="newName"
-          class="name input"
+          :class="nodeClasses"
           @blur="saveName"
           @keyup.enter="removeFocus"
       /></template>
     </div>
-    <div
-      v-if="!isFolded"
-      :style="!isRoot ? { zIndex: 1000 - depth - 10 } : ''"
-    >
+    <div v-if="!isFolded" :class="foldable && 'pl-2'">
       <FileTree
         v-for="item in content.content"
         :key="item.path"
@@ -109,6 +102,8 @@ const emit = defineEmits<{
   (e: 'select', thing: IOpened): void;
 }>();
 
+const foldable = computed(() => Object.keys(props.content.content).length > 0 && !isRoot);
+
 const makeNewOpenedAndSelect = (recursive: boolean) => {
   const newOpened: IOpened = {
     type: 'path',
@@ -145,11 +140,13 @@ const onDrop = async (e: DragEvent, targetPath: string) => {
 };
 
 const dragEnter = (e: DragEvent) => {
+  console.log('ENTER', props.openedEntity?.thing);
   e.preventDefault();
   canDropHere.value = true;
 };
 
 const dragLeave = (e: DragEvent) => {
+  console.log('LEAVE', props.openedEntity?.thing);
   e.preventDefault();
   canDropHere.value = false;
 };
@@ -206,65 +203,37 @@ const menu: ContextMenu = [
 const openContextMenu = (e: MouseEvent) => {
   openMenu(menu, e.x, e.y);
 };
+
+///
+/// Styling
+///
+const nodeClasses = computed(() => {
+  const base = [
+    'text-m',
+    'whitespace-nowrap',
+    'overflow-hidden',
+    'rounded',
+    'cursor-pointer',
+    'font-medium',
+    'flex',
+    'items-center',
+    'outline-0',
+    'transition-colors',
+  ];
+  if (isOpened.value) {
+    base.push('bg-indigo-600', 'text-white', 'hover:bg-indigo-800');
+  } else {
+    base.push('hover:text-gray-600');
+  }
+
+  if (canDropHere.value) {
+    base.push('border-indigo-700', 'my-0');
+  } else {
+    base.push('border-transparent');
+  }
+
+  return base;
+});
 </script>
 
-<style lang="scss" scoped>
-.node {
-  cursor: pointer;
-  border-bottom: 2px solid transparent;
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 2px 8px;
-  font-size: 14px;
-  overflow-x: hidden;
-  border-radius: 3px;
-  box-sizing: border-box;
-  white-space: nowrap;
-
-  font-weight: 400;
-
-  .name {
-    display: flex;
-    align-items: center;
-    height: 24px;
-    width: 100%;
-  }
-
-  // Must be set for all sub elements. Otherwirse the highlighting breaks.
-  .name,
-  .folderArrow {
-    pointer-events: none;
-  }
-
-  &.opened {
-    background: var(--accent-main);
-  }
-}
-
-.rootFolder {
-  font-weight: 700;
-}
-
-.iconHolder {
-  width: 24px;
-  padding-right: 5px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.folderArrow {
-  transition: transform 0.2s;
-
-  transform: rotate(-90deg);
-  &.opened {
-    transform: rotate(0deg);
-  }
-}
-
-.dropHiglight {
-  border-left: 2px solid blue;
-}
-</style>
+<style lang="postcss"></style>
