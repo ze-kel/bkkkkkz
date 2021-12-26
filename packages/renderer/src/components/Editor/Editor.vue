@@ -1,18 +1,25 @@
 <template>
   <div class="">
-    <ContentEditable
-      v-model="fileProxy.title"
-      spellcheck="false"
-      tag="div"
-      class="focus:outline-none w-fit text-xl border-b border-transparent focus:border-indigo-600"
-    />
-    <ContentEditable
-      v-model="fileProxy.author"
-      spellcheck="false"
-      tag="div"
-      class="focus:outline-none w-fit text-md border-b border-transparent focus:border-indigo-600"
-    />
-    <ReadDetails v-model="fileProxy.read" />
+    <div class="flex gap-4">
+      <div class="flex-grow">
+        <ContentEditable
+          v-model="authorProxy"
+          spellcheck="false"
+          tag="div"
+          class="text-2xl w-fit input-default"
+        />
+        <ContentEditable
+          v-model="titleProxy"
+          spellcheck="false"
+          tag="div"
+          class="text-xl mt-1 w-fit input-default"
+        />
+      </div>
+
+      <div>
+        <ReadDetails v-model="readProxy" />
+      </div>
+    </div>
   </div>
 </template>
 
@@ -22,6 +29,7 @@ import type { PropType } from 'vue';
 import type { IFile } from '/@main/services/files';
 import ContentEditable from 'vue-contenteditable';
 import ReadDetails from '../ReadDetails/ReadDetails.vue';
+import type { IDateRead } from '/@main/services/books';
 
 const internalInstance = getCurrentInstance();
 
@@ -36,10 +44,30 @@ const emit = defineEmits<{
   (e: 'update', file: IFile): void;
 }>();
 
-const fileProxy = computed({
-  get: () => props.file,
+const titleProxy = computed({
+  get: () => props.file.title,
   set: (val) => {
-    if (internalInstance) internalInstance.emit('update', val);
+    const newFile = { ...props.file };
+    newFile.title = val;
+    internalInstance?.emit('update', newFile);
+  },
+});
+
+const authorProxy = computed({
+  get: () => props.file.author,
+  set: (val) => {
+    const newFile = { ...props.file };
+    newFile.author = val;
+    internalInstance?.emit('update', newFile);
+  },
+});
+
+const readProxy = computed({
+  get: () => props.file.read,
+  set: (val) => {
+    const newFile = { ...props.file };
+    newFile.read = val;
+    internalInstance?.emit('update', newFile);
   },
 });
 

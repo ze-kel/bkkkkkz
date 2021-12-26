@@ -1,40 +1,51 @@
 <template>
-  <div class="dates">
-    <template v-if="fullRange">
-      <v-date-picker v-model="dates" :model-config="modelConfig" is-range class="picker">
-        <template #default="{ inputValue, inputEvents }">
-          <div>
-            <input v-if="inputValue.start" :value="inputValue.start" v-on="inputEvents.start" />
+  <div class="w-full">
+    <v-date-picker
+      v-model="dateStart"
+      :model-config="modelConfig"
+      :max-date="dates.end"
+      :popover="{ visibility: 'focus' }"
+    >
+      <template #default="{ inputValue, inputEvents }">
+        <input
+          :value="inputValue"
+          class="w-full input-default"
+          placeholder="Started"
+          v-on="inputEvents"
+        />
+      </template>
+    </v-date-picker>
+  </div>
 
-            <input :value="inputValue.end" v-on="inputEvents.end" />
-          </div>
-        </template>
-      </v-date-picker>
-    </template>
+  <div>
+    <svg
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      class="fill-gray-600"
+    >
+      <path d="M18.17 13L15.59 15.59L17 17L22 12L17 7L15.59 8.41L18.17 11H2V13H18.17Z" />
+    </svg>
+  </div>
 
-    <template v-else>
-      <v-date-picker
-        v-model="dates.start"
-        :model-config="modelConfig"
-        class="picker"
-        :max-date="dates.end"
-      >
-        <template #default="{ inputValue, inputEvents }">
-          <input :value="inputValue" placeholder="Started Reading" v-on="inputEvents" />
-        </template>
-      </v-date-picker>
-
-      <v-date-picker
-        v-model="dates.end"
-        :model-config="modelConfig"
-        class="picker"
-        :min-date="dates.start"
-      >
-        <template #default="{ inputValue, inputEvents }">
-          <input :value="inputValue" placeholder="Finished Reading" v-on="inputEvents" />
-        </template>
-      </v-date-picker>
-    </template>
+  <div class="w-full">
+    <v-date-picker
+      v-model="dateEnd"
+      :model-config="modelConfig"
+      :min-date="dates.start"
+      :popover="{ visibility: 'focus' }"
+    >
+      <template #default="{ inputValue, inputEvents }">
+        <input
+          :value="inputValue"
+          placeholder="Finished"
+          class="w-full input-default"
+          v-on="inputEvents"
+        />
+      </template>
+    </v-date-picker>
   </div>
 </template>
 
@@ -70,7 +81,7 @@ const modelConfig = computed(() => {
 });
 
 const emit = defineEmits<{
-  (e: 'update:modelValue', data: IDateRead[]): void;
+  (e: 'update:modelValue', data: IDateRead): void;
 }>();
 
 const dates = computed({
@@ -85,10 +96,26 @@ const dates = computed({
   },
 });
 
+const dateStart = computed({
+  get: () => props.modelValue.started,
+  set: (val) => {
+    if (internalInstance)
+      internalInstance.emit('update:modelValue', { ...props.modelValue, started: val });
+  },
+});
+
+const dateEnd = computed({
+  get: () => props.modelValue.finished,
+  set: (val) => {
+    if (internalInstance)
+      internalInstance.emit('update:modelValue', { ...props.modelValue, finished: val });
+  },
+});
+
 const fullRange = computed(() => {
-  return dates.value.start && dates.value.end;
+  return false;
+  //return dates.value.start && dates.value.end;
 });
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>
