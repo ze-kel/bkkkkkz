@@ -22,10 +22,14 @@ input::-webkit-inner-spin-button {
 }
 
 @layer components {
+  :focus-visible {
+    @apply focus:outline-none;
+  }
+
   .hr-default {
     @apply bg-gray-300 h-px border-0  w-full;
   }
   .input-default {
-    @apply outline-none border-b border-transparent hover:border-indigo-200 focus:border-indigo-600 transition-colors;
+    @apply border-b border-transparent hover:border-indigo-200 focus:border-indigo-600 transition-colors;
   }
 }

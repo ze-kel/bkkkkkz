@@ -1,5 +1,5 @@
 <template>
-  <div class="">
+  <div class="flex flex-col h-full">
     <div class="flex gap-4">
       <div class="flex-grow">
         <ContentEditable
@@ -20,6 +20,8 @@
         <ReadDetails v-model="readProxy" />
       </div>
     </div>
+    <hr class="hr-default my-4" />
+    <div><Milkdown :text="file.content" @update="updateMarkdown" /></div>
   </div>
 </template>
 
@@ -30,6 +32,7 @@ import type { IFile } from '/@main/services/files';
 import ContentEditable from 'vue-contenteditable';
 import ReadDetails from '../ReadDetails/ReadDetails.vue';
 import type { IDateRead } from '/@main/services/books';
+import Milkdown from './Mikdown.vue';
 
 const internalInstance = getCurrentInstance();
 
@@ -70,6 +73,10 @@ const readProxy = computed({
     internalInstance?.emit('update', newFile);
   },
 });
+
+const updateMarkdown = (content: string) => {
+  internalInstance?.emit('update', { ...props.file, content });
+};
 
 onBeforeUnmount(() => {
   // If you have contenteditable focused when closing editor it will cause error in console.
