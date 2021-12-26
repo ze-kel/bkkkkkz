@@ -1,5 +1,5 @@
 <template>
-  <div ref="rootElement" class="h-full flex flex-col pt-4">
+  <div ref="rootElement" class="h-full w-full flex flex-col pt-4">
     <div class="px-4">
       <input
         v-model="searchQueryPreDebounce"
@@ -48,6 +48,7 @@ import BookItem from './BookItem/BookItem.vue';
 import Popup from '../_UI/Popup.vue';
 import { useElectron } from '/@/use/electron';
 import _debounce from 'lodash-es/debounce';
+import cloneDeep from 'lodash-es/cloneDeep';
 import type { IFile, IFiles } from '/@main/services/files';
 import Fuse from 'fuse.js';
 import type { IOpened } from '/@main/services/watcher';
@@ -137,12 +138,12 @@ const sortedFiles = computed(() => {
 const debouncedSave = _debounce(api.files.saveFileContent, 500);
 const debouncedRename = _debounce(api.files.rename, 500);
 
-const updateHandler = (file: IFile) => {
+const updateHandler = async (file: IFile) => {
   if (!files.value[file.path]) {
     throw "Trying to edit file that isn't loaded";
   }
   files.value[file.path] = file;
-  const newFile = { ...files.value[file.path] };
+  const newFile = cloneDeep(files.value[file.path]);
   debouncedSave(newFile);
 };
 

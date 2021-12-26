@@ -43,14 +43,12 @@ const dateVerifier = (date: unknown, dateFormat: string): string | null => {
 };
 
 const readDatesVerifier = (v: unknown) => {
-  console.log('read dates verifier', v);
   if (!Array.isArray(v)) return [];
   const stngs = settings.getStore();
   const dateFormat = stngs.dateFormat;
   return v.reduce((acc, dates) => {
     const verifiedDate: IDateRead = {};
 
-    console.log('verifying', dates);
 
     const from = dateVerifier(dates.started, dateFormat);
 
@@ -64,7 +62,6 @@ const readDatesVerifier = (v: unknown) => {
     }
 
     if (Object.values(verifiedDate).length > 0) {
-      console.log('SAVING DDDD');
       acc.push(verifiedDate);
     }
     return acc;

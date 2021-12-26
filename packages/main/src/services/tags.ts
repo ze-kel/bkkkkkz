@@ -24,7 +24,6 @@ const getTagPaths = (tag: string) => {
 };
 
 const getTags = (): ITags => {
-  console.log('getting tags', Object.keys(tags));
   return Object.keys(tags);
 };
 

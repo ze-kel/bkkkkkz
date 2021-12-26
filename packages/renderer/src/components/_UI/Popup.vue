@@ -1,8 +1,9 @@
 <template>
+  <div class="absolute top-0 left-0 h-8 w-full z-50"></div>
   <div
     v-if="opened"
     class="
-      bg-gray-800 bg-opacity-25
+      bg-gray-800 bg-opacity-75
       absolute
       top-0
       left-0
@@ -11,11 +12,11 @@
       flex
       items-center
       justify-center
-      z-50
+      z-10
     "
     @mousedown.self="close"
   >
-    <div class="bg-white flex items-center justify-center p-8 rounded-lg popup" @click.stop="">
+    <div class="bg-white flex items-center justify-center p-8 rounded-md popup" @click.stop="">
       <slot></slot>
     </div>
   </div>

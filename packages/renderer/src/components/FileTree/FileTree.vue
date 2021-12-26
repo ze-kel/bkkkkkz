@@ -140,13 +140,11 @@ const onDrop = async (e: DragEvent, targetPath: string) => {
 };
 
 const dragEnter = (e: DragEvent) => {
-  console.log('ENTER', props.openedEntity?.thing);
   e.preventDefault();
   canDropHere.value = true;
 };
 
 const dragLeave = (e: DragEvent) => {
-  console.log('LEAVE', props.openedEntity?.thing);
   e.preventDefault();
   canDropHere.value = false;
 };

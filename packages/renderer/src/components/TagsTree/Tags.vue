@@ -24,7 +24,6 @@ const internalInstance = getCurrentInstance();
 
 const tags = ref<ITags>([]);
 const saveNewTags = (newTags: ITags) => {
-  console.log('savenew', newTags);
   tags.value = newTags;
 };
 

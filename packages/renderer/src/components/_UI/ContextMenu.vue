@@ -1,10 +1,10 @@
 <template>
-  <div v-if="isOpened" class="overlay" @click.self="close">
-    <div :style="menuStyle" class="contextMenu">
+  <div v-if="isOpened" class="w-full h-full absolute" @click.self="close">
+    <div :style="menuStyle" class="absolute rounded select-none bg-white overflow-hidden">
       <div
         v-for="{ label, handler } in menuItems"
         :key="label"
-        class="item header-XS"
+        class="py-1 px-2 cursor-pointer hover:bg-gray-200 transition-colors"
         @click="handlerAndClose(handler)"
       >
         {{ label }}
@@ -49,29 +49,4 @@ onMounted(() => {
 });
 </script>
 
-<style scoped>
-.overlay {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  background: none;
-}
-
-.contextMenu {
-  position: absolute;
-  box-sizing: border-box;
-  padding: 4px;
-  background: var(--bg-main);
-  border: 1px solid var(--bg-secondary);
-  border-radius: 3px;
-  user-select: none;
-}
-
-.item {
-  padding: 3px;
-  cursor: pointer;
-  &:not(:first-child) {
-    margin-top: 5px;
-  }
-}
-</style>
+<style scoped></style>
