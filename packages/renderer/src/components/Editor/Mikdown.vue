@@ -1,5 +1,5 @@
 <template>
-  <div ref="editor"></div>
+  <div ref="editor" class="h-full"></div>
 </template>
 
 <script lang="ts" setup>
@@ -12,12 +12,9 @@ import {
   editorViewCtx,
   parserCtx,
 } from '@milkdown/core';
-import { nord } from '@milkdown/theme-nord';
-import { VueEditor, useEditor } from '@milkdown/vue';
 import { commonmark } from '@milkdown/preset-commonmark';
 import { listener, listenerCtx } from '@milkdown/plugin-listener';
 import { getCurrentInstance, watch, ref, onMounted } from 'vue';
-import { update } from 'lodash';
 
 const internalInstance = getCurrentInstance();
 
@@ -51,7 +48,7 @@ const makeEditor = (element: HTMLElement) => {
       ctx.set(listenerCtx, myListener);
     })
     .use(themeFactory({}))
-    .use(commonmark)
+    .use(commonmark.headless())
     .use(listener);
 };
 
@@ -75,7 +72,6 @@ const updateEditor = (markdown: string) => {
     }
     const state = view.state;
     if (contentCache === markdown) return;
-    console.log('repl');
     contentCache = markdown;
     view.dispatch(state.tr.replace(0, state.doc.content.size, new Slice(doc.content, 0, 0)));
   });
@@ -88,3 +84,8 @@ watch(
   },
 );
 </script>
+
+<style>
+@import url(./style/base.css);
+@import url(./style/theme.css);
+</style>
