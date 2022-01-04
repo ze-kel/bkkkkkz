@@ -18,10 +18,14 @@
 
       <div>
         <ReadDetails v-model="readProxy" />
+        <Rating v-model="ratingProxy" class="mt-2" />
+        <Tags v-model="tagsProxy" class="mt-2" />
       </div>
     </div>
     <hr class="hr-default my-4" />
-    <div><Milkdown :text="file.content" @update="updateMarkdown" /></div>
+    <div class="h-full">
+      <Milkdown :text="file.content" @update="updateMarkdown" />
+    </div>
   </div>
 </template>
 
@@ -31,8 +35,10 @@ import type { PropType } from 'vue';
 import type { IFile } from '/@main/services/files';
 import ContentEditable from 'vue-contenteditable';
 import ReadDetails from '../ReadDetails/ReadDetails.vue';
+import Rating from '../Rating/Rating.vue';
 import type { IDateRead } from '/@main/services/books';
 import Milkdown from './Mikdown.vue';
+import Tags from '../Tags/Tags.vue';
 
 const internalInstance = getCurrentInstance();
 
@@ -65,11 +71,29 @@ const authorProxy = computed({
   },
 });
 
+const ratingProxy = computed({
+  get: () => props.file.myRating || 0,
+  set: (val) => {
+    const newFile = { ...props.file };
+    newFile.myRating = val;
+    internalInstance?.emit('update', newFile);
+  },
+});
+
 const readProxy = computed({
   get: () => props.file.read,
   set: (val) => {
     const newFile = { ...props.file };
     newFile.read = val;
+    internalInstance?.emit('update', newFile);
+  },
+});
+
+const tagsProxy = computed({
+  get: () => props.file.tags,
+  set: (val) => {
+    const newFile = { ...props.file };
+    newFile.tags = val;
     internalInstance?.emit('update', newFile);
   },
 });
