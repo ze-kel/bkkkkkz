@@ -43,7 +43,7 @@ export const useStore = defineStore('main', {
         this.initCore();
       }
     },
-    newOpened(newOne: IOpened) {
+    newOpened(newOne: IOpened | null) {
       this.opened = newOne;
     },
 

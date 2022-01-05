@@ -16,6 +16,7 @@ interface ElectronApi {
     getFileTree: (path?: string) => Promise<IFolder>;
     loadFilesFromFolder: (path: string, recursive?: boolean) => Promise<ILoadedFiles>;
     loadFilesFromTag: (tag: string) => Promise<ILoadedFiles>;
+    loadFileContent: (path: string) => Promise<ILoadedFile>;
     saveFileContent: (file: ILoadedFile) => Promise<void>;
 
     move: (srcPath: string, targetPath: string) => Promise<string>;

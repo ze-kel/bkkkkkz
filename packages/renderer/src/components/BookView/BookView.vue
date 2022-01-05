@@ -22,7 +22,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, getCurrentInstance, onMounted, ref, watch, watchEffect } from 'vue';
+import { computed, onMounted, ref, watch, watchEffect } from 'vue';
 import BookItem from './BookItem/BookItem.vue';
 import { useElectron } from '/@/use/electron';
 import _debounce from 'lodash-es/debounce';
@@ -30,25 +30,28 @@ import cloneDeep from 'lodash-es/cloneDeep';
 import type { IFile, IFiles } from '/@main/services/files';
 import Fuse from 'fuse.js';
 import { useStore } from '/@/use/store';
+import type { IOpenedTag, IOpenedPath } from '/@main/services/watcher';
+import type { PropType } from 'vue';
 
 const api = useElectron();
-const internalInstance = getCurrentInstance();
 
 const store = useStore();
 
 const files = ref<IFiles>({});
 
-watchEffect(async () => {
-  if (!store.opened) {
-    files.value = {};
-    return;
-  }
+const props = defineProps({
+  opened: {
+    type: Object as PropType<IOpenedPath | IOpenedTag>,
+    required: true,
+  },
+});
 
-  if (store.opened.type === 'path') {
-    files.value = await api.files.loadFilesFromFolder(store.opened.thing, store.opened.recursive);
+watchEffect(async () => {
+  if (props.opened.type === 'path') {
+    files.value = await api.files.loadFilesFromFolder(props.opened.thing, props.opened.recursive);
   }
-  if (store.opened.type === 'tag') {
-    files.value = await api.files.loadFilesFromTag(store.opened.thing);
+  if (props.opened.type === 'tag') {
+    files.value = await api.files.loadFilesFromTag(props.opened.thing);
   }
 });
 
@@ -128,20 +131,6 @@ const renameHandler = (path: string, newName: string) => {
 };
 
 const rootElement = ref<Element | null>(null);
-const numberOfColumns = ref(1);
-onMounted(async () => {
-  const updateNumberOfColumns = () => {
-    if (rootElement.value) {
-      numberOfColumns.value = Math.floor(rootElement.value.clientWidth / 175);
-    }
-  };
-
-  updateNumberOfColumns();
-
-  if (rootElement.value) {
-    new ResizeObserver(updateNumberOfColumns).observe(rootElement.value);
-  }
-});
 </script>
 
 <style scoped>

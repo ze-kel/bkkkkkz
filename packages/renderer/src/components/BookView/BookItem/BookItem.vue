@@ -1,9 +1,4 @@
 <template>
-  <Popup :opened="editorOpened" @close="triggerFullEditor">
-    <div class="editorWrapper">
-      <Editor :file="currentFile" @update="passUpdate" />
-    </div>
-  </Popup>
   <Cover
     v-if="style === 'CARDS'"
     :title="currentFile.title"
@@ -11,23 +6,23 @@
     :year="currentFile.year"
     :rating="currentFile.myRating"
     class="cursor-pointer"
-    @click="triggerFullEditor"
+    @click="openFullEditor"
   />
 </template>
 
 <script setup lang="ts">
-import { computed, getCurrentInstance, onMounted, ref, watch } from 'vue';
+import { getCurrentInstance, ref } from 'vue';
 import type { PropType } from 'vue';
 import type { IFile } from '/@main/services/files';
 import _debounce from 'lodash-es/debounce';
 
 import Cover from './Cover.vue';
-import Popup from '../../_UI/Popup.vue';
-import Editor from '../../Editor/Editor.vue';
+import { useStore } from '/@/use/store';
 
 export type IBookStyle = 'CARDS';
 
 const internalInstance = getCurrentInstance();
+const store = useStore();
 
 const props = defineProps({
   currentFile: {
@@ -44,10 +39,10 @@ const emit = defineEmits<{
   (e: 'update', file: IFile): void;
 }>();
 
-const passUpdate = (val: IFile) => internalInstance?.emit('update', val);
-
 const editorOpened = ref(false);
-const triggerFullEditor = () => (editorOpened.value = !editorOpened.value);
+const openFullEditor = () => {
+  store.newOpened({ type: 'file', thing: props.currentFile.path });
+};
 </script>
 
 <style scoped>

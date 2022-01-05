@@ -8,18 +8,23 @@ import TagsStore from './tags';
 import type { FSWatcher } from 'chokidar';
 import { DOTFILE_REGEX } from '../helpers/utils';
 
-type IOpenedPath = {
+export type IOpenedPath = {
   type: 'path';
   thing: string;
   recursive: boolean;
 };
 
-type IOpenedTag = {
+export type IOpenedTag = {
   type: 'tag';
   thing: string;
 };
 
-export type IOpened = IOpenedTag | IOpenedPath;
+export type IOpenedFile = {
+  type: 'file';
+  thing: string;
+};
+
+export type IOpened = IOpenedTag | IOpenedPath | IOpenedFile;
 
 type IWatcher = {
   watcher: FSWatcher | null;
@@ -34,6 +39,11 @@ type IWatcher = {
 
 const isRelevant = (loaded: IOpened | null, pathInQuestion: string): boolean => {
   if (!loaded) return false;
+
+  if (loaded.type === 'file') {
+    return loaded.thing === pathInQuestion;
+  }
+
   if (loaded.type === 'path') {
     if (loaded.recursive) {
       const relative = path.relative(loaded.thing, pathInQuestion);
@@ -46,6 +56,7 @@ const isRelevant = (loaded: IOpened | null, pathInQuestion: string): boolean => 
   if (loaded.type === 'tag') {
     TagsStore.hasTag(loaded.thing, pathInQuestion);
   }
+
   return false;
 };
 
@@ -101,10 +112,7 @@ const TheWatcher: IWatcher = {
     const sendUnlink = (unlinkedPath: string) => {
       TagsStore.processDeletedFile(unlinkedPath);
 
-      if (!isRelevant(this.opened, unlinkedPath)) {
-        TagsStore.processDeletedFile(unlinkedPath);
-        return;
-      }
+      if (!isRelevant(this.opened, unlinkedPath)) return;
 
       WebContentsProxy.FILE_REMOVE(unlinkedPath);
     };

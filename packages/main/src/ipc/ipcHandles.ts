@@ -38,6 +38,11 @@ const handles: IHandles = {
     TheWatcher.opened = { type: 'tag', thing: tag };
     return files;
   },
+  loadFileContent: async (_, path: string) => {
+    const file = await FileService.getFileContent(path);
+    TheWatcher.opened = { type: 'file', thing: path };
+    return file;
+  },
   saveFileContent: async (_, file: ISavedFile) => {
     const currentTime = new Date();
 

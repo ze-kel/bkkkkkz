@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col h-full">
+  <div v-if="file" class="flex flex-col h-full p-5">
     <div class="flex gap-4">
       <div class="flex-grow">
         <ContentEditable
@@ -37,23 +37,59 @@
 </template>
 
 <script lang="ts" setup>
-import { getCurrentInstance, computed, onBeforeUnmount } from 'vue';
+import { getCurrentInstance, computed, onBeforeUnmount, ref, onMounted, watchEffect } from 'vue';
 import type { PropType } from 'vue';
-import type { IFile } from '/@main/services/files';
+import type { IFile, ISavedFile } from '/@main/services/files';
 import ContentEditable from 'vue-contenteditable';
 import ReadDetails from '../ReadDetails/ReadDetails.vue';
 import Rating from '../Rating/Rating.vue';
 import type { IDateRead } from '/@main/services/books';
 import Milkdown from './Mikdown.vue';
 import Tags from '../Tags/Tags.vue';
+import type { IOpenedFile } from '/@main/services/watcher';
+import _debounce from 'lodash-es/debounce';
+import { useElectron } from '/@/use/electron';
+
+import { cloneDeep } from 'lodash';
+import { useStore } from '/@/use/store';
 
 const internalInstance = getCurrentInstance();
+const api = useElectron();
+const store = useStore();
 
 const props = defineProps({
-  file: {
-    type: Object as PropType<IFile>,
+  opened: {
+    type: Object as PropType<IOpenedFile>,
     required: true,
   },
+});
+
+const file = ref<ISavedFile | null>(null);
+
+const save = (file: ISavedFile) => {
+  api.files.saveFileContent(cloneDeep(file));
+};
+
+const rename = async (newName: string) => {
+  if (!file.value) return;
+  const newPath = await api.files.rename(file.value?.path, newName);
+  store.newOpened({ type: 'file', thing: newPath });
+};
+
+const debouncedSave = _debounce(save, 500);
+const debouncedRename = _debounce(rename, 500);
+
+const updateHandlerApi = (path: string, newFile: IFile) => {
+  file.value = newFile;
+};
+
+watchEffect(async () => {
+  file.value = await api.files.loadFileContent(props.opened.thing);
+});
+
+onMounted(() => {
+  api.subscriptions.FILE_UPDATE(updateHandlerApi);
+  api.subscriptions.FILE_REMOVE(() => store.newOpened(null));
 });
 
 const emit = defineEmits<{
@@ -61,61 +97,69 @@ const emit = defineEmits<{
 }>();
 
 const titleProxy = computed({
-  get: () => props.file.title,
+  get: () => file.value?.title,
   set: (val) => {
-    const newFile = { ...props.file };
+    if (!file.value) return;
+    const newFile = { ...file.value };
     newFile.title = val;
-    internalInstance?.emit('update', newFile);
+    debouncedSave(newFile);
   },
 });
 
 const authorProxy = computed({
-  get: () => props.file.author,
+  get: () => file.value?.author,
   set: (val) => {
-    const newFile = { ...props.file };
+    if (!file.value) return;
+    const newFile = { ...file.value };
     newFile.author = val;
-    internalInstance?.emit('update', newFile);
+    debouncedSave(newFile);
   },
 });
 
 const ratingProxy = computed({
-  get: () => props.file.myRating || 0,
+  get: () => file.value?.myRating || 0,
   set: (val) => {
-    const newFile = { ...props.file };
+    if (!file.value) return;
+    const newFile = { ...file.value };
     newFile.myRating = val;
-    internalInstance?.emit('update', newFile);
+    debouncedSave(newFile);
   },
 });
 
 const readProxy = computed({
-  get: () => props.file.read,
+  get: () => file.value?.read,
   set: (val) => {
-    const newFile = { ...props.file };
+    if (!file.value) return;
+    const newFile = { ...file.value };
     newFile.read = val;
-    internalInstance?.emit('update', newFile);
+    debouncedSave(newFile);
   },
 });
 
 const tagsProxy = computed({
-  get: () => props.file.tags,
+  get: () => file.value?.tags,
   set: (val) => {
-    const newFile = { ...props.file };
+    if (!file.value) return;
+    const newFile = { ...file.value };
     newFile.tags = val;
-    internalInstance?.emit('update', newFile);
+    debouncedSave(newFile);
   },
 });
 
 const pathProxy = computed({
-  get: () => props.file.path,
+  get: () => file.value?.name,
   set: (val) => {
-    const newFile = { ...props.file };
-    newFile.path = val;
-    internalInstance?.emit('update', newFile);
+    if (!val) return;
+    debouncedRename(val);
   },
 });
 
-const updateMarkdown = (content: string) => {
-  internalInstance?.emit('update', { ...props.file, content });
+const updateMarkdown = (val: string) => {
+  if (!file.value) return;
+  if (val === file.value.name) return;
+  const newFile = { ...file.value };
+  newFile.content = val;
+  debouncedSave(newFile);
 };
 
 onBeforeUnmount(() => {

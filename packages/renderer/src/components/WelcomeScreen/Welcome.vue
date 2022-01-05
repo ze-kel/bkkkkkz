@@ -2,14 +2,14 @@
   <div class="root">
     <div class="header-XL bold">Welcome!</div>
     <div class="text text-L">Please select your root directory</div>
-    <button class="button bold" @click="$emit('setPath')">Select</button>
+    <button class="button bold" @click="store.newRootPath">Select</button>
   </div>
 </template>
 
 <script lang="ts" setup>
-const emit = defineEmits<{
-  (e: 'setPath'): void;
-}>();
+import { useStore } from '/@/use/store';
+
+const store = useStore();
 </script>
 
 <style scoped>

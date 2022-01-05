@@ -18,6 +18,10 @@ const api: ElectronApi = {
       const result = await ipcRenderer.invoke('loadFilesFromTag', tag);
       return result;
     },
+    loadFileContent: async (path) => {
+      const result = await ipcRenderer.invoke('loadFileContent', path);
+      return result;
+    },
     saveFileContent: async (file) => {
       const result = await ipcRenderer.invoke('saveFileContent', file);
       return result;

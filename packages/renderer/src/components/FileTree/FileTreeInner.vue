@@ -71,7 +71,7 @@ import { useStore } from '/@/use/store';
 
 const internalInstance = getCurrentInstance();
 
-const electron = useElectron();
+const api = useElectron();
 const store = useStore();
 
 const props = defineProps({
@@ -130,7 +130,7 @@ const onDrop = async (e: DragEvent, targetPath: string) => {
   if (!draggedPath) {
     throw 'no dragged path';
   }
-  const newPath = await electron.files.move(draggedPath, targetPath);
+  const newPath = await api.files.move(draggedPath, targetPath);
 };
 
 const dragEnter = (e: DragEvent) => {
@@ -173,7 +173,7 @@ const startRenaming = () => {
 
 const saveName = async () => {
   if (newName.value && newName.value !== props.content.name) {
-    const newPath = await electron.files.rename(props.content.path, newName.value);
+    const newPath = await api.files.rename(props.content.path, newName.value);
   }
   isRenaming.value = false;
 };
@@ -188,7 +188,7 @@ const menu: ContextMenu = [
   },
   {
     label: 'Delete',
-    handler: () => electron.files.delete(props.content.path),
+    handler: () => api.files.delete(props.content.path),
   },
 ];
 
