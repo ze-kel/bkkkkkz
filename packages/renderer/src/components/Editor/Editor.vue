@@ -37,7 +37,15 @@
 </template>
 
 <script lang="ts" setup>
-import { getCurrentInstance, computed, onBeforeUnmount, ref, onMounted, watchEffect } from 'vue';
+import {
+  getCurrentInstance,
+  computed,
+  onBeforeUnmount,
+  ref,
+  onMounted,
+  watchEffect,
+  onUnmounted,
+} from 'vue';
 import type { PropType } from 'vue';
 import type { IFile, ISavedFile } from '/@main/services/files';
 import ContentEditable from 'vue-contenteditable';
@@ -62,6 +70,10 @@ const props = defineProps({
     type: Object as PropType<IOpenedFile>,
     required: true,
   },
+  index: {
+    type: Number,
+    required: true,
+  },
 });
 
 const file = ref<ISavedFile | null>(null);
@@ -73,7 +85,7 @@ const save = (file: ISavedFile) => {
 const rename = async (newName: string) => {
   if (!file.value) return;
   const newPath = await api.files.rename(file.value?.path, newName);
-  store.newOpened({ type: 'file', thing: newPath });
+  store.updateOpened(props.index, { type: 'file', thing: newPath });
 };
 
 const debouncedSave = _debounce(save, 500);
@@ -87,9 +99,15 @@ watchEffect(async () => {
   file.value = await api.files.loadFileContent(props.opened.thing);
 });
 
+const toClear: Array<() => void> = [];
+
 onMounted(() => {
-  api.subscriptions.FILE_UPDATE(updateHandlerApi);
-  api.subscriptions.FILE_REMOVE(() => store.newOpened(null));
+  toClear.push(api.subscriptions.FILE_UPDATE(updateHandlerApi));
+  toClear.push(api.subscriptions.FILE_REMOVE(() => store.closeOpened(props.index)));
+});
+
+onUnmounted(() => {
+  toClear.forEach((fn) => fn());
 });
 
 const emit = defineEmits<{
@@ -100,9 +118,8 @@ const titleProxy = computed({
   get: () => file.value?.title,
   set: (val) => {
     if (!file.value) return;
-    const newFile = { ...file.value };
-    newFile.title = val;
-    debouncedSave(newFile);
+    file.value.title = val;
+    debouncedSave(file.value);
   },
 });
 
@@ -110,9 +127,8 @@ const authorProxy = computed({
   get: () => file.value?.author,
   set: (val) => {
     if (!file.value) return;
-    const newFile = { ...file.value };
-    newFile.author = val;
-    debouncedSave(newFile);
+    file.value.author = val;
+    debouncedSave(file.value);
   },
 });
 
@@ -120,9 +136,8 @@ const ratingProxy = computed({
   get: () => file.value?.myRating || 0,
   set: (val) => {
     if (!file.value) return;
-    const newFile = { ...file.value };
-    newFile.myRating = val;
-    debouncedSave(newFile);
+    file.value.myRating = val;
+    debouncedSave(file.value);
   },
 });
 
@@ -130,9 +145,8 @@ const readProxy = computed({
   get: () => file.value?.read,
   set: (val) => {
     if (!file.value) return;
-    const newFile = { ...file.value };
-    newFile.read = val;
-    debouncedSave(newFile);
+    file.value.read = val;
+    debouncedSave(file.value);
   },
 });
 
@@ -140,9 +154,8 @@ const tagsProxy = computed({
   get: () => file.value?.tags,
   set: (val) => {
     if (!file.value) return;
-    const newFile = { ...file.value };
-    newFile.tags = val;
-    debouncedSave(newFile);
+    file.value.tags = val;
+    debouncedSave(file.value);
   },
 });
 
@@ -156,10 +169,8 @@ const pathProxy = computed({
 
 const updateMarkdown = (val: string) => {
   if (!file.value) return;
-  if (val === file.value.name) return;
-  const newFile = { ...file.value };
-  newFile.content = val;
-  debouncedSave(newFile);
+  file.value.content = val;
+  debouncedSave(file.value);
 };
 
 onBeforeUnmount(() => {

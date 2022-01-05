@@ -26,6 +26,10 @@ const api: ElectronApi = {
       const result = await ipcRenderer.invoke('saveFileContent', file);
       return result;
     },
+    syncOpened: async (file) => {
+      const result = await ipcRenderer.invoke('syncOpened', file);
+      return result;
+    },
 
     move: async (srcPath, targetPath) => {
       const result = await ipcRenderer.invoke('move', srcPath, targetPath);
@@ -46,22 +50,46 @@ const api: ElectronApi = {
   },
   subscriptions: {
     TREE_UPDATE: (callback) => {
-      ipcRenderer.on('TREE_UPDATE', callWithoutEvent(callback));
+      const noEvent = callWithoutEvent(callback);
+      ipcRenderer.on('TREE_UPDATE', noEvent);
+      return () => {
+        ipcRenderer.removeListener('TREE_UPDATE', noEvent);
+      };
     },
     FILE_UPDATE: (callback) => {
-      ipcRenderer.on('FILE_UPDATE', callWithoutEvent(callback));
+      const noEvent = callWithoutEvent(callback);
+      ipcRenderer.on('FILE_UPDATE', noEvent);
+      return () => {
+        ipcRenderer.removeListener('FILE_UPDATE', noEvent);
+      };
     },
     FILE_ADD: (callback) => {
-      ipcRenderer.on('FILE_ADD', callWithoutEvent(callback));
+      const noEvent = callWithoutEvent(callback);
+      ipcRenderer.on('FILE_ADD', noEvent);
+      return () => {
+        ipcRenderer.removeListener('FILE_ADD', noEvent);
+      };
     },
     FILE_REMOVE: (callback) => {
-      ipcRenderer.on('FILE_REMOVE', callWithoutEvent(callback));
+      const noEvent = callWithoutEvent(callback);
+      ipcRenderer.on('FILE_REMOVE', noEvent);
+      return () => {
+        ipcRenderer.removeListener('FILE_REMOVE', noEvent);
+      };
     },
     TAGS_UPDATE: (callback) => {
-      ipcRenderer.on('TAGS_UPDATE', callWithoutEvent(callback));
+      const noEvent = callWithoutEvent(callback);
+      ipcRenderer.on('TAGS_UPDATE', noEvent);
+      return () => {
+        ipcRenderer.removeListener('TAGS_UPDATE', noEvent);
+      };
     },
     SETTINGS_UPDATE: (callback) => {
-      ipcRenderer.on('SETTINGS_UPDATE', callWithoutEvent(callback));
+      const noEvent = callWithoutEvent(callback);
+      ipcRenderer.on('SETTINGS_UPDATE', noEvent);
+      return () => {
+        ipcRenderer.removeListener('SETTINGS_UPDATE', noEvent);
+      };
     },
   },
 

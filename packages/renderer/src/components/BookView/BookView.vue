@@ -1,28 +1,26 @@
 <template>
-  <div ref="rootElement" class="h-full w-full flex flex-col pt-4">
-    <div class="px-4">
+  <div ref="rootElement" class="h-full w-full flex flex-col">
+    <div class="px-2">
       <input
         v-model="searchQueryPreDebounce"
         class="w-3/12 px-2 py-1 mb-1 border-2 rounded-md border-indigo-200 shadow-md shadow-indigo-100 focus:outline-none focus:border-indigo-600 focus:shadow-indigo-400 transition-colors"
         placeholder="Search Books"
       />
     </div>
-    <div
-      class="w-full h-full box-border grid cards gap-4 overflow-y-auto overflow-x-hidden px-4 py-2"
-    >
+    <div class="w-full h-full box-border grid cards gap-4 overflow-y-auto overflow-x-hidden p-2">
       <BookItem
         v-for="item in sortedFiles"
         :key="item.path"
         :current-file="item"
         :style="'CARDS'"
-        @update="updateHandler"
+        @open="openHandler(item)"
       />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch, watchEffect } from 'vue';
+import { computed, onMounted, onUnmounted, ref, watch, watchEffect } from 'vue';
 import BookItem from './BookItem/BookItem.vue';
 import { useElectron } from '/@/use/electron';
 import _debounce from 'lodash-es/debounce';
@@ -30,8 +28,9 @@ import cloneDeep from 'lodash-es/cloneDeep';
 import type { IFile, IFiles } from '/@main/services/files';
 import Fuse from 'fuse.js';
 import { useStore } from '/@/use/store';
-import type { IOpenedTag, IOpenedPath } from '/@main/services/watcher';
+import type { IOpenedTag, IOpenedPath, IOpenedFile } from '/@main/services/watcher';
 import type { PropType } from 'vue';
+import { callWithoutEvent } from '/@main/helpers/utils';
 
 const api = useElectron();
 
@@ -42,6 +41,10 @@ const files = ref<IFiles>({});
 const props = defineProps({
   opened: {
     type: Object as PropType<IOpenedPath | IOpenedTag>,
+    required: true,
+  },
+  index: {
+    type: Number,
     required: true,
   },
 });
@@ -55,26 +58,37 @@ watchEffect(async () => {
   }
 });
 
-const updateHandlerApi = (path: string, content: IFile) => {
+const updateHandlerApi = (path: string, content: IFile, indexes: number[]) => {
+  if (!indexes.includes(props.index)) return;
   if (files.value[path]) {
     files.value[path] = content;
   }
 };
 
-const addHandlerApi = (path: string, content: IFile) => {
+const addHandlerApi = (path: string, content: IFile, indexes: number[]) => {
+  if (!indexes.includes(props.index)) return;
   files.value[path] = content;
 };
 
-const removeHandlerApi = (path: string) => {
+const removeHandlerApi = (path: string, indexes: number[]) => {
+  if (!indexes.includes(props.index)) return;
   if (files.value[path]) {
     delete files.value[path];
   }
 };
 
+const toClear: Array<() => void> = [];
+
 onMounted(async () => {
-  api.subscriptions.FILE_UPDATE(updateHandlerApi);
-  api.subscriptions.FILE_ADD(addHandlerApi);
-  api.subscriptions.FILE_REMOVE(removeHandlerApi);
+  toClear.push(
+    api.subscriptions.FILE_UPDATE(updateHandlerApi),
+    api.subscriptions.FILE_ADD(addHandlerApi),
+    api.subscriptions.FILE_REMOVE(removeHandlerApi),
+  );
+});
+
+onUnmounted(async () => {
+  toClear.forEach((fn) => fn());
 });
 
 const filesArray = computed(() => {
@@ -113,6 +127,11 @@ const sortedFiles = computed(() => {
 
 const debouncedSave = _debounce(api.files.saveFileContent, 500);
 const debouncedRename = _debounce(api.files.rename, 500);
+
+const openHandler = (file: IFile) => {
+  const newOpened: IOpenedFile = { type: 'file', thing: file.path };
+  store.updateOpened(props.index, newOpened);
+};
 
 const updateHandler = async (file: IFile) => {
   if (!files.value[file.path]) {

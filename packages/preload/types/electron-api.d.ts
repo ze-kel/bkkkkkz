@@ -1,5 +1,6 @@
 import type { IFolder, ILoadedFile, ILoadedFiles } from '/@main/services/files';
 import type { ILocalSettings } from '/@main/services/localSettings';
+import type { IOpened } from '/@main/services/watcher';
 
 import type {
   I_FILE_ADD,
@@ -18,6 +19,7 @@ interface ElectronApi {
     loadFilesFromTag: (tag: string) => Promise<ILoadedFiles>;
     loadFileContent: (path: string) => Promise<ILoadedFile>;
     saveFileContent: (file: ILoadedFile) => Promise<void>;
+    syncOpened: (opened: IOpened[]) => Promise<void>;
 
     move: (srcPath: string, targetPath: string) => Promise<string>;
     rename: (srcPath: string, newName: string) => Promise<string>;
@@ -26,12 +28,12 @@ interface ElectronApi {
     getTags: () => Promise<ITags>;
   };
   subscriptions: {
-    TREE_UPDATE: (callback: I_TREE_UPDATE) => void;
-    FILE_UPDATE: (callback: I_FILE_UPDATE) => void;
-    FILE_ADD: (callback: I_FILE_ADD) => void;
-    FILE_REMOVE: (callback: I_FILE_REMOVE) => void;
-    TAGS_UPDATE: (callback: I_TAGS_UPDATE) => void;
-    SETTINGS_UPDATE: (callback: I_SETTINGS_UPDATE) => void;
+    TREE_UPDATE: (callback: I_TREE_UPDATE) => () => void;
+    FILE_UPDATE: (callback: I_FILE_UPDATE) => () => void;
+    FILE_ADD: (callback: I_FILE_ADD) => () => void;
+    FILE_REMOVE: (callback: I_FILE_REMOVE) => () => void;
+    TAGS_UPDATE: (callback: I_TAGS_UPDATE) => () => void;
+    SETTINGS_UPDATE: (callback: I_SETTINGS_UPDATE) => () => void;
   };
 
   core: {

@@ -6,7 +6,8 @@
       :key="tag"
       :is-opened="openedTag === tag"
       :tag="tag"
-      @click="select(tag)"
+      @click="select(tag, false)"
+      @click.alt="select(tag, true)"
     />
   </div>
 </template>
@@ -16,18 +17,24 @@ import { getCurrentInstance, computed } from 'vue';
 import { useElectron } from '/@/use/electron';
 import Tag from './TagFromTree.vue';
 import { useStore } from '/@/use/store';
+import type { IOpenedTag } from '/@main/services/watcher';
 
 const api = useElectron();
 const internalInstance = getCurrentInstance();
 const store = useStore();
 
 const openedTag = computed(() => {
-  if (!store.opened || store.opened.type === 'path') return null;
-  return store.opened.thing;
+  if (!store.openedItem || store.openedItem.type !== 'tag') return null;
+  return store.openedItem.thing;
 });
 
-const select = (tag: string) => {
-  store.newOpened({ type: 'tag', thing: tag });
+const select = (tag: string, newTab: boolean) => {
+  const newOne: IOpenedTag = { type: 'tag', thing: tag };
+  if (newTab || store.activeOpenedIndex === null) {
+    store.addOpened(newOne);
+  } else {
+    store.updateOpened(store.activeOpenedIndex, newOne);
+  }
 };
 </script>
 

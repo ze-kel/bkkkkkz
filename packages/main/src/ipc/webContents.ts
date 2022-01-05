@@ -3,9 +3,9 @@ import type { IFolderTree, ISavedFile } from '../services/files';
 import type { ITags } from '../services/tags';
 import type { ILocalSettings } from '../services/settings';
 
-type I_FILE_UPDATE = (path: string, newFile: ISavedFile) => void;
-type I_FILE_REMOVE = (unlinkedPath: string) => void;
-type I_FILE_ADD = (path: string, file: ISavedFile) => void;
+type I_FILE_UPDATE = (path: string, newFile: ISavedFile, relevantIndexex: number[]) => void;
+type I_FILE_REMOVE = (unlinkedPath: string, relevantIndexex: number[]) => void;
+type I_FILE_ADD = (path: string, file: ISavedFile, relevantIndexex: number[]) => void;
 
 type I_TREE_UPDATE = (newFile: IFolderTree) => void;
 

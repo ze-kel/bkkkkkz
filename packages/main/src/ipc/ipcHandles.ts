@@ -3,6 +3,7 @@ import * as fs from 'fs-extra';
 import FileService from '../services/files';
 import TagsStore from '../services/tags';
 import TheWatcher from '../services/watcher';
+import type { IOpened } from '../services/watcher';
 import ParseGoodreadsCSV from '../services/goodreadsCsvParser';
 import Setting from '../services/settings';
 import { callWithoutEvent } from '/@/helpers/utils';
@@ -30,17 +31,14 @@ const handles: IHandles = {
   },
   loadFilesFromFolder: async (_, path: string, recursive = false) => {
     const files = await FileService.loadFilesFromFolder(path, recursive);
-    TheWatcher.opened = { type: 'path', thing: path, recursive };
     return files;
   },
   loadFilesFromTag: async (_, tag: string) => {
     const files = await FileService.loadFilesFromTag(tag);
-    TheWatcher.opened = { type: 'tag', thing: tag };
     return files;
   },
   loadFileContent: async (_, path: string) => {
     const file = await FileService.getFileContent(path);
-    TheWatcher.opened = { type: 'file', thing: path };
     return file;
   },
   saveFileContent: async (_, file: ISavedFile) => {
@@ -49,6 +47,10 @@ const handles: IHandles = {
     TheWatcher.filesIgnore[file.path] = new Date(currentTime.getTime() + 3000);
 
     await FileService.saveFileContent(file);
+  },
+
+  syncOpened: (_, opened: IOpened[]) => {
+    TheWatcher.opened = opened;
   },
   closeWatcher: TheWatcher.destroy,
   move: callWithoutEvent(FileService.moveToFolder),

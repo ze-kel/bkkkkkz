@@ -36,12 +36,12 @@ const props = defineProps({
 });
 
 const emit = defineEmits<{
-  (e: 'update', file: IFile): void;
+  (e: 'open'): void;
 }>();
 
 const editorOpened = ref(false);
 const openFullEditor = () => {
-  store.newOpened({ type: 'file', thing: props.currentFile.path });
+  internalInstance?.emit('open');
 };
 </script>
 

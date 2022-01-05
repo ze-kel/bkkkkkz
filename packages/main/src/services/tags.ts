@@ -47,7 +47,7 @@ const removeTag = (tag: string) => {
   delete tags[tag];
 };
 
-const sendUpdates = _debounce(() =>  WebContentsProxy.TAGS_UPDATE(getTags()), 250);
+const sendUpdates = _debounce(() => WebContentsProxy.TAGS_UPDATE(getTags()), 250);
 
 const processAddedFile = (file: ISavedFile) => {
   if (!file.tags) return;
@@ -56,11 +56,14 @@ const processAddedFile = (file: ISavedFile) => {
   sendUpdates();
 };
 
-const processUpdatedFile = (file: ISavedFile, opened: IOpened | null) => {
+const processUpdatedFile = (file: ISavedFile, opened: IOpened[]) => {
+  console.log('processing', file);
   const tags = file.tags || [];
 
   const added = _difference(tags, files[file.path]);
   const removed = _difference(files[file.path], tags);
+
+  if (!added.length && !removed.length) return;
 
   added.forEach((tag) => addFile(tag, file.path));
   removed.forEach((tag) => removeFile(tag, file.path));
@@ -68,14 +71,16 @@ const processUpdatedFile = (file: ISavedFile, opened: IOpened | null) => {
   files[file.path] = tags;
   sendUpdates();
 
-  if (opened && opened.type === 'tag') {
-    if (added.includes(opened.thing)) {
-      WebContentsProxy.FILE_ADD(file.path, file);
+  opened.forEach((item, index) => {
+    if (item.type === 'tag') {
+      if (added.includes(item.thing)) {
+        WebContentsProxy.FILE_ADD(file.path, file, [index]);
+      }
+      if (removed.includes(item.thing)) {
+        WebContentsProxy.FILE_REMOVE(file.path, [index]);
+      }
     }
-    if (removed.includes(opened.thing)) {
-      WebContentsProxy.FILE_REMOVE(file.path);
-    }
-  }
+  });
 };
 
 const processDeletedFile = (path: string) => {

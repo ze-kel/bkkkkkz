@@ -29,7 +29,7 @@ export type IOpened = IOpenedTag | IOpenedPath | IOpenedFile;
 type IWatcher = {
   watcher: FSWatcher | null;
   watchPath: string | null;
-  opened: IOpened | null;
+  opened: IOpened[];
   filesIgnore: {
     [key: string]: Date;
   };
@@ -37,9 +37,7 @@ type IWatcher = {
   destroy: () => Promise<void>;
 };
 
-const isRelevant = (loaded: IOpened | null, pathInQuestion: string): boolean => {
-  if (!loaded) return false;
-
+const isRelevant = (loaded: IOpened, pathInQuestion: string): boolean => {
   if (loaded.type === 'file') {
     return loaded.thing === pathInQuestion;
   }
@@ -60,10 +58,21 @@ const isRelevant = (loaded: IOpened | null, pathInQuestion: string): boolean => 
   return false;
 };
 
+const getRelevantIndexes = (opened: IOpened[], pathInQuestion: string): number[] => {
+  const relevantTo: number[] = [];
+
+  opened.forEach((openedEntry, index) => {
+    if (isRelevant(openedEntry, pathInQuestion)) {
+      relevantTo.push(index);
+    }
+  });
+  return relevantTo;
+};
+
 const TheWatcher: IWatcher = {
   watcher: null,
   watchPath: null,
-  opened: null,
+  opened: [],
   filesIgnore: {},
   init: async function (initPath) {
     if (this.watcher) {
@@ -94,6 +103,7 @@ const TheWatcher: IWatcher = {
 
     const sendUpdatedFile = async (path: string) => {
       const newFile = await FileService.getFileContent(path);
+      // TODO: MAKE TAGS UPDATE WORK
       TagsStore.processUpdatedFile(newFile, this.opened);
       const ignoreDate = this.filesIgnore[path];
 
@@ -106,23 +116,31 @@ const TheWatcher: IWatcher = {
         }
       }
 
-      WebContentsProxy.FILE_UPDATE(path, newFile);
+      const relevantIndexex = getRelevantIndexes(this.opened, path);
+
+      if (!relevantIndexex.length) return;
+
+      WebContentsProxy.FILE_UPDATE(path, newFile, relevantIndexex);
     };
 
     const sendUnlink = (unlinkedPath: string) => {
       TagsStore.processDeletedFile(unlinkedPath);
 
-      if (!isRelevant(this.opened, unlinkedPath)) return;
+      const relevantIndexex = getRelevantIndexes(this.opened, unlinkedPath);
 
-      WebContentsProxy.FILE_REMOVE(unlinkedPath);
+      if (!relevantIndexex.length) return;
+
+      WebContentsProxy.FILE_REMOVE(unlinkedPath, relevantIndexex);
     };
 
     const sendAdd = async (addedPath: string) => {
       const file = await FileService.getFileContent(addedPath);
       TagsStore.processAddedFile(file);
-      if (!isRelevant(this.opened, addedPath)) return;
+      const relevantIndexex = getRelevantIndexes(this.opened, addedPath);
 
-      WebContentsProxy.FILE_ADD(addedPath, file);
+      if (!relevantIndexex.length) return;
+
+      WebContentsProxy.FILE_ADD(addedPath, file, relevantIndexex);
     };
 
     this.watcher

@@ -7,23 +7,13 @@
 <script lang="ts" setup>
 import { computed } from 'vue';
 import { useStore } from '/@/use/store';
+import formatHeader from '/@/utils/formatHeader';
 
 const store = useStore();
 
 const opened = computed(() => {
-  if (store.opened && store.settings) {
-    if (store.opened.type === 'path') {
-      if (store.opened.thing === store.settings.rootPath) {
-        return 'All Books';
-      }
-      return store.opened.thing.replace(store.settings.rootPath + '/', '');
-    }
-
-    if (store.opened.type === 'tag') {
-      return '#' + store.opened.thing;
-    }
-  }
-  return '';
+  if (store.activeOpenedIndex === null || !store.settings) return '';
+  return formatHeader(store.opened[store.activeOpenedIndex], store.settings.rootPath);
 });
 </script>
 

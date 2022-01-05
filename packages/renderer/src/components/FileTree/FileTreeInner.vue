@@ -9,8 +9,8 @@
       @dragenter="dragEnter"
       @dragleave="dragLeave"
       @dragover.prevent
-      @click.exact="makeNewOpenedAndSelect(false)"
-      @click.alt.exact="makeNewOpenedAndSelect(true)"
+      @click.exact="makeNewOpenedAndSelect(false, false)"
+      @click.alt.exact="makeNewOpenedAndSelect(false, true)"
       @click.right.exact="openContextMenu"
     >
       <div
@@ -88,11 +88,9 @@ const props = defineProps({
 const isRoot = props.depth < 0;
 const isFolded = ref<boolean>(false);
 const isOpened = computed(() => {
-  if (!store.opened) return false;
+  if (!store.openedItem) return false;
 
-  if (store.opened.type !== 'path') return false;
-
-  return store.opened.thing === props.content.path;
+  return store.openedItem.type === 'path' && store.openedItem.thing === props.content.path;
 });
 
 const emit = defineEmits<{
@@ -101,13 +99,18 @@ const emit = defineEmits<{
 
 const foldable = computed(() => Object.keys(props.content.content).length > 0 && !isRoot);
 
-const makeNewOpenedAndSelect = (recursive: boolean) => {
+const makeNewOpenedAndSelect = (recursive: boolean, newTab: boolean) => {
   const newOpened: IOpened = {
     type: 'path',
     thing: props.content.path,
     recursive,
   };
-  store.newOpened(newOpened);
+
+  if (newTab || store.activeOpenedIndex === null) {
+    store.addOpened(newOpened);
+  } else {
+    store.updateOpened(store.activeOpenedIndex, newOpened);
+  }
 };
 
 ///
