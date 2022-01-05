@@ -3,23 +3,17 @@
     <TopBar />
     <ContextMenu />
     <div v-if="!gotFileTreePath" class="fullScreen">
-      <Welcome @set-path="newRootPath" />
+      <Welcome @set-path="store.newRootPath" />
     </div>
     <div v-if="gotFileTreePath" class="h-full max-h-full flex overflow-hidden">
       <div class="flex flex-col-reverse">
-        <LeftMenu @change-root-path="init" />
+        <LeftMenu />
       </div>
       <div class="flex-auto py-6 px-2">
-        <FileTree
-          v-if="fileTree"
-          :content="fileTree"
-          :opened-entity="opened"
-          :style="{ width: `${fileTreeSize}px` }"
-          @select="newOpened"
-        />
+        <FileTree :style="{ width: `${fileTreeSize}px` }" />
 
         <hr class="hr-default my-3" />
-        <Tags :opened="opened" @select="newOpened" />
+        <TagsTree />
       </div>
       <div class="bg-white flex w-full max-h-full rounded-tl-lg overflow-hidden">
         <div
@@ -27,19 +21,15 @@
           class="w-1 hover:bg-indigo-500 cursor-col-resize transition-colors"
           :class="isResizing && 'bg-indigo-700'"
         ></div>
-        <BookView v-if="opened" :opened-thing="opened" />
+        <BookView />
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, getCurrentInstance, onMounted, ref, watch, watchEffect } from 'vue';
+import { getCurrentInstance, onMounted, ref } from 'vue';
 import { useElectron } from '/@/use/electron';
-import useSettings from '/@/use/settings';
-
-import type { IFolderTree } from '/@main/services/files';
-import type { IOpened } from '/@main/services/watcher';
 
 import _debounce from 'lodash-es/debounce';
 
@@ -49,22 +39,15 @@ import TopBar from './TopBar/TopBar.vue';
 import FileTree from './FileTree/FileTree.vue';
 import Welcome from './WelcomeScreen/Welcome.vue';
 import ContextMenu from './_UI/ContextMenu.vue';
-import Tags from './TagsTree/Tags.vue';
+import TagsTree from './TagsTree/TagsTree.vue';
+import { useStore } from '/@/use/store';
 
 const api = useElectron();
+const store = useStore();
 const internalInstance = getCurrentInstance();
 
 const gotFileTreePath = ref<boolean>(true);
-const fileTree = ref<IFolderTree>();
-
-const opened = ref<IOpened | null>(null);
-const newOpened = (newOne: IOpened) => {
-  opened.value = newOne;
-};
-
-const updateFolderTreeCallback = (newFolder: IFolderTree) => {
-  fileTree.value = newFolder;
-};
+// const fileTree = ref<IFolderTree>();
 
 const fileTreeSize = ref<number>(200);
 
@@ -82,29 +65,11 @@ const changeFileTreeSize = (ev: any) => {
   }
 };
 
-const init = async () => {
-  const allGood = await api.core.init();
-  if (allGood) {
-    await useSettings.initSettings();
-    const initial = await api.files.getFileTree();
-    fileTree.value = initial;
-    gotFileTreePath.value = true;
-  } else {
-    gotFileTreePath.value = false;
-  }
-};
-
-const newRootPath = async () => {
-  const allGood = await api.settings.newRootPath();
-  if (allGood) {
-    init();
-  }
-};
-
 onMounted(async () => {
-  await init();
+  // await init();
+  await store.initCore();
 
-  api.subscriptions.TREE_UPDATE(updateFolderTreeCallback);
+  // api.subscriptions.TREE_UPDATE(updateFolderTreeCallback);
 
   resizeHandle.value?.addEventListener('mousedown', () => {
     isResizing.value = true;

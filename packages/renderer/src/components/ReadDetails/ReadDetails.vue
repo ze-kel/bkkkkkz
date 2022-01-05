@@ -19,8 +19,9 @@
       <template v-for="(date, index) in modelValue" :key="index">
         <div class="text-center text-gray-500">{{ index + 1 }}</div>
         <SingleDate
+          v-if="store.settings"
           :model-value="date"
-          :date-format="dateFormat"
+          :date-format="store.settings.dateFormat"
           @update:model-value="(val) => updateValue(index, val)"
         />
         <div @click="removeDate(index)">
@@ -40,18 +41,7 @@
       </template>
     </div>
     <div
-      class="
-        p-0.5
-        border
-        cursor-pointer
-        text-indigo-600
-        border-indigo-600
-        hover:bg-indigo-600 hover:text-white
-        rounded-md
-        text-center
-        mt-3
-        transition-colors
-      "
+      class="p-0.5 border cursor-pointer text-indigo-600 border-indigo-600 hover:bg-indigo-600 hover:text-white rounded-md text-center mt-3 transition-colors"
       @click="addNewDate"
     >
       Log new
@@ -63,15 +53,13 @@
 import { getCurrentInstance, computed, onBeforeUnmount } from 'vue';
 import type { PropType } from 'vue';
 import type { IDateRead } from '/@main/services/books';
-import useSettings from '/@/use/settings';
 import SingleDate from './SingleDate.vue';
 import { format } from 'date-fns';
+import { useStore } from '/@/use/store';
 
 const internalInstance = getCurrentInstance();
 
-const settings = useSettings.getSettings();
-
-const dateFormat = settings.dateFormat;
+const store = useStore();
 
 const props = defineProps({
   modelValue: {
@@ -97,7 +85,13 @@ const updateValue = (index: number, newDates: IDateRead) => {
 };
 
 const addNewDate = () => {
-  const newValue = [...props.modelValue, { started: format(new Date(), dateFormat) }];
+  if (!store.settings) {
+    throw 'TRYING TO OPEN READ DETAILS BEFORE SETTINGS ARE PRESENT';
+  }
+  const newValue = [
+    ...props.modelValue,
+    { started: format(new Date(), store.settings.dateFormat) },
+  ];
   internalInstance?.emit('update:modelValue', newValue);
 };
 

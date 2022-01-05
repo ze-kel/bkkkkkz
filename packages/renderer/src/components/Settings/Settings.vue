@@ -54,7 +54,6 @@ const changeRootPath = async () => {
   const result = await api.settings.newRootPath();
   if (result) {
     settings.value = await api.settings.getSettings();
-    internalInstance?.emit('changeRootPath');
   }
 };
 

@@ -3,32 +3,12 @@
     <div class="px-4">
       <input
         v-model="searchQueryPreDebounce"
-        class="
-          w-3/12
-          px-2
-          py-1
-          mb-1
-          border-2
-          rounded-md
-          border-indigo-200
-          shadow-md shadow-indigo-100
-          focus:outline-none focus:border-indigo-600 focus:shadow-indigo-400
-          transition-colors
-        "
+        class="w-3/12 px-2 py-1 mb-1 border-2 rounded-md border-indigo-200 shadow-md shadow-indigo-100 focus:outline-none focus:border-indigo-600 focus:shadow-indigo-400 transition-colors"
         placeholder="Search Books"
       />
     </div>
     <div
-      class="
-        w-full
-        h-full
-        box-border
-        grid grid-cols-5
-        gap-4
-        overflow-y-auto overflow-x-hidden
-        px-4
-        py-2
-      "
+      class="w-full h-full box-border grid cards gap-4 overflow-y-auto overflow-x-hidden px-4 py-2"
     >
       <BookItem
         v-for="item in sortedFiles"
@@ -43,39 +23,32 @@
 
 <script setup lang="ts">
 import { computed, getCurrentInstance, onMounted, ref, watch, watchEffect } from 'vue';
-import type { PropType } from 'vue';
 import BookItem from './BookItem/BookItem.vue';
-import Popup from '../_UI/Popup.vue';
 import { useElectron } from '/@/use/electron';
 import _debounce from 'lodash-es/debounce';
 import cloneDeep from 'lodash-es/cloneDeep';
 import type { IFile, IFiles } from '/@main/services/files';
 import Fuse from 'fuse.js';
-import type { IOpened } from '/@main/services/watcher';
+import { useStore } from '/@/use/store';
 
 const api = useElectron();
 const internalInstance = getCurrentInstance();
 
-const opened = ref(false);
-
-const props = defineProps({
-  openedThing: {
-    type: Object as PropType<IOpened>,
-    required: true,
-  },
-});
+const store = useStore();
 
 const files = ref<IFiles>({});
 
 watchEffect(async () => {
-  if (props.openedThing.type === 'path') {
-    files.value = await api.files.loadFilesFromFolder(
-      props.openedThing.thing,
-      props.openedThing.recursive,
-    );
+  if (!store.opened) {
+    files.value = {};
+    return;
   }
-  if (props.openedThing.type === 'tag') {
-    files.value = await api.files.loadFilesFromTag(props.openedThing.thing);
+
+  if (store.opened.type === 'path') {
+    files.value = await api.files.loadFilesFromFolder(store.opened.thing, store.opened.recursive);
+  }
+  if (store.opened.type === 'tag') {
+    files.value = await api.files.loadFilesFromTag(store.opened.thing);
   }
 });
 
@@ -169,9 +142,10 @@ onMounted(async () => {
     new ResizeObserver(updateNumberOfColumns).observe(rootElement.value);
   }
 });
-const cardWrapperStyle = computed(() => {
-  return { gridTemplateColumns: `repeat(${numberOfColumns.value}, 1fr)` };
-});
 </script>
 
-<style lang="scss" scoped></style>
+<style scoped>
+.cards {
+  grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+}
+</style>

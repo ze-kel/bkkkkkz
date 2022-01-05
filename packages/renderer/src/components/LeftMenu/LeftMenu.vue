@@ -1,6 +1,6 @@
 <template>
   <Popup :opened="settingsOpened" @close="flipSettings">
-    <Settings @change-root-path="emit('changeRootPath')" />
+    <Settings />
   </Popup>
   <div class="flex flex-col-reverse items-center py-2 px-1 bg-white rounded-tr-md">
     <div class="icon hover:fill-indigo-600" @click="flipSettings">
@@ -22,9 +22,6 @@ const settingsOpened = ref(false);
 const flipSettings = () => {
   settingsOpened.value = !settingsOpened.value;
 };
-const emit = defineEmits<{
-  (e: 'changeRootPath'): void;
-}>();
 </script>
 
 <style scoped>

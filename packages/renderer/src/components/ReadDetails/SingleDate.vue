@@ -53,14 +53,8 @@
 import { getCurrentInstance, computed, onBeforeUnmount } from 'vue';
 import type { PropType } from 'vue';
 import type { IDateRead } from '/@main/services/books';
-import useSettings from '/@/use/settings';
 
 const internalInstance = getCurrentInstance();
-
-const range = {
-  start: '2020-01-01',
-  end: '2020-10-01',
-};
 
 const props = defineProps({
   modelValue: {
@@ -110,11 +104,6 @@ const dateEnd = computed({
     if (internalInstance)
       internalInstance.emit('update:modelValue', { ...props.modelValue, finished: val });
   },
-});
-
-const fullRange = computed(() => {
-  return false;
-  //return dates.value.start && dates.value.end;
 });
 </script>
 

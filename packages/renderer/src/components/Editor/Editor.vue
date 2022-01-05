@@ -14,6 +14,13 @@
           tag="div"
           class="text-xl mt-1 w-fit input-default"
         />
+
+        <ContentEditable
+          v-model="pathProxy"
+          spellcheck="false"
+          tag="div"
+          class="text-m mt-1 w-fit input-default"
+        />
       </div>
 
       <div>
@@ -94,6 +101,15 @@ const tagsProxy = computed({
   set: (val) => {
     const newFile = { ...props.file };
     newFile.tags = val;
+    internalInstance?.emit('update', newFile);
+  },
+});
+
+const pathProxy = computed({
+  get: () => props.file.path,
+  set: (val) => {
+    const newFile = { ...props.file };
+    newFile.path = val;
     internalInstance?.emit('update', newFile);
   },
 });
