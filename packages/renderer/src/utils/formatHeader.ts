@@ -17,5 +17,9 @@ export default function formatHeader(opened: IOpened, rootPath: string) {
     return opened.thing.split(/[\\/]/).pop();
   }
 
+  if (opened.type === 'newFile') {
+    return 'Unsaved File';
+  }
+
   return '';
 }

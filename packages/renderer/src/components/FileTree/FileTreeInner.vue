@@ -122,18 +122,33 @@ const startDrag = (devt: DragEvent, path: string) => {
   if (devt.dataTransfer === null) {
     return;
   }
-  devt.dataTransfer.dropEffect = 'move';
-  devt.dataTransfer.effectAllowed = 'move';
   devt.dataTransfer.setData('itemPath', path);
+
+  const toUpdateIndexes = store.opened.reduce((acc: number[], opened, index) => {
+    if (opened.type === 'path' && opened.thing === path) {
+      acc.push(index);
+    }
+    return acc;
+  }, []);
+
+  devt.dataTransfer.setData('indexesToUpdate', JSON.stringify(toUpdateIndexes));
 };
 
 const onDrop = async (e: DragEvent, targetPath: string) => {
   const draggedPath = e.dataTransfer?.getData('itemPath');
+  const indexes: number[] = JSON.parse(e.dataTransfer?.getData('indexesToUpdate') || '[]');
+
   canDropHere.value = false;
   if (!draggedPath) {
     throw 'no dragged path';
   }
   const newPath = await api.files.move(draggedPath, targetPath);
+  console.log('new Path after drag', newPath);
+
+  indexes.forEach((index) => {
+    const newOpened = { ...store.opened[index], thing: newPath };
+    store.updateOpened(index, newOpened);
+  });
 };
 
 const dragEnter = (e: DragEvent) => {

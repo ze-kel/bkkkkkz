@@ -17,12 +17,14 @@ export type IFolderTree = {
   };
 };
 
-export type IUnsavedFile = IBookData;
-
-export interface ISavedFile extends IUnsavedFile {
+export interface IUnsavedFile extends IBookData {
+  content?: string;
   name: string;
+  unsaved: true;
+}
+
+export interface ISavedFile extends Omit<IUnsavedFile, 'unsaved'> {
   path: string;
-  content: string;
 }
 
 export type IFile = ISavedFile;
@@ -132,10 +134,11 @@ const saveNewFile = async (basePath: string, file: IUnsavedFile): Promise<void> 
   await saveFileContent(fileToSave);
 };
 
-const moveToFolder = async (moveItemPath: string, toFolderPath: string): Promise<void> => {
+const moveToFolder = async (moveItemPath: string, toFolderPath: string): Promise<string> => {
   const target = path.join(toFolderPath, path.basename(moveItemPath));
-  if (target === moveItemPath) return;
+  if (target === moveItemPath) return moveItemPath;
   await fs.move(moveItemPath, target);
+  return target;
 };
 
 const rename = async (srcPath: string, newName: string) => {

@@ -39,7 +39,6 @@ export const useStore = defineStore('main', {
       this.fileTree = val;
     },
     updateTags(val: ITags) {
-      console.log('update tags', val);
       this.tags = val;
     },
     async newRootPath() {
@@ -58,8 +57,10 @@ export const useStore = defineStore('main', {
       this.syncOpened();
     },
     closeOpened(index: number) {
+      console.log('opened before', this.opened);
       this.opened.splice(index, 1);
-      if (this.activeOpenedIndex && this.activeOpenedIndex >= this.opened.length) {
+      console.log('opened after', this.opened);
+      if (this.activeOpenedIndex !== null && this.activeOpenedIndex >= this.opened.length) {
         this.activeOpenedIndex = this.opened.length ? this.opened.length - 1 : null;
       }
       this.syncOpened();

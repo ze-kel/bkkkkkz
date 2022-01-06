@@ -130,7 +130,7 @@ export const makeEncodedBook = (file: ISavedFile): string => {
     }
   });
 
-  const result = matter.stringify(file.content, data);
+  const result = matter.stringify(file.content || '', data);
 
   return result;
 };

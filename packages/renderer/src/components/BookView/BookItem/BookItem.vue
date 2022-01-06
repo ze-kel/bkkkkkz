@@ -6,7 +6,8 @@
     :year="currentFile.year"
     :rating="currentFile.myRating"
     class="cursor-pointer"
-    @click="openFullEditor"
+    @click.exact="openFullEditor(false)"
+    @click.alt="openFullEditor(true)"
   />
 </template>
 
@@ -36,12 +37,12 @@ const props = defineProps({
 });
 
 const emit = defineEmits<{
-  (e: 'open'): void;
+  (e: 'open', newTab: boolean): void;
 }>();
 
 const editorOpened = ref(false);
-const openFullEditor = () => {
-  internalInstance?.emit('open');
+const openFullEditor = (newTab: boolean) => {
+  internalInstance?.emit('open', newTab);
 };
 </script>
 

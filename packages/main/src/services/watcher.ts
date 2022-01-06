@@ -10,21 +10,30 @@ import { DOTFILE_REGEX } from '../helpers/utils';
 
 export type IOpenedPath = {
   type: 'path';
+  // Path
   thing: string;
   recursive: boolean;
 };
 
 export type IOpenedTag = {
   type: 'tag';
+  // Tag name
   thing: string;
 };
 
 export type IOpenedFile = {
   type: 'file';
+  // Path
   thing: string;
 };
 
-export type IOpened = IOpenedTag | IOpenedPath | IOpenedFile;
+export type IOpenedNewFile = {
+  type: 'newFile';
+  // Path to be saved at
+  thing: string;
+};
+
+export type IOpened = IOpenedTag | IOpenedPath | IOpenedFile | IOpenedNewFile;
 
 type IWatcher = {
   watcher: FSWatcher | null;

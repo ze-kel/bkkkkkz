@@ -57,7 +57,6 @@ const processAddedFile = (file: ISavedFile) => {
 };
 
 const processUpdatedFile = (file: ISavedFile, opened: IOpened[]) => {
-  console.log('processing', file);
   const tags = file.tags || [];
 
   const added = _difference(tags, files[file.path]);

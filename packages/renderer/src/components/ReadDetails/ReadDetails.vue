@@ -96,7 +96,6 @@ const addNewDate = () => {
 };
 
 const removeDate = (index: number) => {
-  console.log('rem');
   const newValue = [...props.modelValue];
   newValue.splice(index, 1);
   internalInstance?.emit('update:modelValue', newValue);
