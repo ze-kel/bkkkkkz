@@ -7,24 +7,11 @@
       :path="imagesPath"
       @change="changeImagesPath"
     />
-    <hr class="hr-default" />
+    <hr class="hr-default my-2" />
 
     <div class="block">
       <h2 class="font-semibold mb-1">Import Goodread .csv</h2>
-      <button
-        class="
-          bg-indigo-600
-          hover:bg-indigo-700 hover:shadow-md hover:shadow-indigo-200
-          text-white
-          px-3
-          py-1
-          rounded-md
-          transition-colors
-        "
-        @click="importGoodreads"
-      >
-        Select
-      </button>
+      <button class="basic-button" @click="importGoodreads">Select</button>
     </div>
   </div>
 </template>
@@ -40,7 +27,6 @@ const emit = defineEmits<{
   (e: 'changeRootPath'): void;
 }>();
 
-const internalInstance = getCurrentInstance();
 const api = useElectron();
 const settings = ref<ILocalSettings | null>(null);
 

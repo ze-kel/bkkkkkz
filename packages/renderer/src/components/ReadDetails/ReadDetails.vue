@@ -50,7 +50,7 @@
 </template>
 
 <script lang="ts" setup>
-import { getCurrentInstance, computed, onBeforeUnmount } from 'vue';
+import { getCurrentInstance } from 'vue';
 import type { PropType } from 'vue';
 import type { IDateRead } from '/@main/services/books';
 import SingleDate from './SingleDate.vue';
@@ -68,11 +68,6 @@ const props = defineProps({
     default: () => [],
   },
 });
-
-const modelConfig = {
-  type: 'string',
-  mask: 'YYYY-MM-DD',
-};
 
 const emit = defineEmits<{
   (e: 'update:modelValue', data: IDateRead[]): void;

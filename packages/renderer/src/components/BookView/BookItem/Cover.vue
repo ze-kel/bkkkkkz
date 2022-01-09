@@ -1,15 +1,6 @@
 <template>
   <div
-    class="
-      p-3
-      rounded
-      aspect-[6/8]
-      w-full
-      min-w-[150px]
-      text-white
-      flex flex-col
-      shadow-xl shadow-gray-200
-    "
+    class="p-3 rounded aspect-[6/8] w-full min-w-[150px] text-white flex flex-col shadow-xl shadow-gray-200"
     :class="bgClass"
   >
     <div class="title leading-tight shrink h-1/2 overflow-hidden align-middle text-xl">
@@ -28,6 +19,7 @@ import { computed, getCurrentInstance, onMounted, ref, watch } from 'vue';
 import type { PropType } from 'vue';
 import type { IBookData } from '/@main/services/books';
 import _debounce from 'lodash-es/debounce';
+import getRandomNumber from '/@/utils/randomFromString';
 
 const props = defineProps({
   title: {
@@ -69,7 +61,7 @@ function getRandomInt(min: number, max: number) {
   return Math.floor(Math.random() * (max - min)) + min;
 }
 
-const randomColorIndex = getRandomInt(0, baseColors.length);
+const randomColorIndex = getRandomNumber(props.title || 'notitle', 0, baseColors.length);
 
 const bgClass = baseColors[randomColorIndex];
 </script>

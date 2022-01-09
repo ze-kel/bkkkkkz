@@ -6,15 +6,16 @@
         class="w-3/12 px-2 py-1 border-2 rounded-md border-indigo-200 focus:outline-none focus:border-indigo-600 focus:shadow-indigo-400 transition-colors"
         placeholder="Search Books"
       />
-      <button
-        v-if="opened.type === 'path'"
-        class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 h-full rounded-md transition-colors"
-        @click="addBook"
-      >
+      <button v-if="opened.type === 'path'" class="basic-button h-full" @click="addBook">
         Add book
       </button>
     </div>
-    <div class="w-full h-full box-border grid cards gap-4 overflow-y-auto overflow-x-hidden p-2">
+    <div class="w-full px-2 z-10 h-0">
+      <div class="w-full h-2 bg-gradient-to-b from-white to-transparent"></div>
+    </div>
+    <div
+      class="w-full h-full box-border grid cards gap-4 overflow-y-auto overflow-x-hidden px-2 items-start pt-2"
+    >
       <BookItem
         v-for="item in sortedFiles"
         :key="item.path"
@@ -26,7 +27,7 @@
       />
     </div>
   </div>
-  <div ref="forDrag">
+  <div ref="forDrag" class="absolute top-[-50px]">
     <DragDisplay> {{ dragging }} </DragDisplay>
   </div>
 </template>
@@ -71,6 +72,18 @@ watchEffect(async () => {
   }
 });
 
+const openHandler = (file: IFile, newTab = false) => {
+  const newOpened: IOpenedFile = { type: 'file', thing: file.path };
+  if (newTab) {
+    store.addOpened(newOpened);
+  } else {
+    store.updateOpened(props.index, newOpened);
+  }
+};
+
+//
+// Update event handling
+//
 const updateHandlerApi = (path: string, content: IFile, indexes: number[]) => {
   if (!indexes.includes(props.index)) return;
   if (files.value[path]) {
@@ -103,6 +116,10 @@ onMounted(async () => {
 onUnmounted(async () => {
   toClear.forEach((fn) => fn());
 });
+
+//
+// Search & filtering
+//
 
 const filesArray = computed(() => {
   return Object.values(files.value);
@@ -138,38 +155,10 @@ const sortedFiles = computed(() => {
   }
 });
 
-const debouncedSave = _debounce(api.files.saveFileContent, 500);
-const debouncedRename = _debounce(api.files.rename, 500);
-
-const openHandler = (file: IFile, newTab = false) => {
-  const newOpened: IOpenedFile = { type: 'file', thing: file.path };
-  if (newTab) {
-    store.addOpened(newOpened);
-  } else {
-    store.updateOpened(props.index, newOpened);
-  }
-};
-
-const updateHandler = async (file: IFile) => {
-  if (!files.value[file.path]) {
-    throw "Trying to edit file that isn't loaded";
-  }
-  files.value[file.path] = file;
-  const newFile = cloneDeep(files.value[file.path]);
-  debouncedSave(newFile);
-};
-
-const renameHandler = (path: string, newName: string) => {
-  if (!files.value[path]) {
-    throw "Trying to rename file that isn't loaded";
-  }
-  debouncedRename(path, newName);
-};
-
-const rootElement = ref<Element | null>(null);
-
+//
+// Drag & drop
+//
 const dragging = ref('');
-
 const startDrag = (devt: DragEvent, file: IFile) => {
   if (devt.dataTransfer === null || !file) {
     return;
@@ -192,10 +181,34 @@ const startDrag = (devt: DragEvent, file: IFile) => {
 const addBook = () => {
   store.addOpened({ type: 'newFile', thing: props.opened.thing });
 };
+
+//
+// Currently unused. In case I'll add editing from this view later.
+//
+const debouncedSave = _debounce(api.files.saveFileContent, 500);
+const debouncedRename = _debounce(api.files.rename, 500);
+
+const updateHandler = async (file: IFile) => {
+  if (!files.value[file.path]) {
+    throw "Trying to edit file that isn't loaded";
+  }
+  files.value[file.path] = file;
+  const newFile = cloneDeep(files.value[file.path]);
+  debouncedSave(newFile);
+};
+
+const renameHandler = (path: string, newName: string) => {
+  if (!files.value[path]) {
+    throw "Trying to rename file that isn't loaded";
+  }
+  debouncedRename(path, newName);
+};
+//
 </script>
 
 <style scoped>
 .cards {
   grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+  grid-auto-rows: max-content;
 }
 </style>

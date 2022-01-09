@@ -30,7 +30,7 @@
 
 <script setup lang="ts">
 import { getCurrentInstance, onMounted, ref } from 'vue';
-import { useElectron } from '/@/use/electron';
+import { useStore } from '/@/use/store';
 
 import _debounce from 'lodash-es/debounce';
 
@@ -40,12 +40,9 @@ import FileTree from './FileTree/FileTree.vue';
 import Welcome from './WelcomeScreen/Welcome.vue';
 import ContextMenu from './_UI/ContextMenu.vue';
 import TagsTree from './TagsTree/TagsTree.vue';
-import { useStore } from '/@/use/store';
 import View from './View/View.vue';
 
-const api = useElectron();
 const store = useStore();
-const internalInstance = getCurrentInstance();
 
 const fileTreeSize = ref<number>(200);
 

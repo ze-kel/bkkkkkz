@@ -32,4 +32,8 @@ input::-webkit-inner-spin-button {
   .input-default {
     @apply border-b border-transparent hover:border-indigo-200 focus:border-indigo-600 transition-colors;
   }
+
+  .basic-button {
+    @apply bg-indigo-600 hover:bg-indigo-800 text-white px-3 py-1 rounded-md transition-colors;
+  }
 }

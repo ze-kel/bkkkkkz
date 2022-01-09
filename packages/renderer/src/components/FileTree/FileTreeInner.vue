@@ -60,7 +60,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, getCurrentInstance, ref, watchEffect } from 'vue';
+import { computed, ref, watchEffect } from 'vue';
 import type { PropType } from 'vue';
 import type { IFolderTree } from '/@main/services/files';
 import { useElectron } from '/@/use/electron';
@@ -68,8 +68,6 @@ import { openMenu } from '/@/use/contextMenu';
 import type { IOpened } from '/@main/services/watcher';
 import type { ContextMenu } from '/@/use/contextMenu';
 import { useStore } from '/@/use/store';
-
-const internalInstance = getCurrentInstance();
 
 const api = useElectron();
 const store = useStore();
@@ -93,13 +91,12 @@ const isOpened = computed(() => {
   return store.openedItem.type === 'path' && store.openedItem.thing === props.content.path;
 });
 
-const emit = defineEmits<{
-  (e: 'select', thing: IOpened): void;
-}>();
-
 const foldable = computed(() => Object.keys(props.content.content).length > 0 && !isRoot);
 
 const makeNewOpenedAndSelect = (recursive: boolean, newTab: boolean) => {
+  if(isRoot){
+    recursive = true;
+  }
   const newOpened: IOpened = {
     type: 'path',
     thing: props.content.path,
@@ -143,7 +140,6 @@ const onDrop = async (e: DragEvent, targetPath: string) => {
     throw 'no dragged path';
   }
   const newPath = await api.files.move(draggedPath, targetPath);
-  console.log('new Path after drag', newPath);
 
   indexes.forEach((index) => {
     const newOpened = { ...store.opened[index], thing: newPath };

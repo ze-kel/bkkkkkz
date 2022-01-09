@@ -1,5 +1,5 @@
 <template>
-  <div v-if="file" class="flex flex-col h-full px-5">
+  <div v-if="!loading" class="flex flex-col h-full px-5">
     <div class="flex gap-4">
       <div class="flex-grow">
         <ContentEditable
@@ -62,7 +62,7 @@
     </div>
     <hr class="hr-default my-4" />
     <div class="h-full">
-      <Milkdown :text="file.content || ''" @update="updateMarkdown" />
+      <Milkdown v-model="file.content" />
     </div>
   </div>
   <div ref="forDrag" class="absolute top-[-50px]">
@@ -71,32 +71,24 @@
 </template>
 
 <script lang="ts" setup>
-import {
-  getCurrentInstance,
-  computed,
-  onBeforeUnmount,
-  ref,
-  onMounted,
-  watchEffect,
-  onUnmounted,
-  watch,
-} from 'vue';
-import type { PropType } from 'vue';
-import type { IFile, ISavedFile, IUnsavedFile } from '/@main/services/files';
+import { ref, onMounted, watchEffect, onUnmounted, watch } from 'vue';
+import { useStore } from '/@/use/store';
+import { useElectron } from '/@/use/electron';
+
 import ContentEditable from '../_UI/ContentEditable.vue';
 import ReadDetails from '../ReadDetails/ReadDetails.vue';
 import Rating from '../Rating/Rating.vue';
 import Milkdown from './Mikdown.vue';
 import Tags from '../Tags/Tags.vue';
-import type { IOpenedFile, IOpenedNewFile } from '/@main/services/watcher';
-import _debounce from 'lodash-es/debounce';
-import { useElectron } from '/@/use/electron';
 import DragDisplay from '/@/components/_UI/DragDisplay.vue';
 
-import { cloneDeep } from 'lodash';
-import { useStore } from '/@/use/store';
+import _cloneDeep from 'lodash-es/cloneDeep';
+import _debounce from 'lodash-es/debounce';
 
-const internalInstance = getCurrentInstance();
+import type { PropType } from 'vue';
+import type { IFile, ISavedFile, IUnsavedFile } from '/@main/services/files';
+import type { IOpenedFile, IOpenedNewFile } from '/@main/services/watcher';
+
 const api = useElectron();
 const store = useStore();
 
@@ -114,6 +106,21 @@ const props = defineProps({
 const file = ref<ISavedFile | IUnsavedFile>({ unsaved: true, name: '' });
 const previousName = ref('');
 const autoSave = ref(false);
+const loading = ref(true);
+
+watchEffect(async () => {
+  if (props.opened.type === 'file') {
+    loading.value = true;
+    const res = await api.files.loadFileContent(props.opened.thing);
+    previousName.value = res.name || '';
+    file.value = res;
+    autoSave.value = true;
+    loading.value = false;
+  } else {
+    autoSave.value = false;
+    loading.value = false;
+  }
+});
 
 const manualSave = async () => {
   if ('unsaved' in file.value) {
@@ -122,9 +129,7 @@ const manualSave = async () => {
       ...restProps,
       path: props.opened.thing + '/' + file.value.name,
     };
-    console.log('awaiting save');
-    await api.files.saveFileContent(cloneDeep(toBeSaved));
-    console.log('saved');
+    await api.files.saveFileContent(_cloneDeep(toBeSaved));
     store.updateOpened(props.index, {
       type: 'file',
       thing: toBeSaved.path,
@@ -136,7 +141,7 @@ const manualSave = async () => {
 };
 
 const save = (file: ISavedFile) => {
-  api.files.saveFileContent(cloneDeep(file));
+  api.files.saveFileContent(_cloneDeep(file));
 };
 
 const rename = async (newName: string) => {
@@ -148,18 +153,25 @@ const rename = async (newName: string) => {
 const debouncedSave = _debounce(save, 500);
 const debouncedRename = _debounce(rename, 500);
 
-watchEffect(async () => {
-  console.log('opened change', props.opened);
-  if (props.opened.type === 'file') {
-    const res = await api.files.loadFileContent(props.opened.thing);
-    previousName.value = res.name || '';
-    file.value = res;
-    autoSave.value = true;
-  } else {
-    autoSave.value = false;
-  }
-});
+watch(
+  file,
+  (newFile, oldFile) => {
+    if (!oldFile || !newFile || !autoSave.value || 'unsaved' in newFile) return;
 
+    // Can't check against oldFile because after mutation it will be the same
+    // OldFile is still useful to eliminate initial load case
+    if (newFile.name !== previousName.value) {
+      debouncedRename(newFile.name);
+    } else {
+      debouncedSave(newFile);
+    }
+  },
+  { deep: true },
+);
+
+//
+// Update events handling
+//
 const updateHandlerApi = (path: string, newFile: IFile) => {
   file.value = newFile;
 };
@@ -178,38 +190,9 @@ onUnmounted(() => {
   toClear.forEach((fn) => fn());
 });
 
-const emit = defineEmits<{
-  (e: 'update', file: IFile): void;
-}>();
-
-watch(
-  file,
-  (newFile, oldFile) => {
-    if (!oldFile || !newFile || !autoSave.value || 'unsaved' in newFile) return;
-
-    // Can't check against oldFile because after mutation it will be the same
-    // OldFile is still useful to eliminate initial load case
-    if (newFile.name !== previousName.value) {
-      debouncedRename(newFile.name);
-    } else {
-      debouncedSave(newFile);
-    }
-  },
-  { deep: true },
-);
-
-onBeforeUnmount(() => {
-  // If you have contenteditable focused when closing editor it will cause error in console.
-  if (document.activeElement instanceof HTMLElement) {
-    document.activeElement.blur();
-  }
-});
-
-const updateMarkdown = (val: string) => {
-  if (!file.value) return;
-  file.value.content = val;
-};
-
+//
+// File drag & drop
+//
 const dragging = ref('');
 const forDrag = ref();
 const startDrag = (devt: DragEvent) => {

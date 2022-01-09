@@ -1,7 +1,9 @@
 import { defineStore, acceptHMRUpdate } from 'pinia';
 import { useElectron } from './electron';
+
 import _clamp from 'lodash-es/clamp';
 import _cloneDeep from 'lodash-es/cloneDeep';
+
 import type { IFolderTree } from '/@main/services/files';
 import type { ILocalSettings } from '/@main/services/settings';
 import type { IOpened } from '/@main/services/watcher';
@@ -57,9 +59,7 @@ export const useStore = defineStore('main', {
       this.syncOpened();
     },
     closeOpened(index: number) {
-      console.log('opened before', this.opened);
       this.opened.splice(index, 1);
-      console.log('opened after', this.opened);
       if (this.activeOpenedIndex !== null && this.activeOpenedIndex >= this.opened.length) {
         this.activeOpenedIndex = this.opened.length ? this.opened.length - 1 : null;
       }

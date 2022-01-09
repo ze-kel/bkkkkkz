@@ -46,7 +46,6 @@
 
 <script lang="ts" setup>
 import { useStore } from '/@/use/store';
-import Tab from './Tab.vue';
 import { computed } from 'vue';
 import BookView from '/@/components/BookView/BookView.vue';
 import Editor from '../Editor/Editor.vue';

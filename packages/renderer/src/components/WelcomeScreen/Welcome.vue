@@ -8,7 +8,6 @@
 
 <script lang="ts" setup>
 import { useStore } from '/@/use/store';
-
 const store = useStore();
 </script>
 

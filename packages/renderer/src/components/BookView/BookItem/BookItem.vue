@@ -1,10 +1,7 @@
 <template>
   <Cover
     v-if="style === 'CARDS'"
-    :title="currentFile.title"
-    :author="currentFile.author"
-    :year="currentFile.year"
-    :rating="currentFile.myRating"
+    v-bind="currentFile"
     class="cursor-pointer"
     @click.exact="openFullEditor(false)"
     @click.alt="openFullEditor(true)"

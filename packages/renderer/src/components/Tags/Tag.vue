@@ -9,9 +9,8 @@
 </template>
 
 <script lang="ts" setup>
-import { getCurrentInstance, computed, ref, onBeforeUnmount } from 'vue';
-import type { PropType } from 'vue';
-import ContentEditable from 'vue-contenteditable';
+import { getCurrentInstance, computed, ref } from 'vue';
+import ContentEditable from '/@/components/_UI/ContentEditable.vue';
 
 const internalInstance = getCurrentInstance();
 
@@ -38,13 +37,6 @@ const tag = computed({
     }
     internalInstance?.emit('update', val);
   },
-});
-
-onBeforeUnmount(() => {
-  // If you have contenteditable focused when closing editor it will cause error in console.
-  if (document.activeElement instanceof HTMLElement) {
-    document.activeElement.blur();
-  }
 });
 </script>
 

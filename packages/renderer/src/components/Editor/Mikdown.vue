@@ -19,32 +19,32 @@ import { getCurrentInstance, watch, ref, onMounted } from 'vue';
 const internalInstance = getCurrentInstance();
 
 const props = defineProps({
-  text: {
+  modelValue: {
     type: String,
-    required: true,
+    default: '',
   },
 });
 
-let output = '';
 let contentCache = '';
 const myListener = {
   markdown: [
     (getMarkdown: () => string) => {
       contentCache = getMarkdown();
-      internalInstance?.emit('update', contentCache);
+      console.log('contentcache', contentCache);
+      internalInstance?.emit('update:modelValue', contentCache);
     },
   ],
 };
 
 const emit = defineEmits<{
-  (e: 'update', thing: string): void;
+  (e: 'update:modelValue', thing: string): void;
 }>();
 
 const makeEditor = (element: HTMLElement) => {
   return Editor.make()
     .config((ctx) => {
       ctx.set(rootCtx, element);
-      ctx.set(defaultValueCtx, props.text);
+      ctx.set(defaultValueCtx, props.modelValue);
       ctx.set(listenerCtx, myListener);
     })
     .use(themeFactory({}))
@@ -58,7 +58,7 @@ onMounted(async () => {
   const el = internalInstance?.refs.editor as HTMLElement;
   editor = await makeEditor(el);
   editor.create();
-  contentCache = props.text;
+  contentCache = props.modelValue;
 });
 
 const updateEditor = (markdown: string) => {
@@ -78,9 +78,9 @@ const updateEditor = (markdown: string) => {
 };
 
 watch(
-  () => props.text,
+  () => props.modelValue,
   () => {
-    updateEditor(props.text);
+    updateEditor(props.modelValue);
   },
 );
 </script>
