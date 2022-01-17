@@ -14,7 +14,7 @@ import type { PropType } from 'vue';
 import type { IFile } from '/@main/services/files';
 import _debounce from 'lodash-es/debounce';
 
-import Cover from './Cover.vue';
+import Cover from '../../Cover/Cover.vue';
 import { useStore } from '/@/use/store';
 
 export type IBookStyle = 'CARDS';

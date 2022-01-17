@@ -58,6 +58,7 @@ function replaceAll(str: string, search: string, replacement: string) {
 }
 
 const element = ref<HTMLElement | null>(null);
+defineExpose(element);
 
 const focused = ref();
 const placeholder = ref();

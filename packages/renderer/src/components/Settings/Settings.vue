@@ -1,12 +1,6 @@
 <template>
   <div class="w-full">
     <PathControllerVue title="Root Path" :path="rootPath" @change="changeRootPath" />
-    <PathControllerVue
-      class="mt-3"
-      title="Images Path"
-      :path="imagesPath"
-      @change="changeImagesPath"
-    />
     <hr class="hr-default my-2" />
 
     <div class="block">
@@ -29,11 +23,6 @@ const emit = defineEmits<{
 
 const api = useElectron();
 const settings = ref<ILocalSettings | null>(null);
-
-const imagesPath = computed(() => settings.value?.imagesPath || '');
-const changeImagesPath = async () => {
-  settings.value = await api.settings.newImagesPath();
-};
 
 const rootPath = computed(() => settings.value?.rootPath || '');
 const changeRootPath = async () => {

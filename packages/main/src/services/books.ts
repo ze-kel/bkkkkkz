@@ -11,7 +11,7 @@ export type numbersOnlyString = string;
 export interface IBookData {
   title?: string;
   author?: string;
-  year?: number;
+  year?: numbersOnlyString;
   myRating?: number;
   read?: IDateRead[];
   tags?: string[];
@@ -49,7 +49,6 @@ const readDatesVerifier = (v: unknown) => {
   return v.reduce((acc, dates) => {
     const verifiedDate: IDateRead = {};
 
-
     const from = dateVerifier(dates.started, dateFormat);
 
     if (from) {
@@ -81,6 +80,10 @@ const bookDataProps: BoodataProp[] = [
   },
   {
     key: 'author',
+    verifier: stringVerifier,
+  },
+  {
+    key: 'cover',
     verifier: stringVerifier,
   },
   {

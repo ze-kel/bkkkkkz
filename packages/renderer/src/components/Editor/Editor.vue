@@ -1,6 +1,9 @@
 <template>
   <div v-if="!loading" class="flex flex-col h-full px-5">
     <div class="flex gap-4">
+      <div>
+        <Cover v-bind="file" class="aspect-[6/8] max-h-60" @click.right="coverRightClick" />
+      </div>
       <div class="flex-grow">
         <ContentEditable
           v-model="file.author"
@@ -16,6 +19,14 @@
           tag="div"
           class="text-xl mt-1 w-fit min-w-[100px] input-default"
           placeholder="Title"
+          :placeholder-classes="'text-gray-400 hover:text-gray-600'"
+        />
+        <ContentEditable
+          v-model="file.year"
+          spellcheck="false"
+          tag="div"
+          class="text-md mt-1 w-fit min-w-[75px] input-default"
+          placeholder="Year"
           :placeholder-classes="'text-gray-400 hover:text-gray-600'"
         />
 
@@ -54,13 +65,14 @@
         </div>
       </div>
 
-      <div>
+      <div class="w-[33%]">
         <ReadDetails v-model="file.read" />
         <Rating v-model="file.myRating" class="mt-2" />
         <Tags v-model="file.tags" class="mt-2" />
       </div>
     </div>
     <hr class="hr-default my-4" />
+
     <div class="h-full">
       <Milkdown v-model="file.content" />
     </div>
@@ -74,6 +86,7 @@
 import { ref, onMounted, watchEffect, onUnmounted, watch } from 'vue';
 import { useStore } from '/@/use/store';
 import { useElectron } from '/@/use/electron';
+import { openMenu } from '/@/use/contextMenu';
 
 import ContentEditable from '../_UI/ContentEditable.vue';
 import ReadDetails from '../ReadDetails/ReadDetails.vue';
@@ -81,6 +94,7 @@ import Rating from '../Rating/Rating.vue';
 import Milkdown from './Mikdown.vue';
 import Tags from '../Tags/Tags.vue';
 import DragDisplay from '/@/components/_UI/DragDisplay.vue';
+import Cover from '/@/components/Cover/Cover.vue';
 
 import _cloneDeep from 'lodash-es/cloneDeep';
 import _debounce from 'lodash-es/debounce';
@@ -88,6 +102,7 @@ import _debounce from 'lodash-es/debounce';
 import type { PropType } from 'vue';
 import type { IFile, ISavedFile, IUnsavedFile } from '/@main/services/files';
 import type { IOpenedFile, IOpenedNewFile } from '/@main/services/watcher';
+import type { ContextMenu } from '/@/use/contextMenu';
 
 const api = useElectron();
 const store = useStore();
@@ -213,6 +228,45 @@ const startDrag = (devt: DragEvent) => {
   }, []);
 
   devt.dataTransfer.setData('indexesToUpdate', JSON.stringify(toUpdateIndexes));
+};
+
+///
+/// Cover Right click
+///
+const removeCover = () => {
+  if ('unsaved' in file.value) return;
+  api.files.removeCoverFile(file.value.path);
+};
+
+const setCover = () => {
+  if ('unsaved' in file.value) return;
+  api.files.setCover(file.value.path);
+};
+
+const coverRightClick = (e: MouseEvent) => {
+  const menu: ContextMenu = [];
+
+  if ('unsaved' in file.value) return;
+
+  if (file.value.cover) {
+    menu.push(
+      {
+        handler: setCover,
+        label: 'Change Cover',
+      },
+      {
+        handler: removeCover,
+        label: 'Remove Cover',
+      },
+    );
+  } else {
+    menu.push({
+      handler: setCover,
+      label: 'Add Cover',
+    });
+  }
+
+  openMenu(menu, e.x, e.y);
 };
 </script>
 

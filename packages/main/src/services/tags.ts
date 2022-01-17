@@ -1,4 +1,4 @@
-import type { ISavedFile } from './files';
+import type { IFile, ISavedFile } from './files';
 
 import _difference from 'lodash-es/difference';
 import _debounce from 'lodash-es/debounce';
@@ -17,6 +17,33 @@ type IFilesTagsState = {
 
 const tags: ITagData = {};
 const files: IFilesTagsState = {};
+
+const generateAutoTags = (file: IFile) => {
+  if (!file.read) return [];
+
+  let isRead = false;
+  let isReading = false;
+
+  file.read.forEach((dates) => {
+    if (dates.finished) {
+      isRead = true;
+    } else {
+      isReading = true;
+    }
+  });
+
+  const toReturn = [];
+
+  if (isRead) {
+    toReturn.push('_read');
+  }
+
+  if (isReading) {
+    toReturn.push('_reading');
+  }
+
+  return toReturn;
+};
 
 const getTagPaths = (tag: string) => {
   if (!tags[tag]) throw 'Trying to load non existing tag';
@@ -50,14 +77,20 @@ const removeTag = (tag: string) => {
 const sendUpdates = _debounce(() => WebContentsProxy.TAGS_UPDATE(getTags()), 250);
 
 const processAddedFile = (file: ISavedFile) => {
-  if (!file.tags) return;
-  file.tags.forEach((tag) => addFile(tag, file.path));
-  files[file.path] = file.tags;
+  const tags = file.tags || [];
+
+  tags.push(...generateAutoTags(file));
+
+  if (!tags.length) return;
+  tags.forEach((tag) => addFile(tag, file.path));
+  files[file.path] = tags;
   sendUpdates();
 };
 
 const processUpdatedFile = (file: ISavedFile, opened: IOpened[]) => {
   const tags = file.tags || [];
+
+  tags.push(...generateAutoTags(file));
 
   const added = _difference(tags, files[file.path]);
   const removed = _difference(files[file.path], tags);

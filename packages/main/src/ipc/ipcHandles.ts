@@ -77,7 +77,6 @@ const handles: IHandles = {
   ///
   getSettings: Setting.getStore,
   saveSettings: Setting.saveStore,
-  newImagesPath: Setting.setImagesPath,
 
   ///
   /// Parsers

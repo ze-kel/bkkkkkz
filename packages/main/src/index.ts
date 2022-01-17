@@ -1,8 +1,9 @@
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, BrowserWindow, ipcMain, protocol } from 'electron';
 import { join } from 'path';
 import { URL } from 'url';
 import initHandles from './ipc/ipcHandles';
 import WebContentsProxy from './ipc/webContents';
+import Settings from './services/settings';
 
 const isSingleInstance = app.requestSingleInstanceLock();
 
@@ -95,6 +96,16 @@ app.whenReady().then(() => {
   if (!mainWindow) {
     throw 'No main window, but app is ready, something is really wrong';
   }
+  protocol.registerFileProtocol('covers', async (request, callback) => {
+    console.log('PROTOTCOL', request);
+    const coverPath = request.url.replace('covers://', '');
+
+    const root = Settings.getRootPath();
+    if (!root) return null;
+    const fullPath = join(root, '.covers', coverPath);
+    return callback(fullPath);
+  });
+
   WebContentsProxy.setWindow(mainWindow);
   initHandles(ipcMain);
 });

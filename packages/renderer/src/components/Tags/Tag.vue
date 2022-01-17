@@ -23,7 +23,7 @@ const props = defineProps({
 
 const editable = ref();
 
-defineExpose(editable);
+defineExpose({editable});
 
 const emit = defineEmits<{
   (e: 'update', data: string): void;

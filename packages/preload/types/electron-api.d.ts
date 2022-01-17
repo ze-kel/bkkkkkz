@@ -21,6 +21,9 @@ interface ElectronApi {
     saveFileContent: (file: ILoadedFile) => Promise<void>;
     syncOpened: (opened: IOpened[]) => Promise<void>;
 
+    removeCoverFile: (path: string) => Promise<void>;
+    setCover: (path: string) => Promise<void>;
+
     move: (srcPath: string, targetPath: string) => Promise<string>;
     rename: (srcPath: string, newName: string) => Promise<string>;
     delete: (path: string) => void;
@@ -43,7 +46,6 @@ interface ElectronApi {
     newRootPath: () => Promise<boolean>;
     getSettings: () => Promise<ILocalSettings>;
     saveSettings: (newSettings: ILocalSettings) => Promise<void>;
-    newImagesPath: () => Promise<ILocalSettings>;
   };
   parsers: {
     parseGoodreadsCsv: () => Promise<void>;

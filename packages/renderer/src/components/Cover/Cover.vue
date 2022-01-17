@@ -1,25 +1,33 @@
 <template>
-  <div
-    class="p-3 rounded aspect-[6/8] w-full min-w-[150px] text-white flex flex-col shadow-xl shadow-gray-200"
-    :class="bgClass"
-  >
-    <div class="title leading-tight shrink h-1/2 overflow-hidden align-middle text-xl">
-      {{ mainTitle }}
+  <div class="aspect-[6/8] w-full min-w-[150px]">
+    <div v-if="cover && !forceFake" class="h-full flex items-end shadow-gray-200">
+      <img :src="`covers://${cover}`" @error="() => (forceFake = true)" />
     </div>
-    <hr class="hr-default bg-white my-2" />
-    <div class="author flex-grow font-semibold text-md">{{ author }}</div>
-    <div v-if="year && year > 0">
-      {{ year }}
+
+    <div
+      v-else
+      class="p-3 rounded h-full text-white flex flex-col shadow-xl shadow-gray-200"
+      :class="bgClass"
+    >
+      <div class="title leading-tight shrink h-1/2 overflow-hidden align-middle text-xl">
+        {{ mainTitle }}
+      </div>
+      <hr class="hr-default bg-white my-2" />
+      <div class="author flex-grow font-semibold text-md">{{ author }}</div>
+      <div v-if="year && Number(year) > 0">
+        {{ year }}
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, getCurrentInstance, onMounted, ref, watch } from 'vue';
-import type { PropType } from 'vue';
-import type { IBookData } from '/@main/services/books';
 import _debounce from 'lodash-es/debounce';
 import getRandomNumber from '/@/utils/randomFromString';
+
+import type { PropType } from 'vue';
+import type { IBookData } from '/@main/services/books';
 
 const props = defineProps({
   title: {
@@ -38,11 +46,29 @@ const props = defineProps({
     default: -1,
   },
   year: {
-    type: Number as PropType<IBookData['year']>,
+    type: String as PropType<IBookData['year']>,
     required: false,
     default: -1,
   },
+  cover: {
+    type: String as PropType<IBookData['cover']>,
+    required: false,
+    default: undefined,
+  },
+  menu: {
+    type: Boolean,
+    default: false,
+  },
 });
+
+const forceFake = ref(false);
+
+watch(
+  () => props.cover,
+  () => {
+    forceFake.value = false;
+  },
+);
 
 const mainTitle = computed(() => (props.title ? props.title.split(':')[0] : ''));
 const baseColors = [
@@ -55,15 +81,10 @@ const baseColors = [
   'bg-rose-600',
 ];
 
-function getRandomInt(min: number, max: number) {
-  min = Math.ceil(min);
-  max = Math.floor(max);
-  return Math.floor(Math.random() * (max - min)) + min;
-}
-
 const randomColorIndex = getRandomNumber(props.title || 'notitle', 0, baseColors.length);
 
 const bgClass = baseColors[randomColorIndex];
+
 </script>
 
 <style scoped></style>

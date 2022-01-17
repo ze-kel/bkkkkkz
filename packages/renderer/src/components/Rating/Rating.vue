@@ -1,5 +1,5 @@
 <template>
-  <div class="flex cursor-pointer fill-indigo-600" @mouseleave="clearHovered" @click="setRating">
+  <div class="flex cursor-pointer fill-gray-800" @mouseleave="clearHovered" @click="setRating">
     <div v-for="index in 5" :key="index" class="relative">
       <div class="h-full w-[50%] absolute" @mouseenter="setHovered(index - 0.5)"></div>
       <div class="h-full w-[50%] left-[50%] absolute" @mouseenter="setHovered(index)"></div>
@@ -35,7 +35,7 @@ const internalInstance = getCurrentInstance();
 const props = defineProps({
   modelValue: {
     type: Number,
-    default: 0,
+    default: null,
   },
 });
 

@@ -22,7 +22,6 @@ const SCHEMA = {
 };
 
 export type ILocalSettings = {
-  imagesPath: string;
   recursiveFolders: boolean;
   rootPath: string;
   dateFormat: string;
@@ -84,21 +83,4 @@ const saveStore = (settings: ILocalSettings) => {
   localStore.store = settings;
 };
 
-const setImagesPath = async () => {
-  const folder = await dialog.showOpenDialog({
-    properties: ['openDirectory'],
-  });
-  if (folder.filePaths.length) {
-    const path = folder.filePaths[0];
-    if (!localStore) {
-      initStore();
-      if (!localStore) {
-        throw 'Failed to init local Store';
-      }
-    }
-    localStore.set('imagesPath', path);
-  }
-  return getStore();
-};
-
-export default { setRootPath, getRootPath, initStore, getStore, saveStore, setImagesPath };
+export default { setRootPath, getRootPath, initStore, getStore, saveStore };

@@ -1,19 +1,7 @@
 <template>
-  <div class="rounded w-fit overflow-hidden">
+  <div class="rounded w-full overflow-hidden">
     <div class="flex items-center">
-      <svg
-        class="fill-indigo-600"
-        width="20"
-        height="20"
-        viewBox="0 0 24 24"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          d="M19 22H5C3.89543 22 3 21.1046 3 20V6C3 4.89543 3.89543 4 5 4H7V2H9V4H15V2H17V4H19C20.1046 4 21 4.89543 21 6V20C21 21.1046 20.1046 22 19 22ZM5 10V20H19V10H5ZM5 6V8H19V6H5ZM9.8 19H8V17.2L12.2 13.01L14 14.81L9.8 19ZM14.625 14.182L12.825 12.382L14.2 11.013L16 12.813L14.63 14.183L14.625 14.182Z"
-        />
-      </svg>
-      <div class="ml-2 text-indigo-600 font-semibold">Read dates</div>
+      <div class="text-gray-800 text-lg font-semibold">Read dates</div>
     </div>
     <div class="grid customGrid gap-y-1 gap-x-2 my-1">
       <template v-for="(date, index) in modelValue" :key="index">
@@ -41,7 +29,7 @@
       </template>
     </div>
     <div
-      class="p-0.5 border cursor-pointer text-indigo-600 border-indigo-600 hover:bg-indigo-600 hover:text-white rounded-md text-center mt-3 transition-colors"
+      class="p-0.5 border cursor-pointer text-gray-800 border-gray-800 hover:bg-gray-800 hover:text-white rounded-md text-center mt-3 transition-colors"
       @click="addNewDate"
     >
       Log new

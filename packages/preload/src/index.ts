@@ -31,6 +31,15 @@ const api: ElectronApi = {
       return result;
     },
 
+    removeCoverFile: async (path) => {
+      const result = await ipcRenderer.invoke('removeCoverFile', path);
+      return result;
+    },
+    setCover: async (path) => {
+      const result = await ipcRenderer.invoke('setCover', path);
+      return result;
+    },
+
     move: async (srcPath, targetPath) => {
       const result = await ipcRenderer.invoke('move', srcPath, targetPath);
       return result;
@@ -110,10 +119,6 @@ const api: ElectronApi = {
     },
     saveSettings: (newSettings) => {
       const result = ipcRenderer.invoke('saveSettings', newSettings);
-      return result;
-    },
-    newImagesPath: async () => {
-      const result = ipcRenderer.invoke('newImagesPath');
       return result;
     },
   },
