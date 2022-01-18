@@ -1,7 +1,7 @@
 <template>
   <div class="aspect-[6/8] w-full min-w-[150px]">
-    <div v-if="cover && !forceFake" class="h-full flex items-end shadow-gray-200">
-      <img :src="`covers://${cover}`" @error="() => (forceFake = true)" />
+    <div v-if="file.cover && !forceFake" class="h-full flex items-end shadow-gray-200">
+      <img :src="`covers://${file.cover}`" @error="() => (forceFake = true)" />
     </div>
 
     <div
@@ -13,9 +13,9 @@
         {{ mainTitle }}
       </div>
       <hr class="hr-default bg-white my-2" />
-      <div class="author flex-grow font-semibold text-md">{{ author }}</div>
-      <div v-if="year && Number(year) > 0">
-        {{ year }}
+      <div class="author flex-grow font-semibold text-md">{{ file.author || 'Unknown' }}</div>
+      <div v-if="file.year && Number(file.year) > 0">
+        {{ file.year }}
       </div>
     </div>
   </div>
@@ -30,47 +30,26 @@ import type { PropType } from 'vue';
 import type { IBookData } from '/@main/services/books';
 
 const props = defineProps({
-  title: {
-    type: String as PropType<IBookData['title']>,
-    required: false,
-    default: 'Unknown Title',
-  },
-  author: {
-    type: String as PropType<IBookData['author']>,
-    required: false,
-    default: 'Unknown Autor',
-  },
-  rating: {
-    type: Number as PropType<IBookData['myRating']>,
-    required: false,
-    default: -1,
-  },
-  year: {
-    type: String as PropType<IBookData['year']>,
-    required: false,
-    default: -1,
-  },
-  cover: {
-    type: String as PropType<IBookData['cover']>,
-    required: false,
-    default: undefined,
-  },
-  menu: {
-    type: Boolean,
-    default: false,
+  file: {
+    type: Object as PropType<IBookData>,
+    required: true,
   },
 });
 
 const forceFake = ref(false);
 
 watch(
-  () => props.cover,
+  () => props.file.cover,
   () => {
-    forceFake.value = false;
+    if (props.file.cover) {
+      forceFake.value = false;
+    } else {
+      forceFake.value = true;
+    }
   },
 );
 
-const mainTitle = computed(() => (props.title ? props.title.split(':')[0] : ''));
+const mainTitle = computed(() => (props.file.title ? props.file.title.split(':')[0] : 'Unknown'));
 const baseColors = [
   'bg-orange-500',
   'bg-lime-500',
@@ -81,10 +60,9 @@ const baseColors = [
   'bg-rose-600',
 ];
 
-const randomColorIndex = getRandomNumber(props.title || 'notitle', 0, baseColors.length);
+const randomColorIndex = getRandomNumber(props.file.title || 'notitle', 0, baseColors.length);
 
 const bgClass = baseColors[randomColorIndex];
-
 </script>
 
 <style scoped></style>

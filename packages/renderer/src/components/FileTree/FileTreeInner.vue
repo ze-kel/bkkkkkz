@@ -1,8 +1,8 @@
 <template>
-  <div>
+  <div class="mt-[1px]">
     <div
       class="px-2 py-0.5 border"
-      :class="nodeClasses"
+      :class="[nodeClasses, extraClasses]"
       :draggable="!isRoot"
       @dragstart="startDrag($event, content.path)"
       @drop="onDrop($event, content.path)"
@@ -40,27 +40,37 @@
         <span v-if="!isRenaming" class="pointer-events-none truncate">{{ content.name }}</span>
         <input
           v-else
-          ref="inputRename"
+          ref="inputName"
           v-model="newName"
-          :class="nodeClasses"
+          :class="[nodeClasses, extraClasses]"
           @blur="saveName"
           @keyup.enter="removeFocus"
         />
       </template>
     </div>
-    <div v-if="!isFolded" :class="foldable && 'pl-2'">
+    <div v-if="!isFolded || isCreating" :class="(foldable || isCreating) && 'pl-2'">
       <FileTreeInner
         v-for="item in content.content"
         :key="item.path"
         :content="item"
         :depth="depth + 10"
       />
+      <div v-if="isCreating" class="px-2 py-0.5 border mt-[1px]" :class="[nodeClasses]">
+        <input
+          ref="inputName"
+          v-model="newName"
+          :class="nodeClasses"
+          class="bg-transparent"
+          @blur="saveFolder"
+          @keyup.enter="removeFocus"
+        />
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watchEffect } from 'vue';
+import { computed, onUpdated, ref, watchEffect } from 'vue';
 import type { PropType } from 'vue';
 import type { IFolderTree } from '/@main/services/files';
 import { useElectron } from '/@/use/electron';
@@ -94,7 +104,7 @@ const isOpened = computed(() => {
 const foldable = computed(() => Object.keys(props.content.content).length > 0 && !isRoot);
 
 const makeNewOpenedAndSelect = (recursive: boolean, newTab: boolean) => {
-  if(isRoot){
+  if (isRoot) {
     recursive = true;
   }
   const newOpened: IOpened = {
@@ -160,15 +170,23 @@ const dragLeave = (e: DragEvent) => {
 ///
 /// Renaming
 ///
-const isRenaming = ref<boolean>(false);
-const newName = ref<string>('');
+const flipOnNext = ref(false);
+onUpdated(() => {
+  if (flipOnNext.value) {
+    isRenaming.value = false;
+    isCreating.value = false;
+    flipOnNext.value = false;
+  }
+});
 
-const inputRename = ref(null);
+const isRenaming = ref(false);
+const newName = ref('');
+
+const inputName = ref<HTMLElement | null>(null);
 
 watchEffect(
   () => {
-    //@ts-expect-error TODO: figure out proper typing
-    inputRename.value?.focus();
+    inputName.value?.focus();
   },
   {
     flush: 'post',
@@ -176,8 +194,7 @@ watchEffect(
 );
 
 const removeFocus = () => {
-  //@ts-expect-error TODO: figure out proper typing
-  inputRename.value?.blur();
+  inputName.value?.blur();
 };
 
 const startRenaming = () => {
@@ -193,39 +210,72 @@ const saveName = async () => {
 };
 
 ///
+/// Creating new folder
+///
+const isCreating = ref(false);
+
+const startCreating = () => {
+  isCreating.value = true;
+  newName.value = '';
+};
+
+const saveFolder = () => {
+  api.files.createFolder(props.content.path, newName.value);
+  flipOnNext.value = true;
+
+  //isCreating.value = false;
+};
+
+///
 /// Right click
 ///
-const menu: ContextMenu = [
-  {
-    label: 'Rename',
-    handler: startRenaming,
-  },
-  {
-    label: 'Delete',
-    handler: () => api.files.delete(props.content.path),
-  },
-];
+const getMenu = (): ContextMenu => {
+  const base = [
+    {
+      label: 'New folder',
+      handler: startCreating,
+    },
+  ];
+
+  if (!isRoot) {
+    base.push(
+      {
+        label: 'Rename',
+        handler: startRenaming,
+      },
+      {
+        label: 'Delete',
+        handler: () => api.files.delete(props.content.path),
+      },
+    );
+  }
+
+  return base;
+};
 
 const openContextMenu = (e: MouseEvent) => {
-  openMenu(menu, e.x, e.y);
+  openMenu(getMenu(), e.x, e.y);
 };
 
 ///
 /// Styling
 ///
-const nodeClasses = computed(() => {
-  const base = [
-    'text-m',
-    'whitespace-nowrap',
-    'overflow-hidden',
-    'rounded',
-    'cursor-pointer',
-    'font-medium',
-    'flex',
-    'items-center',
-    'outline-0',
-    'transition-colors',
-  ];
+const nodeClasses = [
+  'text-m',
+  'whitespace-nowrap',
+  'overflow-hidden',
+  'rounded',
+  'cursor-pointer',
+  'font-medium',
+  'flex',
+  'items-center',
+  'outline-0',
+  'transition-colors',
+];
+
+const extraClasses = computed(() => {
+  const base = [];
+
   if (isOpened.value) {
     base.push('bg-indigo-600', 'text-white', 'hover:bg-indigo-800');
   } else {

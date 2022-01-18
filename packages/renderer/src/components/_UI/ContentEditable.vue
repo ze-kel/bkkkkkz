@@ -13,7 +13,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted, watch, Events, computed, defineComponent } from 'vue';
+import { ref, onMounted, watch, Events, computed, defineComponent, onBeforeUnmount } from 'vue';
 import type { PropType } from 'vue';
 
 const props = defineProps({
@@ -120,6 +120,12 @@ function onKeypress(event: KeyboardEvent) {
 
 onMounted(() => {
   updateContent(props.modelValue, true);
+});
+
+onBeforeUnmount(() => {
+  if (document.activeElement instanceof HTMLElement) {
+    document.activeElement.blur();
+  }
 });
 
 watch(

@@ -57,6 +57,10 @@ const handles: IHandles = {
   rename: callWithoutEvent(FileService.rename),
   delete: callWithoutEvent(FileService.remove),
   getTags: callWithoutEvent(TagsStore.getTags),
+  removeCoverFile: callWithoutEvent(FileService.removeCover),
+  setCover: callWithoutEvent(FileService.setCover),
+
+  createFolder: callWithoutEvent(FileService.createFolder),
 
   ///
   /// Core

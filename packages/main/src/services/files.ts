@@ -7,6 +7,7 @@ import TagsStore from './tags';
 import type { IBookData } from './books';
 
 import { DOTFILE_REGEX, FILENAME_REGEX } from '../helpers/utils';
+import { dialog } from 'electron';
 
 export type IFolderTree = {
   type: 'folder';
@@ -149,16 +150,66 @@ const rename = async (srcPath: string, newName: string) => {
 };
 
 const remove = async (delPath: string): Promise<void> => {
-  const folderFolDeleted = '/.trash/';
-  const root = Settings.getRootPath();
+  const root = Settings.getRootPathSafe();
+  const localSettings = Settings.getStore();
   if (!root) return;
-  const targetPath = path.join(root, folderFolDeleted, path.basename(delPath));
+  const targetPath = path.join(root, localSettings.trashPath, path.basename(delPath));
   await fs.move(delPath, targetPath);
 };
 
 const loadTags = async (rootPath: string): Promise<void> => {
   const allFiles = await loadFilesFromFolder(rootPath, true);
   TagsStore.addFilesBatch(Object.values(allFiles));
+};
+
+const locateCover = (filename: string) => {
+  const root = Settings.getRootPathSafe();
+  const localSettings = Settings.getStore();
+  return path.join(root, localSettings.coversPath, filename);
+};
+
+const removeCover = async (filePath: string): Promise<void> => {
+  const book = await getFileContent(filePath);
+  if (!book.cover) throw 'Trying to delete cover from book without one';
+  const coverPath = locateCover(book.cover);
+  await fs.remove(coverPath);
+  delete book.cover;
+  await saveFileContent(book);
+};
+
+const setCover = async (filePath: string) => {
+  const localSettings = Settings.getStore();
+  const root = Settings.getRootPathSafe();
+
+  const book = await getFileContent(filePath);
+  const file = await dialog.showOpenDialog({
+    properties: ['openFile'],
+    filters: [{ name: 'Images', extensions: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'] }],
+  });
+  if (file.filePaths.length) {
+    const selectedFile = file.filePaths[0];
+
+    const fileWithExt = path.basename(selectedFile);
+    const ext = path.extname(fileWithExt);
+
+    let coverFileName = fileWithExt.replace(ext, '');
+
+    while (fs.existsSync(path.join(root, localSettings.coversPath, coverFileName))) {
+      coverFileName += '(1)';
+    }
+    fs.copyFile(selectedFile, path.join(root, localSettings.coversPath, coverFileName + ext));
+
+    const previous = book.cover || null;
+
+    book.cover = coverFileName + ext;
+    saveFileContent(book);
+
+    if (previous) await fs.remove(locateCover(previous));
+  }
+};
+
+const createFolder = (pathForFolder: string, name: string) => {
+  fs.mkdirSync(path.join(pathForFolder, name));
 };
 
 export default {
@@ -172,4 +223,8 @@ export default {
   moveToFolder,
   rename,
   loadTags,
+  removeCover,
+  locateCover,
+  setCover,
+  createFolder,
 };

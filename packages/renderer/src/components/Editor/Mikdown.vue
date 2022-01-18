@@ -30,7 +30,6 @@ const myListener = {
   markdown: [
     (getMarkdown: () => string) => {
       contentCache = getMarkdown();
-      console.log('contentcache', contentCache);
       internalInstance?.emit('update:modelValue', contentCache);
     },
   ],

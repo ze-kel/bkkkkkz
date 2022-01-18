@@ -6,7 +6,7 @@ import FileService from './files';
 import TagsStore from './tags';
 
 import type { FSWatcher } from 'chokidar';
-import { DOTFILE_REGEX } from '../helpers/utils';
+import { DOTFILE_REGEX, DOTDIR_REGEX } from '../helpers/utils';
 
 export type IOpenedPath = {
   type: 'path';
@@ -94,7 +94,7 @@ const TheWatcher: IWatcher = {
     this.watchPath = initPath;
 
     this.watcher = chokidar.watch(initPath, {
-      ignored: (path: string) => DOTFILE_REGEX.test(path),
+      ignored: (path: string) => DOTFILE_REGEX.test(path) || DOTDIR_REGEX.test(path),
       persistent: true,
     });
 
@@ -112,7 +112,7 @@ const TheWatcher: IWatcher = {
 
     const sendUpdatedFile = async (path: string) => {
       const newFile = await FileService.getFileContent(path);
-      // TODO: MAKE TAGS UPDATE WORK
+
       TagsStore.processUpdatedFile(newFile, this.opened);
       const ignoreDate = this.filesIgnore[path];
 

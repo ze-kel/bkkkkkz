@@ -1,7 +1,7 @@
 <template>
   <Cover
     v-if="style === 'CARDS'"
-    v-bind="currentFile"
+    :file="currentFile"
     class="cursor-pointer"
     @click.exact="openFullEditor(false)"
     @click.alt="openFullEditor(true)"

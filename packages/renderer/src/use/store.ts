@@ -1,5 +1,6 @@
 import { defineStore, acceptHMRUpdate } from 'pinia';
 import { useElectron } from './electron';
+import { internalTagsList } from '/@main/services/tags';
 
 import _clamp from 'lodash-es/clamp';
 import _cloneDeep from 'lodash-es/cloneDeep';
@@ -16,7 +17,7 @@ type StateType = {
   initialSetup: boolean;
   settings: ILocalSettings | null;
   fileTree: IFolderTree | null;
-  tags: ITags | null;
+  tagsInternal: ITags | null;
   opened: IOpened[];
   activeOpenedIndex: number | null;
 };
@@ -28,7 +29,7 @@ export const useStore = defineStore('main', {
       initialSetup: false,
       settings: null,
       fileTree: null,
-      tags: null,
+      tagsInternal: null,
       opened: [],
       activeOpenedIndex: null,
     };
@@ -41,7 +42,7 @@ export const useStore = defineStore('main', {
       this.fileTree = val;
     },
     updateTags(val: ITags) {
-      this.tags = val;
+      this.tagsInternal = val;
     },
     async newRootPath() {
       const allGood = await api.settings.newRootPath();
@@ -107,6 +108,10 @@ export const useStore = defineStore('main', {
     openedItem(state) {
       if (state.activeOpenedIndex === null) return null;
       return state.opened[state.activeOpenedIndex];
+    },
+    tags(state) {
+      if (!state.tagsInternal) return [];
+      return state.tagsInternal.sort((a, b) => a.localeCompare(b));
     },
   },
 });

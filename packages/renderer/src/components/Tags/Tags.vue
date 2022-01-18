@@ -1,16 +1,15 @@
 <template>
   <div class="flex gap-y-1 gap-x-0.5 flex-wrap">
-    <ContentEditable
-      v-for="(tag, index) in tags"
-      :key="index"
-      ref="tagRefs"
-      :model-value="tag"
-      tag="div"
-      spellcheck="false"
-      class="bg-gray-800 w-fit px-2 rounded-lg text-white"
-      @update:model-value="(val: string) => saveTag(index, val)"
-    />
-
+    <template v-for="(tag, index) in tags" :key="index">
+      <ContentEditable
+        ref="tagRefs"
+        :model-value="tag"
+        tag="div"
+        spellcheck="false"
+        class="bg-gray-800 w-fit px-2 rounded-lg text-white"
+        @update:model-value="(val: string) => saveTag(index, val)"
+      />
+    </template>
     <div
       class="bg-gray-800 w-fit pl-1 pr-2 rounded-lg text-white cursor-pointer flex items-center"
       @click="createNewTag"
@@ -32,8 +31,8 @@
 <script lang="ts" setup>
 import { getCurrentInstance, computed, nextTick, ref } from 'vue';
 import type { PropType, Ref } from 'vue';
-import Tag from './Tag.vue';
 import ContentEditable from '/@/components/_UI/ContentEditable.vue';
+import { internalTagsList } from '/@main/services/tags';
 
 const internalInstance = getCurrentInstance();
 
@@ -49,7 +48,11 @@ const emit = defineEmits<{
 }>();
 
 const tags = computed({
-  get: () => props.modelValue,
+  get: () => {
+    const tags = props.modelValue;
+    tags.sort((a, b) => a.localeCompare(b));
+    return tags;
+  },
   set: (val) => {
     if (internalInstance) internalInstance.emit('update:modelValue', val);
   },
@@ -74,7 +77,6 @@ const createNewTag = () => {
     // Docs suggest that using const tagRefs = ref([]) should work, but I couldn't make it to.
     // Probably will be fixed later.
     const refs = internalInstance?.refs.tagRefs as any[];
-    console.log('last', refs[0].value);
     const lastTag = refs[refs.length - 1].value;
 
     if (lastTag) {

@@ -18,7 +18,9 @@ type IFilesTagsState = {
 const tags: ITagData = {};
 const files: IFilesTagsState = {};
 
-const generateAutoTags = (file: IFile) => {
+export const internalTagsList = ['_read', '_reading'];
+
+const generateInernalTags = (file: IFile) => {
   if (!file.read) return [];
 
   let isRead = false;
@@ -79,7 +81,7 @@ const sendUpdates = _debounce(() => WebContentsProxy.TAGS_UPDATE(getTags()), 250
 const processAddedFile = (file: ISavedFile) => {
   const tags = file.tags || [];
 
-  tags.push(...generateAutoTags(file));
+  tags.push(...generateInernalTags(file));
 
   if (!tags.length) return;
   tags.forEach((tag) => addFile(tag, file.path));
@@ -88,9 +90,11 @@ const processAddedFile = (file: ISavedFile) => {
 };
 
 const processUpdatedFile = (file: ISavedFile, opened: IOpened[]) => {
-  const tags = file.tags || [];
+  let tags = file.tags || [];
 
-  tags.push(...generateAutoTags(file));
+  tags = tags.filter((el) => !internalTagsList.includes(el));
+
+  tags.push(...generateInernalTags(file));
 
   const added = _difference(tags, files[file.path]);
   const removed = _difference(files[file.path], tags);
@@ -116,6 +120,8 @@ const processUpdatedFile = (file: ISavedFile, opened: IOpened[]) => {
 };
 
 const processDeletedFile = (path: string) => {
+  if (!files[path]) return;
+
   files[path].forEach((tag) => removeFile(tag, path));
   delete files[path];
 

@@ -19,12 +19,22 @@ const SCHEMA = {
     type: 'string',
     default: 'yyyy-MM-dd',
   },
+  coversPath: {
+    type: 'string',
+    default: '.covers',
+  },
+  trashPath: {
+    type: 'string',
+    default: '.trash',
+  },
 };
 
 export type ILocalSettings = {
   recursiveFolders: boolean;
   rootPath: string;
   dateFormat: string;
+  coversPath: string;
+  trashPath: string;
 };
 
 const globalStore: IStore = new Store();
@@ -36,6 +46,15 @@ const getRootPath = (): string | null => {
     return data;
   }
   return null;
+};
+
+const getRootPathSafe = (): string => {
+  const data = globalStore.get('rootPath');
+  if (data && typeof data === 'string' && fs.existsSync(data)) {
+    return data;
+  }
+  // eslint-disable-next-line quotes
+  throw "Trying to do operation that requires root path, but it isn't set yet";
 };
 
 const setRootPath = async () => {
@@ -83,4 +102,17 @@ const saveStore = (settings: ILocalSettings) => {
   localStore.store = settings;
 };
 
-export default { setRootPath, getRootPath, initStore, getStore, saveStore };
+const getLocalSettings = (): ILocalSettings => {
+  if (!localStore) throw 'No local store';
+  return localStore.store;
+};
+
+export default {
+  setRootPath,
+  getRootPathSafe,
+  getRootPath,
+  initStore,
+  getStore,
+  saveStore,
+  getLocalSettings,
+};

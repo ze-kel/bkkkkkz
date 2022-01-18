@@ -7,3 +7,4 @@ export const callWithoutEvent = (func: (...args: any[]) => void) => {
 
 export const FILENAME_REGEX = /[\\/:"*?<>|]+/g;
 export const DOTFILE_REGEX = /(?:^|[\\/])(\.(?!\.)[^\\/]+)$/;
+export const DOTDIR_REGEX = /(?:^|[\\/])(\.(?!\.)[^\\/]+)[\\/]/;

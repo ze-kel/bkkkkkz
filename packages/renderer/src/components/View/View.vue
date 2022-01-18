@@ -33,7 +33,7 @@
         </div>
       </div>
     </div>
-    <div v-if="opened && store.activeOpenedIndex !== null" class="w-full h-full pt-2">
+    <div v-if="opened && store.activeOpenedIndex !== null" class="w-full h-full pt-2 box-border">
       <Editor
         v-if="opened.type === 'file' || opened.type === 'newFile'"
         :opened="opened"

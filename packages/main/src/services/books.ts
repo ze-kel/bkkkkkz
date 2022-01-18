@@ -28,11 +28,13 @@ const stringVerifier = (v: unknown) => (typeof v === 'string' ? v : '');
 
 const stringArrayVerifier = (v: unknown) => {
   if (!Array.isArray(v)) return [];
-  return v.reduce((acc, el) => {
-    const newS = stringVerifier(el);
-    if (newS) acc.push(newS);
-    return acc;
-  }, []);
+  return Array.from(
+    v.reduce((acc: Set<string>, el: unknown) => {
+      const newS = stringVerifier(el);
+      if (newS) acc.add(newS);
+      return acc;
+    }, new Set()),
+  );
 };
 
 const dateVerifier = (date: unknown, dateFormat: string): string | null => {

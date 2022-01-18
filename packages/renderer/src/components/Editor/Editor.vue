@@ -2,7 +2,7 @@
   <div v-if="!loading" class="flex flex-col h-full px-5">
     <div class="flex gap-4">
       <div>
-        <Cover v-bind="file" class="aspect-[6/8] max-h-60" @click.right="coverRightClick" />
+        <Cover :file="file" class="aspect-[6/8] max-h-60" @click.right="coverRightClick" />
       </div>
       <div class="flex-grow">
         <ContentEditable
@@ -83,7 +83,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted, watchEffect, onUnmounted, watch } from 'vue';
+import { ref, onMounted, watchEffect, onUnmounted, watch, nextTick } from 'vue';
 import { useStore } from '/@/use/store';
 import { useElectron } from '/@/use/electron';
 import { openMenu } from '/@/use/contextMenu';
@@ -129,8 +129,11 @@ watchEffect(async () => {
     const res = await api.files.loadFileContent(props.opened.thing);
     previousName.value = res.name || '';
     file.value = res;
-    autoSave.value = true;
-    loading.value = false;
+
+    nextTick(() => {
+      autoSave.value = true;
+      loading.value = false;
+    });
   } else {
     autoSave.value = false;
     loading.value = false;
@@ -171,7 +174,7 @@ const debouncedRename = _debounce(rename, 500);
 watch(
   file,
   (newFile, oldFile) => {
-    if (!oldFile || !newFile || !autoSave.value || 'unsaved' in newFile) return;
+    if (!oldFile || !newFile || !autoSave.value || 'unsaved' in newFile || loading.value) return;
 
     // Can't check against oldFile because after mutation it will be the same
     // OldFile is still useful to eliminate initial load case
@@ -188,7 +191,13 @@ watch(
 // Update events handling
 //
 const updateHandlerApi = (path: string, newFile: IFile) => {
+  loading.value = true;
+
   file.value = newFile;
+
+  nextTick(() => {
+    loading.value = false;
+  });
 };
 const toClear: Array<() => void> = [];
 
