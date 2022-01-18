@@ -42,7 +42,7 @@
           v-else
           ref="inputName"
           v-model="newName"
-          :class="[nodeClasses, extraClasses]"
+          :class="[nodeClasses, extraClasses, !isOpened && 'bg-transparent', 'border-gray-500']"
           @blur="saveName"
           @keyup.enter="removeFocus"
         />
@@ -204,7 +204,18 @@ const startRenaming = () => {
 
 const saveName = async () => {
   if (newName.value && newName.value !== props.content.name) {
+    const oldPath = props.content.path;
     const newPath = await api.files.rename(props.content.path, newName.value);
+
+    store.opened.forEach((item, index) => {
+      if (item.type === 'path' && item.thing === oldPath) {
+        store.updateOpened(index, { ...item, thing: newPath });
+      }
+
+      if (item.type === 'file' && item.thing.includes(oldPath)) {
+        store.updateOpened(index, { ...item, thing: item.thing.replace(oldPath, newPath) });
+      }
+    });
   }
   isRenaming.value = false;
 };
@@ -220,10 +231,12 @@ const startCreating = () => {
 };
 
 const saveFolder = () => {
-  api.files.createFolder(props.content.path, newName.value);
-  flipOnNext.value = true;
-
-  //isCreating.value = false;
+  if (!newName.value) {
+    isCreating.value = false;
+  } else {
+    api.files.createFolder(props.content.path, newName.value);
+    flipOnNext.value = true;
+  }
 };
 
 ///
