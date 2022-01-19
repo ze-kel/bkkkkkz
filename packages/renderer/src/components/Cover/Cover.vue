@@ -1,12 +1,12 @@
 <template>
-  <div class="aspect-[6/8] w-full min-w-[150px]">
+  <div class="aspect-[6/8] min-w-[150px]">
     <div v-if="file.cover && !forceFake" class="h-full flex items-end shadow-gray-200">
       <img :src="`covers://${file.cover}`" @error="() => (forceFake = true)" />
     </div>
 
     <div
       v-else
-      class="p-3 rounded h-full text-white flex flex-col shadow-xl shadow-gray-200"
+      class="p-3 rounded h-full text-white flex flex-col shadow-l shadow-gray-200"
       :class="bgClass"
     >
       <div class="title leading-tight shrink h-1/2 overflow-hidden align-middle text-xl">

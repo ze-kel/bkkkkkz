@@ -12,7 +12,7 @@ import type { ITags } from '/@main/services/tags';
 
 const api = useElectron();
 
-type StateType = {
+export type StateType = {
   initialized: boolean;
   initialSetup: boolean;
   settings: ILocalSettings | null;

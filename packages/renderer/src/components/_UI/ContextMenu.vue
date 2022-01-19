@@ -1,10 +1,13 @@
 <template>
-  <div v-if="isOpened" class="w-full h-full absolute" @click.self="close">
-    <div :style="menuStyle" class="absolute rounded select-none bg-white overflow-hidden">
+  <div v-if="isOpened" class="w-full h-full absolute overflow-hidden" @click.self="close">
+    <div
+      :style="menuStyle"
+      class="absolute rounded select-none bg-white shadow-sm shadow-slate-400 overflow-hidden"
+    >
       <div
         v-for="{ label, handler } in menuItems"
         :key="label"
-        class="py-1 px-2 cursor-pointer hover:bg-gray-200 transition-colors"
+        class="py-1 px-2 cursor-pointer hover:text-white hover:bg-gray-800 transition-colors"
         @click="handlerAndClose(handler)"
       >
         {{ label }}
@@ -27,16 +30,16 @@ const close = () => {
 const openMenu: Handler = (items, x, y) => {
   if (!items.length) return;
   menuItems.value = items;
-  mousePosX.value = x;
-  mousePosY.value = y;
+  menuPosX.value = x + 3;
+  menuPosY.value = y + 3;
   isOpened.value = true;
 };
 
-const mousePosY = ref(300);
-const mousePosX = ref(300);
+const menuPosY = ref(300);
+const menuPosX = ref(300);
 
 const menuStyle = computed(() => {
-  return { top: `${mousePosY.value}px`, left: `${mousePosX.value}px` };
+  return { top: `${menuPosY.value}px`, left: `${menuPosX.value}px` };
 });
 
 const handlerAndClose = (handler: () => void) => {

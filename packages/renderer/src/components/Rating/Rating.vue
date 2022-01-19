@@ -1,5 +1,10 @@
 <template>
-  <div class="flex cursor-pointer fill-gray-800" @mouseleave="clearHovered" @click="setRating">
+  <div
+    class="flex fill-gray-800"
+    :class="!disabled && 'cursor-pointer'"
+    @mouseleave="clearHovered"
+    @click="setRating"
+  >
     <div v-for="index in 5" :key="index" class="relative">
       <div class="h-full w-[50%] absolute" @mouseenter="setHovered(index - 0.5)"></div>
       <div class="h-full w-[50%] left-[50%] absolute" @mouseenter="setHovered(index)"></div>
@@ -37,6 +42,10 @@ const props = defineProps({
     type: Number,
     default: null,
   },
+  disabled: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const emit = defineEmits<{
@@ -53,16 +62,19 @@ const rating = computed({
 const hoveredRating = ref(-1);
 
 const clearHovered = () => {
+  if (props.disabled) return;
   hoveredRating.value = -1;
 };
 
 const setHovered = (val: number) => {
+  if (props.disabled) return;
   hoveredRating.value = val;
 };
 
 const displayedValue = computed(() => (hoveredRating.value < 0 ? rating : hoveredRating));
 
 const setRating = () => {
+  if (props.disabled) return;
   if (hoveredRating.value >= 0) {
     rating.value = hoveredRating.value;
   }

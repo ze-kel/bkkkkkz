@@ -1,6 +1,6 @@
 <template>
-  <div v-if="store.opened.length && store.settings" class="w-full h-full">
-    <div class="flex bg-gray-100 text-gray-400 cursor-pointer">
+  <div v-if="store.opened.length && store.settings" class="w-full h-full flex flex-col">
+    <div class="flex bg-gray-100 text-gray-400 cursor-pointer h-[32px]">
       <div
         v-for="(item, index) in store.opened"
         :key="index"
@@ -33,7 +33,10 @@
         </div>
       </div>
     </div>
-    <div v-if="opened && store.activeOpenedIndex !== null" class="w-full h-full pt-2 box-border">
+    <div
+      v-if="opened && store.activeOpenedIndex !== null"
+      class="w-full h-[calc(100%_-_32px)] mt-2"
+    >
       <Editor
         v-if="opened.type === 'file' || opened.type === 'newFile'"
         :opened="opened"
