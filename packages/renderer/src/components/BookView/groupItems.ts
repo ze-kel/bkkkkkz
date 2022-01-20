@@ -16,7 +16,7 @@ const getGroupLabel = (book: ISavedFile, propety: ISortByOption): string => {
       return book.author ? book.author[0] : 'Unknown Author';
     }
     case 'Year': {
-      return book.year ? book.year : 'Unknown Year';
+      return book.year ? String(book.year) : 'Unknown Year';
     }
     case 'First Read': {
       const date = book.read?.reduce(getDateReducer(false), null)?.getFullYear();

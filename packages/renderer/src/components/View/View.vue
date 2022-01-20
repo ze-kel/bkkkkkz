@@ -1,10 +1,10 @@
 <template>
   <div v-if="store.opened.length && store.settings" class="w-full h-full flex flex-col">
-    <div class="flex bg-gray-100 text-gray-400 cursor-pointer h-[32px]">
+    <div class="flex bg-gray-100 text-gray-400 h-[32px]">
       <div
         v-for="(item, index) in store.opened"
         :key="index"
-        class="px-2 py-1 max-w-[200px] flex items-center"
+        class="px-2 py-1 max-w-[200px] flex items-center cursor-pointer"
         :class="index === store.activeOpenedIndex && ['bg-white text-gray-900']"
         @click="store.setOpenedIndex(index)"
       >

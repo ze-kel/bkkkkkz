@@ -1,74 +1,109 @@
 <template>
   <div v-if="!loading" class="flex flex-col h-full px-5">
-    <div class="flex gap-4">
-      <div>
+    <div class="grid customTopGrid gap-4">
+      <div class="" :draggable="true" @dragstart="startDrag($event)">
         <Cover :file="file" class="aspect-[6/8] max-h-60" @click.right="coverRightClick" />
       </div>
-      <div class="flex-grow">
-        <ContentEditable
-          v-model="file.author"
-          spellcheck="false"
-          tag="div"
-          class="text-2xl w-fit min-w-[100px] input-default"
-          placeholder="Author"
-          :placeholder-classes="'text-gray-400 hover:text-gray-600'"
-        />
-        <ContentEditable
-          v-model="file.title"
-          spellcheck="false"
-          tag="div"
-          class="text-xl mt-1 w-fit min-w-[100px] input-default"
-          placeholder="Title"
-          :placeholder-classes="'text-gray-400 hover:text-gray-600'"
-        />
-        <ContentEditable
-          v-model="file.year"
-          spellcheck="false"
-          tag="div"
-          class="text-md mt-1 w-fit min-w-[75px] input-default"
-          placeholder="Year"
-          :placeholder-classes="'text-gray-400 hover:text-gray-600'"
-        />
-
-        <div class="flex items-center mt-2">
-          <div :draggable="true" @dragstart="startDrag($event)">
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              class="cursor-move fill-gray-600"
-            >
-              <path
-                d="M18 22H6C4.89543 22 4 21.1046 4 20V4C4 2.89543 4.89543 2 6 2H13C13.0109 2.00047 13.0217 2.00249 13.032 2.006C13.0418 2.00902 13.0518 2.01103 13.062 2.012C13.1502 2.01765 13.2373 2.0348 13.321 2.063L13.349 2.072C13.3717 2.07968 13.3937 2.08904 13.415 2.1C13.5239 2.14842 13.6232 2.21618 13.708 2.3L19.708 8.3C19.7918 8.38479 19.8596 8.48406 19.908 8.593C19.918 8.615 19.925 8.638 19.933 8.661L19.942 8.687C19.9699 8.77039 19.9864 8.85718 19.991 8.945C19.9926 8.95418 19.9949 8.96322 19.998 8.972C19.9998 8.98122 20.0004 8.99062 20.0001 9V20C20.0001 21.1046 19.1046 22 18 22ZM6 4V20H18V10H13C12.4477 10 12 9.55228 12 9V4H6ZM14 5.414V8H16.586L14 5.414Z"
-              />
-            </svg>
-          </div>
-
+      <div class="flex-grow flex flex-col justify-between">
+        <div>
           <ContentEditable
-            v-model="file.name"
+            v-model="file.title"
             spellcheck="false"
             tag="div"
-            class="text-m ml-1 w-fit min-w-[100px] input-default"
-            placeholder="Filename"
+            class="text-2xl w-fit min-w-[100px] input-default"
+            placeholder="Title"
             :placeholder-classes="'text-gray-400 hover:text-gray-600'"
           />
+          <ContentEditable
+            v-model="file.author"
+            spellcheck="false"
+            tag="div"
+            class="text-xl w-fit min-w-[100px] input-default font-light"
+            placeholder="Author"
+            :placeholder-classes="'text-gray-400 hover:text-gray-600'"
+          />
+          <ContentEditable
+            v-model:model-value-number="file.year"
+            :number="true"
+            spellcheck="false"
+            tag="div"
+            class="text-md mt-2 w-fit min-w-[75px] input-default font-semibold"
+            placeholder="Year"
+            :placeholder-classes="'text-gray-400 hover:text-gray-600'"
+          />
+        </div>
 
-          <button
-            v-if="!autoSave"
-            class="bg-indigo-600 hover:bg-indigo-800 text-white px-3 py-1 ml-3 rounded-md transition-colors"
-            @click="manualSave"
-          >
-            Save
-          </button>
+        <div class="flex flex-col gap-2 mt-2">
+          <div class="flex gap-3">
+            <div class="flex items-center">
+              <div class="text-gray-800 text-xs font-light border-r pr-1 mr-1 border-gray-800">
+                ISBN
+              </div>
+              <ContentEditable
+                v-model="file.ISBN"
+                spellcheck="false"
+                tag="div"
+                class="text-xs w-fit min-w-[100px] input-default"
+                placeholder="ISBN"
+                :placeholder-classes="'text-gray-400 hover:text-gray-600'"
+              />
+            </div>
+            <div class="flex items-center">
+              <div class="text-gray-800 text-xs font-light border-r pr-1 mr-1 border-gray-800">
+                ISBN13
+              </div>
+              <ContentEditable
+                v-model="file.ISBN13"
+                spellcheck="false"
+                tag="div"
+                class="text-xs w-fit min-w-[100px] input-default"
+                placeholder="ISBN13"
+                :placeholder-classes="'text-gray-400 hover:text-gray-600'"
+              />
+            </div>
+          </div>
+
+          <div class="flex items-center">
+            <div class="text-gray-800 text-xs font-light border-r pr-1 mr-1 border-gray-800">
+              Filename
+            </div>
+            <div class="flex items-center">
+              <ContentEditable
+                v-model="file.name"
+                spellcheck="false"
+                tag="div"
+                class="text-xs w-fit min-w-[100px] input-default"
+                placeholder="Filename"
+                :placeholder-classes="'text-gray-400 hover:text-gray-600'"
+              />
+              <button
+                v-if="!autoSave"
+                class="basic-button h-full py-0 text-xs ml-3"
+                @click="manualSave"
+              >
+                Save
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div class="w-[33%]">
-        <ReadDetails v-model="file.read" />
-        <Rating v-model="file.myRating" class="mt-2" />
-        <Tags v-model="file.tags" class="mt-2" />
+      <div class="border-gray-600 px-3 py-1 border-l">
+        <div>
+          <div class="text-gray-800 font-medium">Read dates</div>
+          <hr class="hr-default bg-gray-800 mb-2" />
+          <ReadDetails v-model="file.read" />
+        </div>
+        <div class="mt-2">
+          <div class="text-gray-800 font-medium">Rating</div>
+          <hr class="hr-default bg-gray-800 mb-2" />
+          <Rating v-model="file.myRating" />
+        </div>
+        <div class="mt-2">
+          <div class="text-gray-800 font-medium">Tags</div>
+          <hr class="hr-default bg-gray-800 mb-2" />
+          <Tags v-model="file.tags" />
+        </div>
       </div>
     </div>
     <hr class="hr-default my-4" />
@@ -77,7 +112,7 @@
       <Milkdown v-model="file.content" />
     </div>
   </div>
-  <div ref="forDrag" class="absolute top-[-50px]">
+  <div ref="forDrag" class="absolute top-[-500px]">
     <DragDisplay> {{ dragging }} </DragDisplay>
   </div>
 </template>
@@ -279,4 +314,8 @@ const coverRightClick = (e: MouseEvent) => {
 };
 </script>
 
-<style scoped></style>
+<style scoped>
+.customTopGrid {
+  grid-template-columns: minmax(min-content, max-content) 3fr 1fr;
+}
+</style>

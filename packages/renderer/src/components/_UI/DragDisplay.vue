@@ -1,5 +1,5 @@
 <template>
-  <div class="absolute bg-indigo-500 rounded-sm text-white px-2 py-1">
+  <div class="absolute bg-indigo-500 truncate rounded-sm text-white px-2 py-1">
     <slot> </slot>
   </div>
 </template>

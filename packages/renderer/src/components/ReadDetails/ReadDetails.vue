@@ -1,11 +1,7 @@
 <template>
   <div class="rounded w-full overflow-hidden">
-    <div class="flex items-center">
-      <div class="text-gray-800 text-lg font-semibold">Read dates</div>
-    </div>
-    <div class="grid customGrid gap-y-1 gap-x-2 my-1">
+    <div class="grid customGrid gap-y-1 gap-x-2">
       <template v-for="(date, index) in modelValue" :key="index">
-        <div class="text-center text-gray-500">{{ index + 1 }}</div>
         <SingleDate
           v-if="store.settings"
           :model-value="date"
@@ -29,7 +25,7 @@
       </template>
     </div>
     <div
-      class="p-0.5 border cursor-pointer text-gray-800 border-gray-800 hover:bg-gray-800 hover:text-white rounded-md text-center mt-3 transition-colors"
+      class="p-0.5 border cursor-pointer text-gray-800 border-gray-800 hover:bg-gray-800 hover:text-white rounded-md text-center mt-2 transition-colors"
       @click="addNewDate"
     >
       Log new
@@ -87,6 +83,6 @@ const removeDate = (index: number) => {
 
 <style scoped>
 .customGrid {
-  grid-template-columns: 1.5rem 6rem 32px 6rem 24px;
+  grid-template-columns: 6rem 32px 6rem 24px;
 }
 </style>

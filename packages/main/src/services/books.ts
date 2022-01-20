@@ -11,7 +11,7 @@ export type numbersOnlyString = string;
 export interface IBookData {
   title?: string;
   author?: string;
-  year?: numbersOnlyString;
+  year?: number;
   myRating?: number;
   read?: IDateRead[];
   tags?: string[];

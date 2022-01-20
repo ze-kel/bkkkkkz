@@ -13,8 +13,10 @@
 </template>
 
 <script lang="ts" setup>
+// Based on https://github.com/hl037/vue-contenteditable/blob/master/src/components/contenteditable.vue.d.ts
 import { ref, onMounted, watch, Events, computed, defineComponent, onBeforeUnmount } from 'vue';
 import type { PropType } from 'vue';
+import { NUMBERS_REGEX } from '/@main/helpers/utils';
 
 const props = defineProps({
   tag: {
@@ -27,7 +29,11 @@ const props = defineProps({
   },
   modelValue: {
     type: String,
-    default: '',
+    default: undefined,
+  },
+  modelValueNumber: {
+    type: Number,
+    default: undefined,
   },
   noHTML: {
     type: Boolean,
@@ -45,13 +51,17 @@ const props = defineProps({
     type: String,
     default: '',
   },
+  number: {
+    type: Boolean,
+    default: false,
+  },
 });
+
 const emit = defineEmits({
   returned: String,
   'update:modelValue': String,
+  'update:modelValueNumber': Number,
 });
-
-// Based on https://github.com/hl037/vue-contenteditable/blob/master/src/components/contenteditable.vue.d.ts
 
 function replaceAll(str: string, search: string, replacement: string) {
   return str.split(search).join(replacement);
@@ -68,7 +78,7 @@ function currentContent() {
   return props.noHTML ? element.value.innerText : element.value.innerHTML;
 }
 
-function updateContent(newcontent: string, usePlaceholder: boolean) {
+function updateContent(newcontent: string | number | undefined, usePlaceholder: boolean) {
   if (!element.value) return;
 
   if (usePlaceholder && !newcontent) {
@@ -76,10 +86,15 @@ function updateContent(newcontent: string, usePlaceholder: boolean) {
     placeholder.value = true;
   } else {
     placeholder.value = false;
+
+    if (typeof newcontent === 'number') {
+      newcontent = String(newcontent);
+    }
+
     if (props.noHTML) {
-      element.value.innerText = newcontent;
+      element.value.innerText = newcontent || '';
     } else {
-      element.value.innerHTML = newcontent;
+      element.value.innerHTML = newcontent || '';
     }
   }
 }
@@ -87,16 +102,36 @@ function updateContent(newcontent: string, usePlaceholder: boolean) {
 function focusHandler() {
   focused.value = true;
   placeholder.value = false;
-  updateContent(props.modelValue, false);
+
+  if (props.number) {
+    updateContent(props.modelValueNumber, false);
+  } else {
+    updateContent(props.modelValue, false);
+  }
 }
 
 function blurHandler() {
   focused.value = false;
-  updateContent(props.modelValue, true);
+
+  if (props.number) {
+    updateContent(props.modelValueNumber, true);
+  } else {
+    updateContent(props.modelValue, true);
+  }
 }
 
+const makeNumber = (input: string) => {
+  return Number(input.match(NUMBERS_REGEX)?.join());
+};
+
 function inputHandler() {
-  emit('update:modelValue', currentContent());
+  const content = currentContent();
+
+  if (props.number) {
+    emit('update:modelValueNumber', makeNumber(content));
+  } else {
+    emit('update:modelValue', content);
+  }
 }
 
 function onPaste(event: ClipboardEvent) {
@@ -119,7 +154,11 @@ function onKeypress(event: KeyboardEvent) {
 }
 
 onMounted(() => {
-  updateContent(props.modelValue, true);
+  if (props.number) {
+    updateContent(props.modelValueNumber, true);
+  } else {
+    updateContent(props.modelValue, true);
+  }
 });
 
 onBeforeUnmount(() => {
@@ -129,7 +168,7 @@ onBeforeUnmount(() => {
 });
 
 watch(
-  () => props.modelValue,
+  () => (props.number ? props.modelValueNumber : props.modelValue),
   (newval) => {
     if (newval != currentContent()) {
       updateContent(newval, !focused.value);

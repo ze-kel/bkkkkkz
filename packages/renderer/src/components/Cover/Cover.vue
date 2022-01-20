@@ -1,5 +1,5 @@
 <template>
-  <div class="aspect-[6/8] min-w-[150px]">
+  <div class="aspect-[6/8] min-w-[150px] bg-transparent">
     <div v-if="file.cover && !forceFake" class="h-full flex items-end shadow-gray-200">
       <img :src="`covers://${file.cover}`" @error="() => (forceFake = true)" />
     </div>
@@ -7,14 +7,14 @@
     <div
       v-else
       class="p-3 rounded h-full text-white flex flex-col shadow-l shadow-gray-200"
-      :class="bgClass"
+      :class="colorClass"
     >
       <div class="title leading-tight shrink h-1/2 overflow-hidden align-middle text-xl">
         {{ mainTitle }}
       </div>
       <hr class="hr-default bg-white my-2" />
       <div class="author flex-grow font-semibold text-md">{{ file.author || 'Unknown' }}</div>
-      <div v-if="file.year && Number(file.year) > 0">
+      <div v-if="file.year">
         {{ file.year }}
       </div>
     </div>
@@ -62,7 +62,7 @@ const baseColors = [
 
 const randomColorIndex = getRandomNumber(props.file.title || 'notitle', 0, baseColors.length);
 
-const bgClass = baseColors[randomColorIndex];
+const colorClass = baseColors[randomColorIndex];
 </script>
 
 <style scoped></style>

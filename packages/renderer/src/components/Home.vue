@@ -9,7 +9,7 @@
       <div class="flex flex-col-reverse">
         <LeftMenu />
       </div>
-      <div class="flex-auto py-6 px-2">
+      <div class="flex-auto py-6 px-2 overflow-y-auto overflow-x-hidden">
         <FileTree :style="{ width: `${fileTreeSize}px` }" />
 
         <hr class="hr-default my-3" />
