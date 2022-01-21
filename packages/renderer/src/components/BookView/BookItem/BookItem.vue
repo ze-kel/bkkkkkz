@@ -19,7 +19,6 @@ import { useStore } from '/@/use/store';
 
 export type IBookStyle = 'CARDS';
 
-const internalInstance = getCurrentInstance();
 const store = useStore();
 
 const props = defineProps({
@@ -39,7 +38,7 @@ const emit = defineEmits<{
 
 const editorOpened = ref(false);
 const openFullEditor = (newTab: boolean) => {
-  internalInstance?.emit('open', newTab);
+  emit('open', newTab);
 };
 </script>
 

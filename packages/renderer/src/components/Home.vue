@@ -6,11 +6,13 @@
       <Welcome />
     </div>
     <div v-if="store.initialized" class="h-full max-h-full flex overflow-hidden">
-      <div class="flex flex-col-reverse">
-        <LeftMenu />
-      </div>
-      <div class="flex-auto py-6 px-2 overflow-y-auto overflow-x-hidden">
-        <FileTree :style="{ width: `${fileTreeSize}px` }" />
+      <div
+        class="flex-auto px-2 overflow-y-auto overflow-x-hidden"
+        :style="{ width: `${fileTreeSize}px` }"
+      >
+        <IconsMenu />
+
+        <FileTree />
 
         <hr class="hr-default my-3" />
         <TagsTree />
@@ -34,7 +36,7 @@ import { useStore } from '/@/use/store';
 
 import _debounce from 'lodash-es/debounce';
 
-import LeftMenu from './LeftMenu/LeftMenu.vue';
+import IconsMenu from './IconsMenu/IconsMenu.vue';
 import TopBar from './TopBar/TopBar.vue';
 import FileTree from './FileTree/FileTree.vue';
 import Welcome from './WelcomeScreen/Welcome.vue';
@@ -54,9 +56,7 @@ const isResizing = ref<boolean>(false);
 const changeFileTreeSize = (ev: any) => {
   const newVal = ev.clientX;
   if (newVal < 500 && newVal > 150) {
-    // 40 is left menu, 14 is sourceSelect padding, 3 is half the size of resize handle
-    // TODO: make it dynamically calculated
-    fileTreeSize.value = ev.clientX - 40 - 9;
+    fileTreeSize.value = ev.clientX;
   }
 };
 

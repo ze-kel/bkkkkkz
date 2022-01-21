@@ -7,7 +7,7 @@
         tag="div"
         spellcheck="false"
         class="bg-gray-800 w-fit px-2 rounded-lg text-white"
-        @update:model-value="(val: string) => saveTag(index, val)"
+        @update:model-value="(val: string | Number) => saveTag(index, String(val))"
       />
     </template>
     <div
@@ -54,7 +54,7 @@ const tags = computed({
     return tags;
   },
   set: (val) => {
-    if (internalInstance) internalInstance.emit('update:modelValue', val);
+    emit('update:modelValue', val);
   },
 });
 

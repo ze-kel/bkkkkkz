@@ -50,11 +50,9 @@
 </template>
 
 <script lang="ts" setup>
-import { getCurrentInstance, computed, onBeforeUnmount } from 'vue';
+import { computed } from 'vue';
 import type { PropType } from 'vue';
 import type { IDateRead } from '/@main/services/books';
-
-const internalInstance = getCurrentInstance();
 
 const props = defineProps({
   modelValue: {
@@ -86,23 +84,24 @@ const dates = computed({
     };
   },
   set: (val) => {
-    if (internalInstance) internalInstance.emit('update:modelValue', val);
+    emit('update:modelValue', {
+      started: val.start,
+      finished: val.end,
+    });
   },
 });
 
 const dateStart = computed({
   get: () => props.modelValue.started,
   set: (val) => {
-    if (internalInstance)
-      internalInstance.emit('update:modelValue', { ...props.modelValue, started: val });
+    emit('update:modelValue', { ...props.modelValue, started: val });
   },
 });
 
 const dateEnd = computed({
   get: () => props.modelValue.finished,
   set: (val) => {
-    if (internalInstance)
-      internalInstance.emit('update:modelValue', { ...props.modelValue, finished: val });
+    emit('update:modelValue', { ...props.modelValue, finished: val });
   },
 });
 </script>

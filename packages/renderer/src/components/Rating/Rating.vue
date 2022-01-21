@@ -34,8 +34,7 @@
 </template>
 
 <script lang="ts" setup>
-import { getCurrentInstance, computed, onBeforeUnmount, ref } from 'vue';
-const internalInstance = getCurrentInstance();
+import { computed, ref } from 'vue';
 
 const props = defineProps({
   modelValue: {
@@ -55,7 +54,7 @@ const emit = defineEmits<{
 const rating = computed({
   get: () => props.modelValue,
   set: (val) => {
-    if (internalInstance) internalInstance.emit('update:modelValue', val);
+    emit('update:modelValue', val);
   },
 });
 

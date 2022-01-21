@@ -23,7 +23,7 @@
             :placeholder-classes="'text-gray-400 hover:text-gray-600'"
           />
           <ContentEditable
-            v-model:model-value-number="file.year"
+            v-model="file.year"
             :number="true"
             spellcheck="false"
             tag="div"

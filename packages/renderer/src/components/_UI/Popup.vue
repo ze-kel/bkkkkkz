@@ -12,10 +12,6 @@
 </template>
 
 <script lang="ts" setup>
-import { getCurrentInstance } from 'vue';
-
-const internalInstance = getCurrentInstance();
-
 const props = defineProps({
   opened: {
     type: Boolean,
@@ -28,7 +24,7 @@ const emit = defineEmits<{
 }>();
 
 const close = () => {
-  internalInstance?.emit('close');
+  emit('close');
 };
 </script>
 

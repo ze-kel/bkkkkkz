@@ -24,12 +24,7 @@
         </div>
       </template>
     </div>
-    <div
-      class="p-0.5 border cursor-pointer text-gray-800 border-gray-800 hover:bg-gray-800 hover:text-white rounded-md text-center mt-2 transition-colors"
-      @click="addNewDate"
-    >
-      Log new
-    </div>
+    <div class="basic-button text-center my-1" @click="addNewDate">Log new</div>
   </div>
 </template>
 
@@ -40,8 +35,6 @@ import type { IDateRead } from '/@main/services/books';
 import SingleDate from './SingleDate.vue';
 import { format } from 'date-fns';
 import { useStore } from '/@/use/store';
-
-const internalInstance = getCurrentInstance();
 
 const store = useStore();
 
@@ -60,7 +53,7 @@ const emit = defineEmits<{
 const updateValue = (index: number, newDates: IDateRead) => {
   const newValue = [...props.modelValue];
   newValue[index] = newDates;
-  internalInstance?.emit('update:modelValue', newValue);
+  emit('update:modelValue', newValue);
 };
 
 const addNewDate = () => {
@@ -71,13 +64,13 @@ const addNewDate = () => {
     ...props.modelValue,
     { started: format(new Date(), store.settings.dateFormat) },
   ];
-  internalInstance?.emit('update:modelValue', newValue);
+  emit('update:modelValue', newValue);
 };
 
 const removeDate = (index: number) => {
   const newValue = [...props.modelValue];
   newValue.splice(index, 1);
-  internalInstance?.emit('update:modelValue', newValue);
+  emit('update:modelValue', newValue);
 };
 </script>
 

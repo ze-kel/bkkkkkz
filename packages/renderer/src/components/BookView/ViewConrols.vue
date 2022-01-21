@@ -59,12 +59,10 @@
 </template>
 
 <script lang="ts" setup>
-import { defineProps, defineEmits, getCurrentInstance, computed } from 'vue';
+import { defineProps, defineEmits, computed } from 'vue';
 
 import type { PropType } from 'vue';
 import type { ISortByOption, ISortDirection } from './getSortFunction';
-
-const internalInstance = getCurrentInstance();
 
 const props = defineProps({
   search: {
@@ -90,12 +88,12 @@ const props = defineProps({
   },
 });
 
-defineEmits<{
-  'update:search': string;
-  'update:grouped': boolean;
-  'update:sortBy': ISortByOption;
-  'update:sortDirection': ISortDirection;
-  addBook: void;
+const emit = defineEmits<{
+  (e: 'update:search', val: string): void;
+  (e: 'update:grouped', val: boolean): void;
+  (e: 'update:sortBy', val: ISortByOption): void;
+  (e: 'update:sortDirection', val: ISortDirection): void;
+  (e: 'addBook'): void;
 }>();
 
 const canSortby: ISortByOption[] = [
@@ -109,20 +107,21 @@ const canSortby: ISortByOption[] = [
 ];
 
 const flipSortDirection = () => {
-  internalInstance?.emit('update:sortDirection', props.sortDirection * -1);
+  //@ts-expect-error This is correct
+  emit('update:sortDirection', props.sortDirection * -1);
 };
 
 const sortByProxy = computed<ISortByOption>({
   get() {
     return props.sortBy;
   },
-  set(val: string) {
-    internalInstance?.emit('update:sortBy', val);
+  set(val: ISortByOption) {
+    emit('update:sortBy', val);
   },
 });
 
 const flipGrouped = () => {
-  internalInstance?.emit('update:grouped', !props.grouped);
+  emit('update:grouped', !props.grouped);
 };
 
 const searchProxy = computed<string>({
@@ -130,11 +129,11 @@ const searchProxy = computed<string>({
     return props.search;
   },
   set(val: string) {
-    internalInstance?.emit('update:search', val);
+    emit('update:search', val);
   },
 });
 
 const addBook = () => {
-  internalInstance?.emit('addBook');
+  emit('addBook');
 };
 </script>

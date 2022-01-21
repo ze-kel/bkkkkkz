@@ -28,11 +28,7 @@ const props = defineProps({
     default: true,
   },
   modelValue: {
-    type: String,
-    default: undefined,
-  },
-  modelValueNumber: {
-    type: Number,
+    type: [String, Number],
     default: undefined,
   },
   noHTML: {
@@ -57,11 +53,10 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits({
-  returned: String,
-  'update:modelValue': String,
-  'update:modelValueNumber': Number,
-});
+const emit = defineEmits<{
+  (e: 'returned', val: string): void;
+  (e: 'update:modelValue', val: string | number): void;
+}>();
 
 function replaceAll(str: string, search: string, replacement: string) {
   return str.split(search).join(replacement);
@@ -103,21 +98,13 @@ function focusHandler() {
   focused.value = true;
   placeholder.value = false;
 
-  if (props.number) {
-    updateContent(props.modelValueNumber, false);
-  } else {
-    updateContent(props.modelValue, false);
-  }
+  updateContent(props.modelValue, false);
 }
 
 function blurHandler() {
   focused.value = false;
 
-  if (props.number) {
-    updateContent(props.modelValueNumber, true);
-  } else {
-    updateContent(props.modelValue, true);
-  }
+  updateContent(props.modelValue, true);
 }
 
 const makeNumber = (input: string) => {
@@ -128,7 +115,7 @@ function inputHandler() {
   const content = currentContent();
 
   if (props.number) {
-    emit('update:modelValueNumber', makeNumber(content));
+    emit('update:modelValue', makeNumber(content));
   } else {
     emit('update:modelValue', content);
   }
@@ -154,11 +141,7 @@ function onKeypress(event: KeyboardEvent) {
 }
 
 onMounted(() => {
-  if (props.number) {
-    updateContent(props.modelValueNumber, true);
-  } else {
-    updateContent(props.modelValue, true);
-  }
+  updateContent(props.modelValue, true);
 });
 
 onBeforeUnmount(() => {
@@ -168,7 +151,7 @@ onBeforeUnmount(() => {
 });
 
 watch(
-  () => (props.number ? props.modelValueNumber : props.modelValue),
+  () => props.modelValue,
   (newval) => {
     if (newval != currentContent()) {
       updateContent(newval, !focused.value);

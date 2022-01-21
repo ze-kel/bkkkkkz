@@ -20,7 +20,6 @@ import { useStore } from '/@/use/store';
 import type { IOpenedTag } from '/@main/services/watcher';
 
 const api = useElectron();
-const internalInstance = getCurrentInstance();
 const store = useStore();
 
 const openedTag = computed(() => {
