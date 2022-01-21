@@ -42,7 +42,7 @@ const createWindow = async () => {
     width: 1280,
     height: 720,
     titleBarStyle: 'hidden',
-    trafficLightPosition: { x: 10, y: 10 },
+    trafficLightPosition: { x: 10, y: 8 },
   });
 
   /**

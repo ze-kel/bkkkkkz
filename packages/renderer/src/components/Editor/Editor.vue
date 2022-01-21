@@ -1,10 +1,10 @@
 <template>
-  <div v-if="!loading" class="flex flex-col h-full px-5">
-    <div class="grid customTopGrid gap-4">
-      <div class="" :draggable="true" @dragstart="startDrag($event)">
+  <div v-if="!loading" class="flex flex-col h-full">
+    <div class="grid customTopGrid gap-4 px-4">
+      <div class="py-2" :draggable="true" @dragstart="startDrag($event)">
         <Cover :file="file" class="aspect-[6/8] max-h-60" @click.right="coverRightClick" />
       </div>
-      <div class="flex-grow flex flex-col justify-between">
+      <div class="flex-grow flex flex-col justify-between py-2">
         <div>
           <ContentEditable
             v-model="file.title"
@@ -88,27 +88,23 @@
         </div>
       </div>
 
-      <div class="border-gray-600 px-3 py-1 border-l">
-        <div>
+      <div class="border-gray-300 h-full border-l">
+        <div class="border-b border-gray-300 p-2">
           <div class="text-gray-800 font-medium">Read dates</div>
-          <hr class="hr-default bg-gray-800 mb-2" />
           <ReadDetails v-model="file.read" />
         </div>
-        <div class="mt-2">
+        <div class="border-b border-gray-300 p-2">
           <div class="text-gray-800 font-medium">Rating</div>
-          <hr class="hr-default bg-gray-800 mb-2" />
           <Rating v-model="file.myRating" />
         </div>
-        <div class="mt-2">
+        <div class="p-2">
           <div class="text-gray-800 font-medium">Tags</div>
-          <hr class="hr-default bg-gray-800 mb-2" />
           <Tags v-model="file.tags" />
         </div>
       </div>
     </div>
-    <hr class="hr-default my-4" />
 
-    <div class="h-full">
+    <div class="h-full border-t border-gray-300 p-4">
       <Milkdown v-model="file.content" />
     </div>
   </div>

@@ -1,14 +1,18 @@
 <template>
-  <div class="root">
-    <div class="header-XL bold">Welcome!</div>
-    <div class="text text-L">Please select your root directory</div>
-    <button class="button bold" @click="store.newRootPath">Select</button>
+  <div class="flex flex-col items-center justify-center p-10 h-full">
+    <div class="text-4xl">Welcome!</div>
+    <div class="mt-2">Please select your root directory</div>
+    <button class="basic-button mt-2" @click="clickHandler">Select</button>
   </div>
 </template>
 
 <script lang="ts" setup>
 import { useStore } from '/@/use/store';
 const store = useStore();
+
+const clickHandler = () => {
+  store.newRootPath();
+};
 </script>
 
 <style scoped>

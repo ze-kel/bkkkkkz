@@ -2,9 +2,7 @@
   <div ref="rootElement" class="bg-gray-100 h-screen flex flex-col">
     <TopBar />
     <ContextMenu />
-    <div v-if="store.initialSetup" class="fullScreen">
-      <Welcome />
-    </div>
+    <Welcome v-if="store.initialSetup" />
     <div v-if="store.initialized" class="h-full max-h-full flex overflow-hidden">
       <div
         class="flex-auto px-2 overflow-y-auto overflow-x-hidden"
@@ -23,7 +21,7 @@
         class="w-1 hover:bg-indigo-500 cursor-col-resize transition-colors"
         :class="isResizing && 'bg-indigo-700'"
       ></div>
-      <div class="bg-white flex w-full max-h-full rounded-tl-lg overflow-hidden">
+      <div class="bg-white flex w-full max-h-full border-l border-gray-300 overflow-hidden">
         <View />
       </div>
     </div>

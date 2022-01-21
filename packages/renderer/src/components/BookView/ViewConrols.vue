@@ -1,8 +1,7 @@
 <template>
-  <div class="px-2 flex gap-2 items-stretch justify-between">
-    <div class="flex gap-2 w-3/12">
+  <div class="px-2 flex gap-2 items-center justify-between">
+    <div class="flex gap-2 w-3/12 py-2">
       <input v-model="searchProxy" class="input-default" placeholder="Search Books" />
-      <div class="pl-[1px] bg-gray-900 h-full"></div>
       <button
         v-if="showAddButton"
         class="basic-button h-full w-fit whitespace-nowrap"

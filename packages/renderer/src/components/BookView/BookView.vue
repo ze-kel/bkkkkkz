@@ -6,12 +6,13 @@
       v-model:sortBy="sortBy"
       v-model:sortDirection="sortDirection"
       :show-add-button="opened.type === 'path'"
+      class="border-b border-gray-300"
       @add-book="addBook"
     />
 
-    <div
-      class="w-full h-full box-border overflow-y-auto overflow-x-hidden px-2 items-start pt-2 my-1"
-    >
+    <div class="w-full h-full box-border overflow-y-auto overflow-x-hidden px-2 items-start">
+      <div class="h-3"></div>
+
       <div v-if="doGroup">
         <div v-for="group in groupedFiles" :key="group.label" class="mt-4 first:mt-0">
           <div class="text-4xl font-mono inline-block pl-1 pr-3 font-medium text-gray-800 mb-1">

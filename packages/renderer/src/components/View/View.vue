@@ -33,10 +33,7 @@
         </div>
       </div>
     </div>
-    <div
-      v-if="opened && store.activeOpenedIndex !== null"
-      class="w-full h-[calc(100%_-_32px)] mt-2"
-    >
+    <div v-if="opened && store.activeOpenedIndex !== null" class="w-full h-[calc(100%_-_32px)]">
       <Editor
         v-if="opened.type === 'file' || opened.type === 'newFile'"
         :opened="opened"
