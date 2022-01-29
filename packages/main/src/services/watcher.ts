@@ -9,10 +9,10 @@ import type { FSWatcher } from 'chokidar';
 import { DOTFILE_REGEX, DOTDIR_REGEX } from '../helpers/utils';
 
 export type IOpenedPath = {
-  type: 'path';
+  type: 'folder';
   // Path
   thing: string;
-  recursive: boolean;
+  recursive?: boolean;
 };
 
 export type IOpenedTag = {
@@ -51,7 +51,7 @@ const isRelevant = (loaded: IOpened, pathInQuestion: string): boolean => {
     return loaded.thing === pathInQuestion;
   }
 
-  if (loaded.type === 'path') {
+  if (loaded.type === 'folder') {
     if (loaded.recursive) {
       const relative = path.relative(loaded.thing, pathInQuestion);
       return Boolean(relative) && !relative.startsWith('..') && !path.isAbsolute(relative);

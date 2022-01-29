@@ -1,16 +1,19 @@
 <template>
-  <div ref="rootElement" class="h-full w-full flex flex-col">
+  <div class="h-full w-full flex flex-col">
     <ViewConrols
       v-model:search="searchQueryPreDebounce"
       v-model:grouped="doGroup"
       v-model:sortBy="sortBy"
       v-model:sortDirection="sortDirection"
-      :show-add-button="opened.type === 'path'"
+      :show-add-button="opened.type === 'folder'"
       class="border-b border-gray-300"
       @add-book="addBook"
     />
 
-    <div class="w-full h-full box-border overflow-y-auto overflow-x-hidden px-2 items-start">
+    <div
+      ref="scrollRoot"
+      class="w-full h-full box-border overflow-y-auto overflow-x-hidden px-2 items-start"
+    >
       <div class="h-3"></div>
 
       <div v-if="doGroup">
@@ -59,7 +62,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onUnmounted, ref, watch, watchEffect } from 'vue';
+import { computed, onMounted, onUnmounted, ref, watch, watchEffect } from 'vue';
 import Fuse from 'fuse.js';
 import { useElectron } from '/@/use/electron';
 import { useStore } from '/@/use/store';
@@ -70,7 +73,7 @@ import _cloneDeep from 'lodash-es/cloneDeep';
 import getSortFunction from './getSortFunction';
 import { groupItems } from './groupItems';
 
-import BookItem from './BookItem/BookItem.vue';
+import BookItem from './BookItem.vue';
 import DragDisplay from '../_UI/DragDisplay.vue';
 import Rating from '../Rating/Rating.vue';
 
@@ -80,6 +83,7 @@ import type { IOpenedTag, IOpenedPath, IOpenedFile } from '/@main/services/watch
 import type { ISortByOption, ISortDirection } from './getSortFunction';
 import type { ContextMenu } from '/@/use/contextMenu';
 import ViewConrols from './ViewConrols.vue';
+import { initializeOserver } from './commonOserver';
 
 const api = useElectron();
 
@@ -100,7 +104,7 @@ const props = defineProps({
 });
 
 watchEffect(async () => {
-  if (props.opened.type === 'path') {
+  if (props.opened.type === 'folder') {
     files.value = await api.files.loadFilesFromFolder(props.opened.thing, props.opened.recursive);
   }
   if (props.opened.type === 'tag') {
@@ -231,6 +235,8 @@ const startDrag = (devt: DragEvent, file: IFile) => {
     return;
   }
 
+  devt.dataTransfer.setData('type', 'file');
+
   devt.dataTransfer.setData('itemPath', file.path);
   devt.dataTransfer.setDragImage(forDrag.value, 0, 0);
   dragging.value = file.name;
@@ -254,6 +260,16 @@ const getMenu = (book: IFile): ContextMenu => {
 const openContextMenu = (e: MouseEvent, book: IFile) => {
   openMenu(getMenu(book), e.x, e.y);
 };
+
+//
+// Observer for lazy loading
+//
+const scrollRoot = ref<HTMLElement>();
+
+onMounted(() => {
+  if (!scrollRoot.value) return;
+  initializeOserver(scrollRoot.value);
+});
 </script>
 
 <style scoped>

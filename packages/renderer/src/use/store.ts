@@ -50,9 +50,11 @@ export const useStore = defineStore('main', {
         this.initCore();
       }
     },
-    addOpened(newOne: IOpened) {
+    addOpened(newOne: IOpened, open = true) {
       this.opened.push(newOne);
-      this.activeOpenedIndex = this.opened.length - 1;
+      if (open) {
+        this.activeOpenedIndex = this.opened.length - 1;
+      }
       this.syncOpened();
     },
     updateOpened(index: number, updated: IOpened) {

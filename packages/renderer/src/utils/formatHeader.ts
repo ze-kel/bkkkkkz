@@ -2,7 +2,7 @@ import { useStore } from '../use/store';
 import type { IOpened } from '/@main/services/watcher';
 
 export default function formatHeader(opened: IOpened, rootPath: string) {
-  if (opened.type === 'path') {
+  if (opened.type === 'folder') {
     if (opened.thing === rootPath) {
       return 'All Books';
     }

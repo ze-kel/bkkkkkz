@@ -18,8 +18,6 @@
             width="16"
             height="16"
             viewBox="0 0 24 24"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
             :class="[
               index === store.activeOpenedIndex ? 'fill-gray-500' : 'fill-gray-300',
               'hover:fill-white',
@@ -32,6 +30,15 @@
           </svg>
         </div>
       </div>
+
+      <div
+        class="w-full"
+        :class="canDropHere && 'bg-neutral-200'"
+        @drop="onDrop($event)"
+        @dragenter="dragEnter"
+        @dragleave="dragLeave"
+        @dragover.prevent
+      ></div>
     </div>
     <div v-if="opened && store.activeOpenedIndex !== null" class="w-full h-[calc(100%_-_32px)]">
       <Editor
@@ -46,7 +53,7 @@
 
 <script lang="ts" setup>
 import { useStore } from '/@/use/store';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import BookView from '/@/components/BookView/BookView.vue';
 import Editor from '../Editor/Editor.vue';
 import formatHeader from '/@/utils/formatHeader';
@@ -57,4 +64,32 @@ const opened = computed(() => {
   if (store.activeOpenedIndex === null) return null;
   return store.opened[store.activeOpenedIndex];
 });
+
+//
+// Drag & Drop
+//
+const canDropHere = ref(false);
+
+const dragEnter = (e: DragEvent) => {
+  e.preventDefault();
+  canDropHere.value = true;
+};
+
+const dragLeave = (e: DragEvent) => {
+  e.preventDefault();
+  canDropHere.value = false;
+};
+
+const onDrop = (e: DragEvent) => {
+  console.log('droppd');
+  canDropHere.value = false;
+
+  const type = e.dataTransfer?.getData('type');
+  const draggedPath = e.dataTransfer?.getData('itemPath');
+
+  if (type !== 'file' && type !== 'folder') return;
+  if (!draggedPath) return;
+
+  store.addOpened({ type: type, thing: draggedPath });
+};
 </script>

@@ -98,7 +98,7 @@ const isFolded = ref<boolean>(false);
 const isOpened = computed(() => {
   if (!store.openedItem) return false;
 
-  return store.openedItem.type === 'path' && store.openedItem.thing === props.content.path;
+  return store.openedItem.type === 'folder' && store.openedItem.thing === props.content.path;
 });
 
 const foldable = computed(() => Object.keys(props.content.content).length > 0 && !isRoot);
@@ -108,7 +108,7 @@ const makeNewOpenedAndSelect = (recursive: boolean, newTab: boolean) => {
     recursive = true;
   }
   const newOpened: IOpened = {
-    type: 'path',
+    type: 'folder',
     thing: props.content.path,
     recursive,
   };
@@ -129,10 +129,12 @@ const startDrag = (devt: DragEvent, path: string) => {
   if (devt.dataTransfer === null) {
     return;
   }
+  devt.dataTransfer.setData('type', 'folder');
+
   devt.dataTransfer.setData('itemPath', path);
 
   const toUpdateIndexes = store.opened.reduce((acc: number[], opened, index) => {
-    if (opened.type === 'path' && opened.thing === path) {
+    if (opened.type === 'folder' && opened.thing === path) {
       acc.push(index);
     }
     return acc;
@@ -142,19 +144,24 @@ const startDrag = (devt: DragEvent, path: string) => {
 };
 
 const onDrop = async (e: DragEvent, targetPath: string) => {
-  const draggedPath = e.dataTransfer?.getData('itemPath');
-  const indexes: number[] = JSON.parse(e.dataTransfer?.getData('indexesToUpdate') || '[]');
-
   canDropHere.value = false;
-  if (!draggedPath) {
-    throw 'no dragged path';
-  }
-  const newPath = await api.files.move(draggedPath, targetPath);
 
-  indexes.forEach((index) => {
-    const newOpened = { ...store.opened[index], thing: newPath };
-    store.updateOpened(index, newOpened);
-  });
+  const type = e.dataTransfer?.getData('type');
+
+  if (type === 'folder' || type === 'file') {
+    const draggedPath = e.dataTransfer?.getData('itemPath');
+    const indexes: number[] = JSON.parse(e.dataTransfer?.getData('indexesToUpdate') || '[]');
+
+    if (!draggedPath) {
+      throw 'no dragged path';
+    }
+    const newPath = await api.files.move(draggedPath, targetPath);
+
+    indexes.forEach((index) => {
+      const newOpened = { ...store.opened[index], thing: newPath };
+      store.updateOpened(index, newOpened);
+    });
+  }
 };
 
 const dragEnter = (e: DragEvent) => {
@@ -208,7 +215,7 @@ const saveName = async () => {
     const newPath = await api.files.rename(props.content.path, newName.value);
 
     store.opened.forEach((item, index) => {
-      if (item.type === 'path' && item.thing === oldPath) {
+      if (item.type === 'folder' && item.thing === oldPath) {
         store.updateOpened(index, { ...item, thing: newPath });
       }
 
