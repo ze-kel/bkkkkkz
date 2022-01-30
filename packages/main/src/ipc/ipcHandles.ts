@@ -80,7 +80,7 @@ const handles: IHandles = {
   /// Settings
   ///
   getSettings: Setting.getStore,
-  saveSettings: Setting.saveStore,
+  saveSettings: callWithoutEvent(Setting.saveStore),
 
   ///
   /// Parsers

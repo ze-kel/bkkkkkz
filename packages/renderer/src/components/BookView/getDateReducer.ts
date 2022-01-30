@@ -20,7 +20,7 @@ const getFormat = () => {
   return store.settings?.dateFormat;
 };
 
-export const getDateReducer = (last: boolean): IDateReducer => {
+export const getDateReducerSingle = (last: boolean): IDateReducer => {
   return (acc, datePair) => {
     if (!datePair.finished) return acc;
 
@@ -33,4 +33,13 @@ export const getDateReducer = (last: boolean): IDateReducer => {
     }
     return finishedDate < acc ? finishedDate : acc;
   };
+};
+
+export const dateReducerAllYears = (acc: number[], datePair: IDateRead): number[] => {
+  if (!datePair.finished) return acc;
+
+  const finishedDate = parse(datePair.finished, getFormat(), new Date());
+
+  acc.push(finishedDate.getFullYear());
+  return acc;
 };

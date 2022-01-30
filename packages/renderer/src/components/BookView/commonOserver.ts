@@ -1,7 +1,3 @@
-// Note: currentry observer is initialized without root element.
-// So technically it looks for elements intersecting with the whole window, not the BookView area.
-// Good enough for now
-
 let observer: IntersectionObserver;
 
 type IObsCallback = (isIntesecting: boolean) => void;

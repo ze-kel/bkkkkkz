@@ -1,5 +1,5 @@
-import { getDateReducer } from './getDateReducer';
-import type { ISortByOption } from './getSortFunction';
+import { getDateReducerSingle } from './getDateReducer';
+import type { ISortByOption } from '/@main/services/settings';
 import type { ISavedFile } from '/@main/services/files';
 
 export type IBookGroup = {
@@ -19,11 +19,11 @@ const getGroupLabel = (book: ISavedFile, propety: ISortByOption): string => {
       return book.year ? String(book.year) : 'Unknown Year';
     }
     case 'First Read': {
-      const date = book.read?.reduce(getDateReducer(false), null)?.getFullYear();
+      const date = book.read?.reduce(getDateReducerSingle(false), null)?.getFullYear();
       return date ? String(date) : 'Never';
     }
     case 'Last Read': {
-      const date = book.read?.reduce(getDateReducer(true), null)?.getFullYear();
+      const date = book.read?.reduce(getDateReducerSingle(true), null)?.getFullYear();
       return date ? String(date) : 'Never';
     }
     case 'Filename': {

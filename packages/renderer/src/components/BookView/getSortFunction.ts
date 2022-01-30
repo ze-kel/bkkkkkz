@@ -1,21 +1,11 @@
-import { getDateReducer } from './getDateReducer';
+import { getDateReducerSingle } from './getDateReducer';
 import type { ISavedFile } from '/@main/services/files';
-
-export type ISortByOption =
-  | 'Title'
-  | 'Author'
-  | 'Year'
-  | 'Last Read'
-  | 'First Read'
-  | 'Rating'
-  | 'Filename';
-
-export type ISortDirection = -1 | 1;
+import type { ISortByOption, ISortDirection } from '/@main/services/settings';
 
 type ISortFuction = (a: ISavedFile, b: ISavedFile, direction: ISortDirection) => number;
 
 const getSortByReadFunc = (last: boolean): ISortFuction => {
-  const dateReducer = getDateReducer(last);
+  const dateReducer = getDateReducerSingle(last);
 
   return (a, b, dir) => {
     const at = a.read?.reduce(dateReducer, null) || null;

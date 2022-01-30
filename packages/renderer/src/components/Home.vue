@@ -21,7 +21,7 @@
         class="w-1 hover:bg-indigo-500 cursor-col-resize transition-colors"
         :class="isResizing && 'bg-indigo-700'"
       ></div>
-      <div class="bg-white flex w-full max-h-full border-l border-gray-300 overflow-hidden">
+      <div class="bg-white flex w-full max-h-full overflow-hidden">
         <View />
       </div>
     </div>
@@ -29,7 +29,7 @@
 </template>
 
 <script setup lang="ts">
-import { getCurrentInstance, onMounted, ref } from 'vue';
+import { getCurrentInstance, onMounted, onUnmounted, ref } from 'vue';
 import { useStore } from '/@/use/store';
 
 import _debounce from 'lodash-es/debounce';
@@ -69,6 +69,30 @@ onMounted(async () => {
       rootElement.value?.removeEventListener('mousemove', changeFileTreeSize);
     });
   });
+});
+
+onUnmounted(() => {
+  document.removeEventListener('keydown', globalShortcuts);
+});
+
+//
+// Global shortcuts
+//
+const globalShortcuts = (e: KeyboardEvent) => {
+  if (e.key === 'w' && (e.ctrlKey || e.metaKey)) {
+    e.preventDefault();
+    if (store.activeOpenedIndex !== null) {
+      store.closeOpened(store.activeOpenedIndex);
+    }
+  }
+};
+
+onMounted(() => {
+  document.addEventListener('keydown', globalShortcuts);
+});
+
+onUnmounted(() => {
+  document.removeEventListener('keydown', globalShortcuts);
 });
 </script>
 

@@ -80,13 +80,17 @@ export const useStore = defineStore('main', {
     async initCore() {
       const allGood = await api.core.init();
       if (allGood) {
-        await api.subscriptions.SETTINGS_UPDATE(this.updateSettings);
+        try {
+          await api.subscriptions.SETTINGS_UPDATE(this.updateSettings);
 
-        const start = await api.settings.getSettings();
-        this.updateSettings(start);
-        await this.initFileTree();
-        await this.initTags();
-        this.initialSetup = false;
+          const start = await api.settings.getSettings();
+          this.updateSettings(start);
+          await this.initFileTree();
+          await this.initTags();
+          this.initialSetup = false;
+        } catch (e) {
+          console.log('e', e);
+        }
       } else {
         this.initialSetup = true;
         this.initialized = false;
@@ -104,6 +108,10 @@ export const useStore = defineStore('main', {
       api.subscriptions.TAGS_UPDATE(this.updateTags);
       const start = await api.files.getTags();
       this.updateTags(start);
+    },
+
+    async saveSettings() {
+      api.settings.saveSettings(_cloneDeep(this.settings));
     },
   },
   getters: {

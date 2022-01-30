@@ -11,6 +11,7 @@
       @dragover.prevent
       @click.exact="makeNewOpenedAndSelect(false, false)"
       @click.alt.exact="makeNewOpenedAndSelect(false, true)"
+      @click.middle.exact="makeNewOpenedAndSelect(false, true, false)"
       @click.right.exact="openContextMenu"
     >
       <div
@@ -103,7 +104,7 @@ const isOpened = computed(() => {
 
 const foldable = computed(() => Object.keys(props.content.content).length > 0 && !isRoot);
 
-const makeNewOpenedAndSelect = (recursive: boolean, newTab: boolean) => {
+const makeNewOpenedAndSelect = (recursive: boolean, newTab: boolean, openImmediatelly = true) => {
   if (isRoot) {
     recursive = true;
   }
@@ -113,8 +114,8 @@ const makeNewOpenedAndSelect = (recursive: boolean, newTab: boolean) => {
     recursive,
   };
 
-  if (newTab || store.activeOpenedIndex === null) {
-    store.addOpened(newOpened);
+  if (newTab || store.activeOpenedIndex === null || !openImmediatelly) {
+    store.addOpened(newOpened, openImmediatelly);
   } else {
     store.updateOpened(store.activeOpenedIndex, newOpened);
   }

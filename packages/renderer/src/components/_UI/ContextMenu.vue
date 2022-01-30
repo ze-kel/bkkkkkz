@@ -1,5 +1,5 @@
 <template>
-  <div v-if="isOpened" class="w-full h-full absolute overflow-hidden" @click.self="close">
+  <div v-if="isOpened" class="w-full h-full absolute overflow-hidden z-[0]" @click="close">
     <div
       :style="menuStyle"
       class="absolute rounded select-none bg-white shadow-sm shadow-slate-400 overflow-hidden"

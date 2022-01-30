@@ -1,7 +1,5 @@
 <template>
-  <div
-    class="topBar border-b border-gray-300 bg-gray-100 text-gray-400 h-8 flex items-center justify-center"
-  >
+  <div class="topBar bg-gray-100 text-gray-400 h-8 flex items-center justify-center">
     <div class="max-w-[66%] truncate">{{ opened }}</div>
   </div>
 </template>
