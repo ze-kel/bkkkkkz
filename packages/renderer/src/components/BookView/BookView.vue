@@ -3,18 +3,18 @@
     <ViewConrols
       v-model:search="searchQueryPreDebounce"
       :show-add-button="opened.type === 'folder'"
-      class="border-b border-gray-300"
+      class="border-b border-neutral-300 dark:border-neutral-600"
       @add-book="addBook"
     />
 
     <div
       v-if="store.settings?.viewSettings.viewStyle === 'Lines'"
-      class="grid grid-cols-5 gap-5 px-3 font-semibold border-b border-gray-300"
+      class="grid grid-cols-5 gap-5 px-3 font-semibold border-b border-neutral-300 dark:border-neutral-600"
     >
-      <div class="border-r border-gray-300 py-1">Title</div>
-      <div class="border-r border-gray-300 py-1">Author</div>
-      <div class="border-r border-gray-300 py-1">Year</div>
-      <div class="border-r border-gray-300 py-1">Read</div>
+      <div class="border-r border-neutral-300 dark:border-neutral-600 py-1">Title</div>
+      <div class="border-r border-neutral-300 dark:border-neutral-600 py-1">Author</div>
+      <div class="border-r border-neutral-300 dark:border-neutral-600 py-1">Year</div>
+      <div class="border-r border-neutral-300 dark:border-neutral-600 py-1">Read</div>
       <div class="py-1">Rating</div>
     </div>
 
@@ -24,7 +24,9 @@
     >
       <div v-if="store.settings?.viewSettings.grouped">
         <div v-for="group in groupedFiles" :key="group.label" class="mt-4 first:mt-0">
-          <div class="text-4xl font-mono inline-block pl-1 pr-3 font-medium text-gray-800 mb-1">
+          <div
+            class="text-4xl font-mono inline-block pl-1 pr-3 font-medium text-neutral-800 dark:text-neutral-100 mb-1"
+          >
             <Rating
               v-if="
                 store.settings?.viewSettings.sortBy === 'Rating' &&

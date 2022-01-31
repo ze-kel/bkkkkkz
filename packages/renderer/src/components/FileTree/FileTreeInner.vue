@@ -24,12 +24,16 @@
       >
         <svg
           icon="angle-down"
+          :class="[
+            isFolded && '-rotate-90',
+            isOpened
+              ? 'fill-neutral-100 dark:fill-neutral-100'
+              : 'fill-neutral-300 dark:fill-neutral-600',
+          ]"
           class="pointer-events-none"
-          :class="[isFolded && '-rotate-90', isOpened && 'fill-white']"
           width="24"
           height="24"
           viewBox="0 0 24 24"
-          xmlns="http://www.w3.org/2000/svg"
         >
           <path d="M12 14.5L17 9.5H7L12 14.5Z" />
         </svg>
@@ -43,7 +47,7 @@
           v-else
           ref="inputName"
           v-model="newName"
-          :class="[nodeClasses, extraClasses, !isOpened && 'bg-transparent', 'border-gray-500']"
+          :class="[nodeClasses, extraClasses, !isOpened && 'bg-transparent', 'border-neutral-500']"
           @blur="saveName"
           @keyup.enter="removeFocus"
         />
@@ -298,9 +302,9 @@ const extraClasses = computed(() => {
   const base = [];
 
   if (isOpened.value) {
-    base.push('bg-indigo-600', 'text-white', 'hover:bg-indigo-800');
+    base.push('bg-indigo-600', 'text-neutral-50', 'hover:bg-indigo-800');
   } else {
-    base.push('hover:text-gray-600');
+    base.push('hover:text-neutral-600');
   }
 
   if (canDropHere.value) {

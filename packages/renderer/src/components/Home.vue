@@ -1,9 +1,12 @@
 <template>
-  <div ref="rootElement" class="bg-gray-100 h-screen flex flex-col">
+  <div
+    ref="rootElement"
+    class="bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-50 h-screen flex flex-col"
+  >
     <TopBar />
     <ContextMenu />
     <Welcome v-if="store.initialSetup" />
-    <div v-if="store.initialized" class="h-full max-h-full flex overflow-hidden">
+    <div v-if="store.initialized" class="h-full max-h-full flex overflow-hidden 50">
       <div
         class="flex-auto px-2 overflow-y-auto overflow-x-hidden"
         :style="{ width: `${fileTreeSize}px` }"
@@ -21,7 +24,7 @@
         class="w-1 hover:bg-indigo-500 cursor-col-resize transition-colors"
         :class="isResizing && 'bg-indigo-700'"
       ></div>
-      <div class="bg-white flex w-full max-h-full overflow-hidden">
+      <div class="bg-neutral-50 dark:bg-neutral-900 flex w-full max-h-full overflow-hidden">
         <View />
       </div>
     </div>

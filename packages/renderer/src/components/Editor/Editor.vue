@@ -12,7 +12,7 @@
             tag="div"
             class="text-2xl w-fit min-w-[100px] input-default"
             placeholder="Title"
-            :placeholder-classes="'text-gray-400 hover:text-gray-600'"
+            :placeholder-classes="'text-neutral-400 hover:text-neutral-600'"
           />
           <ContentEditable
             v-model="file.author"
@@ -20,7 +20,7 @@
             tag="div"
             class="text-xl w-fit min-w-[100px] input-default font-light"
             placeholder="Author"
-            :placeholder-classes="'text-gray-400 hover:text-gray-600'"
+            :placeholder-classes="'text-neutral-400 hover:text-neutral-600'"
           />
           <ContentEditable
             v-model="file.year"
@@ -29,14 +29,16 @@
             tag="div"
             class="text-md mt-2 w-fit min-w-[75px] input-default font-semibold"
             placeholder="Year"
-            :placeholder-classes="'text-gray-400 hover:text-gray-600'"
+            :placeholder-classes="'text-neutral-400 hover:text-neutral-600'"
           />
         </div>
 
         <div class="flex flex-col gap-2 mt-2">
           <div class="flex gap-3">
             <div class="flex items-center">
-              <div class="text-gray-800 text-xs font-light border-r pr-1 mr-1 border-gray-800">
+              <div
+                class="text-neutral-800 text-xs font-light border-r pr-1 mr-1 border-neutral-800"
+              >
                 ISBN
               </div>
               <ContentEditable
@@ -45,11 +47,13 @@
                 tag="div"
                 class="text-xs w-fit min-w-[100px] input-default"
                 placeholder="ISBN"
-                :placeholder-classes="'text-gray-400 hover:text-gray-600'"
+                :placeholder-classes="'text-neutral-400 hover:text-neutral-600'"
               />
             </div>
             <div class="flex items-center">
-              <div class="text-gray-800 text-xs font-light border-r pr-1 mr-1 border-gray-800">
+              <div
+                class="text-neutral-800 text-xs font-light border-r pr-1 mr-1 border-neutral-800"
+              >
                 ISBN13
               </div>
               <ContentEditable
@@ -58,13 +62,13 @@
                 tag="div"
                 class="text-xs w-fit min-w-[100px] input-default"
                 placeholder="ISBN13"
-                :placeholder-classes="'text-gray-400 hover:text-gray-600'"
+                :placeholder-classes="'text-neutral-400 hover:text-neutral-600'"
               />
             </div>
           </div>
 
           <div class="flex items-center">
-            <div class="text-gray-800 text-xs font-light border-r pr-1 mr-1 border-gray-800">
+            <div class="text-neutral-800 text-xs font-light border-r pr-1 mr-1 border-neutral-800">
               Filename
             </div>
             <div class="flex items-center">
@@ -74,7 +78,7 @@
                 tag="div"
                 class="text-xs w-fit min-w-[100px] input-default"
                 placeholder="Filename"
-                :placeholder-classes="'text-gray-400 hover:text-gray-600'"
+                :placeholder-classes="'text-neutral-400 hover:text-neutral-600'"
               />
               <button
                 v-if="!autoSave"
@@ -88,23 +92,23 @@
         </div>
       </div>
 
-      <div class="border-gray-300 h-full border-l">
-        <div class="border-b border-gray-300 p-2">
-          <div class="text-gray-800 font-medium">Read dates</div>
+      <div class="border-neutral-300 h-full border-l">
+        <div class="border-b border-neutral-300 p-2">
+          <div class="text-neutral-800 font-medium">Read dates</div>
           <ReadDetails v-model="file.read" />
         </div>
-        <div class="border-b border-gray-300 p-2">
-          <div class="text-gray-800 font-medium">Rating</div>
+        <div class="border-b border-neutral-300 p-2">
+          <div class="text-neutral-800 font-medium">Rating</div>
           <Rating v-model="file.myRating" />
         </div>
         <div class="p-2">
-          <div class="text-gray-800 font-medium">Tags</div>
+          <div class="text-neutral-800 font-medium">Tags</div>
           <Tags v-model="file.tags" />
         </div>
       </div>
     </div>
 
-    <div class="h-full border-t border-gray-300 p-4">
+    <div class="h-full border-t border-neutral-300 p-4">
       <Milkdown v-model="file.content" />
     </div>
   </div>

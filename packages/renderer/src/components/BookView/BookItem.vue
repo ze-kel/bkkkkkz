@@ -11,12 +11,12 @@
       />
       <div
         v-else
-        class="aspect-[6/8] min-w-[150px] bg-neutral-300 border-gray-700 border-0 rounded"
+        class="aspect-[6/8] min-w-[150px] bg-neutral-300 dark:bg-neutral-600 rounded"
       ></div>
     </template>
     <template v-if="store.settings?.viewSettings.viewStyle === 'Lines'">
       <div
-        class="grid grid-cols-5 gap-5 cursor-pointer pl-1 transition-colors rounded hover:bg-neutral-100 py-1"
+        class="grid grid-cols-5 gap-5 cursor-pointer pl-1 transition-colors rounded hover:bg-neutral-100 hover:dark:bg-neutral-800 py-1"
         @click.exact="openFullEditor(false)"
         @click.middle.exact="openFullEditor(true, false)"
         @click.alt="openFullEditor(true)"
@@ -37,7 +37,7 @@
           <Rating :model-value="currentFile.myRating" disabled />
         </div>
       </div>
-      <hr class="my-1" />
+      <hr class="my-1 hr-default" />
     </template>
   </div>
 </template>
@@ -65,7 +65,7 @@ const props = defineProps({
   currentFile: {
     type: Object as PropType<IFile>,
     required: true,
-  }
+  },
 });
 
 const openFullEditor = (newTab: boolean, openImmediatelly = true) => {

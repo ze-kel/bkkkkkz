@@ -2,12 +2,12 @@
   <div v-if="isOpened" class="w-full h-full absolute overflow-hidden z-[0]" @click="close">
     <div
       :style="menuStyle"
-      class="absolute rounded select-none bg-white shadow-sm shadow-slate-400 overflow-hidden"
+      class="absolute rounded select-none bg-neutral-50 dark:bg-neutral-900 shadow-sm shadow-neutral-300 dark:shadow-neutral-700 overflow-hidden"
     >
       <div
         v-for="{ label, handler } in menuItems"
         :key="label"
-        class="py-1 px-2 cursor-pointer hover:text-white hover:bg-gray-800 transition-colors"
+        class="py-1 px-2 cursor-pointer text-neutral-900 hover:text-neutral-50 dark:text-neutral-50 dark:hover:bg-neutral-800 transition-colors"
         @click="handlerAndClose(handler)"
       >
         {{ label }}

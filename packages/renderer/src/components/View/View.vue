@@ -1,17 +1,21 @@
 <template>
   <div v-if="store.opened.length && store.settings" class="w-full h-full flex flex-col">
-    <div class="flex bg-gray-100 text-gray-400 h-[32px]">
+    <div class="flex bg-neutral-100 dark:bg-neutral-800 h-[32px]">
       <div
         v-for="(item, index) in store.opened"
         :key="index"
         class="px-2 py-1 max-w-[200px] flex items-center cursor-pointer"
-        :class="index === store.activeOpenedIndex && ['bg-white text-gray-900']"
+        :class="
+          index === store.activeOpenedIndex && [
+            'bg-neutral-50 dark:bg-neutral-900 text-neutral-900 dark:text-neutral-50',
+          ]
+        "
         @click="store.setOpenedIndex(index)"
       >
         <div class="truncate">{{ formatHeader(item, store.settings.rootPath) }}</div>
 
         <div
-          class="hover:bg-gray-800 rounded flex items-center h-4 ml-1 transition-colors"
+          class="hover:bg-neutral-800 rounded flex items-center h-4 ml-1 transition-colors"
           @click="store.closeOpened(index)"
         >
           <svg
@@ -19,7 +23,7 @@
             height="16"
             viewBox="0 0 24 24"
             :class="[
-              index === store.activeOpenedIndex ? 'fill-gray-500' : 'fill-gray-300',
+              index === store.activeOpenedIndex ? 'fill-neutral-500' : 'fill-neutral-300',
               'hover:fill-white',
               'transition-colors',
             ]"

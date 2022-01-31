@@ -10,7 +10,7 @@
         />
         <div @click="removeDate(index)">
           <svg
-            class="fill-gray-200 hover:fill-gray-700 cursor-pointer"
+            class="fill-neutral-200 hover:fill-neutral-700 cursor-pointer"
             width="24"
             height="24"
             viewBox="0 0 24 24"

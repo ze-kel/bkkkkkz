@@ -1,6 +1,6 @@
 <template>
   <div
-    class="flex fill-gray-800"
+    class="flex fill-neutral-800 dark:fill-neutral-100"
     :class="!disabled && 'cursor-pointer'"
     @mouseleave="clearHovered"
     @click="setRating"
