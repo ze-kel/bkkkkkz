@@ -8,10 +8,32 @@ import TagsStore from './tags';
 import type { FSWatcher } from 'chokidar';
 import { DOTFILE_REGEX, DOTDIR_REGEX } from '../helpers/utils';
 
+export type ISortByOption =
+  | 'Title'
+  | 'Author'
+  | 'Year'
+  | 'Last Read'
+  | 'First Read'
+  | 'Rating'
+  | 'Filename';
+
+export type ISortDirection = -1 | 1;
+
+export type IViewStyle = 'Covers' | 'Lines';
+
+export type IViewSettings = {
+  grouped: boolean;
+  sortBy: ISortByOption;
+  sortDirection: ISortDirection;
+  viewStyle: IViewStyle;
+  searchQuery: string;
+};
+
 export type IOpenedPath = {
   type: 'folder';
   // Path
   thing: string;
+  settings: IViewSettings;
   recursive?: boolean;
 };
 
@@ -19,6 +41,7 @@ export type IOpenedTag = {
   type: 'tag';
   // Tag name
   thing: string;
+  settings: IViewSettings;
 };
 
 export type IOpenedFile = {

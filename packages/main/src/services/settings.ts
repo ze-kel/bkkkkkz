@@ -5,19 +5,6 @@ import type * as IStore from 'electron-store';
 import WebContentsProxy from '../ipc/webContents';
 const Store = require('electron-store');
 
-export type ISortByOption =
-  | 'Title'
-  | 'Author'
-  | 'Year'
-  | 'Last Read'
-  | 'First Read'
-  | 'Rating'
-  | 'Filename';
-
-export type ISortDirection = -1 | 1;
-
-export type IViewStyle = 'Covers' | 'Lines';
-
 const SETTINGS_PATH = '.bkz';
 const SCHEMA = {
   imagesPath: {
@@ -40,27 +27,15 @@ const SCHEMA = {
     type: 'string',
     default: '.trash',
   },
-  viewSettings: {
-    type: 'object',
-    default: {},
-    properties: {
-      grouped: {
-        type: 'boolean',
-        default: false,
-      },
-      sortBy: {
-        type: 'string',
-        default: 'Author',
-      },
-      sortDirection: {
-        type: 'number',
-        default: 1,
-      },
-      viewStyle: {
-        type: 'string',
-        default: 'Covers',
-      },
-    },
+  splitTitle: {
+    type: 'boolean',
+    default: true,
+  },
+  darkMode: {
+    type: 'number',
+    default: 0,
+    minimum: -1,
+    maximum: 1,
   },
 };
 
@@ -70,12 +45,8 @@ export type ILocalSettings = {
   dateFormat: string;
   coversPath: string;
   trashPath: string;
-  viewSettings: {
-    grouped: boolean;
-    sortBy: ISortByOption;
-    sortDirection: ISortDirection;
-    viewStyle: IViewStyle;
-  };
+  splitTitle: boolean;
+  darkMode: -1 | 0 | 1;
 };
 
 const globalStore: IStore = new Store();

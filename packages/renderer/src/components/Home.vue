@@ -2,11 +2,15 @@
   <div
     ref="rootElement"
     class="bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-50 h-screen flex flex-col"
+    :class="darkModeClass"
   >
     <TopBar />
     <ContextMenu />
     <Welcome v-if="store.initialSetup" />
-    <div v-if="store.initialized" class="h-full max-h-full flex overflow-hidden 50">
+    <div
+      v-if="store.initialized"
+      class="h-full max-h-full flex overflow-hidden bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-50"
+    >
       <div
         class="flex-auto px-2 overflow-y-auto overflow-x-hidden"
         :style="{ width: `${fileTreeSize}px` }"
@@ -32,7 +36,7 @@
 </template>
 
 <script setup lang="ts">
-import { getCurrentInstance, onMounted, onUnmounted, ref } from 'vue';
+import { computed, getCurrentInstance, onMounted, onUnmounted, ref } from 'vue';
 import { useStore } from '/@/use/store';
 
 import _debounce from 'lodash-es/debounce';
@@ -96,6 +100,17 @@ onMounted(() => {
 
 onUnmounted(() => {
   document.removeEventListener('keydown', globalShortcuts);
+});
+
+//
+// Dark mode class
+//
+const darkModeClass = computed(() => {
+  if (!store.settings || store.settings.darkMode === -1) return '';
+  if (store.settings.darkMode === 0) {
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : '';
+  }
+  return 'dark';
 });
 </script>
 

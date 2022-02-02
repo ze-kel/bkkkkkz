@@ -17,7 +17,9 @@ import { getCurrentInstance, computed } from 'vue';
 import { useElectron } from '/@/use/electron';
 import Tag from './TagFromTree.vue';
 import { useStore } from '/@/use/store';
-import type { IOpenedTag } from '/@main/services/watcher';
+import _cloneDeep from 'lodash-es/cloneDeep';
+import type { IOpenedTag, IViewSettings } from '/@main/services/watcher';
+import { getDefaultViewSettings } from '/@/utils/getDefaultViewSettings';
 
 const api = useElectron();
 const store = useStore();
@@ -28,11 +30,10 @@ const openedTag = computed(() => {
 });
 
 const select = (tag: string, newTab: boolean) => {
-  const newOne: IOpenedTag = { type: 'tag', thing: tag };
   if (newTab || store.activeOpenedIndex === null) {
-    store.addOpened(newOne);
+    store.addOpened('tag', tag);
   } else {
-    store.updateOpened(store.activeOpenedIndex, newOne);
+    store.updateOpened(store.activeOpenedIndex, 'tag', tag);
   }
 };
 </script>

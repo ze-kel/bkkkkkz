@@ -94,6 +94,6 @@ const onDrop = (e: DragEvent) => {
   if (type !== 'file' && type !== 'folder') return;
   if (!draggedPath) return;
 
-  store.addOpened({ type: type, thing: draggedPath });
+  store.addOpened(type, draggedPath);
 };
 </script>

@@ -6,12 +6,12 @@
         :model-value="tag"
         tag="div"
         spellcheck="false"
-        class="bg-neutral-800 w-fit px-2 rounded-lg text-neutral-50 dark:text-neutral-900"
+        class="bg-neutral-800 w-fit px-2 rounded-lg text-neutral-50"
         @update:model-value="(val: string | Number) => saveTag(index, String(val))"
       />
     </template>
     <div
-      class="bg-neutral-800 w-fit pl-1 pr-2 rounded-lg text-neutral-50 dark:text-neutral-900 cursor-pointer flex items-center"
+      class="bg-neutral-800 w-fit pl-1 pr-2 rounded-lg text-neutral-50 cursor-pointer flex items-center"
       @click="createNewTag"
     >
       <svg

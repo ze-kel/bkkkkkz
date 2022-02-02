@@ -8,14 +8,13 @@
     @focus="focusHandler"
     @blur="blurHandler"
     @paste="onPaste"
-    @keypress="onKeypress"
+    @keyup="onKeypress"
   />
 </template>
 
 <script lang="ts" setup>
 // Based on https://github.com/hl037/vue-contenteditable/blob/master/src/components/contenteditable.vue.d.ts
-import { ref, onMounted, watch, Events, computed, defineComponent, onBeforeUnmount } from 'vue';
-import type { PropType } from 'vue';
+import { ref, onMounted, watch, onBeforeUnmount } from 'vue';
 import { NUMBERS_REGEX } from '/@main/helpers/utils';
 
 const props = defineProps({
@@ -37,7 +36,7 @@ const props = defineProps({
   },
   noNL: {
     type: Boolean,
-    default: false,
+    default: true,
   },
   placeholder: {
     type: String,
@@ -56,6 +55,7 @@ const props = defineProps({
 const emit = defineEmits<{
   (e: 'returned', val: string): void;
   (e: 'update:modelValue', val: string | number): void;
+  (e: 'deleteZero'): void;
 }>();
 
 function replaceAll(str: string, search: string, replacement: string) {
@@ -83,7 +83,7 @@ function updateContent(newcontent: string | number | undefined, usePlaceholder: 
     placeholder.value = false;
 
     if (typeof newcontent === 'number') {
-      newcontent = String(newcontent);
+      newcontent = Number.isNaN(newcontent) ? '' : String(newcontent);
     }
 
     if (props.noHTML) {
@@ -137,6 +137,9 @@ function onKeypress(event: KeyboardEvent) {
   if (event.key == 'Enter' && props.noNL) {
     event.preventDefault();
     emit('returned', currentContent());
+  }
+  if (event.key === 'Backspace') {
+    emit('deleteZero');
   }
 }
 

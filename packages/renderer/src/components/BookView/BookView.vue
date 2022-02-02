@@ -1,14 +1,9 @@
 <template>
   <div class="h-full w-full flex flex-col">
-    <ViewConrols
-      v-model:search="searchQueryPreDebounce"
-      :show-add-button="opened.type === 'folder'"
-      class="border-b border-neutral-300 dark:border-neutral-600"
-      @add-book="addBook"
-    />
+    <ViewConrols class="border-b border-neutral-300 dark:border-neutral-600" />
 
     <div
-      v-if="store.settings?.viewSettings.viewStyle === 'Lines'"
+      v-if="opened.settings.viewStyle === 'Lines'"
       class="grid grid-cols-5 gap-5 px-3 font-semibold border-b border-neutral-300 dark:border-neutral-600"
     >
       <div class="border-r border-neutral-300 dark:border-neutral-600 py-1">Title</div>
@@ -22,16 +17,13 @@
       ref="scrollRoot"
       class="w-full h-full box-border overflow-y-auto overflow-x-hidden px-2 items-start py-2"
     >
-      <div v-if="store.settings?.viewSettings.grouped">
+      <div v-if="opened.settings.grouped">
         <div v-for="group in groupedFiles" :key="group.label" class="mt-4 first:mt-0">
           <div
             class="text-4xl font-mono inline-block pl-1 pr-3 font-medium text-neutral-800 dark:text-neutral-100 mb-1"
           >
             <Rating
-              v-if="
-                store.settings?.viewSettings.sortBy === 'Rating' &&
-                !Number.isNaN(Number(group.label))
-              "
+              v-if="opened.settings.sortBy === 'Rating' && !Number.isNaN(Number(group.label))"
               :model-value="Number(group.label)"
               class="py-1"
               :disabled="true"
@@ -40,15 +32,14 @@
           </div>
           <div
             class="grid"
-            :class="
-              store.settings.viewSettings.viewStyle === 'Lines' ? 'grid-cols-1' : 'cards gap-4'
-            "
+            :class="opened.settings.viewStyle === 'Lines' ? 'grid-cols-1' : 'cards gap-4'"
           >
             <BookItem
               v-for="item in group.content"
               :key="item.path"
               :current-file="item"
               :draggable="true"
+              :settings="opened.settings"
               @dragstart="startDrag($event, item)"
               @click.right="(e) => openContextMenu(e, item)"
             />
@@ -61,13 +52,14 @@
         tag="div"
         name="list"
         class="grid"
-        :class="store.settings?.viewSettings.viewStyle === 'Lines' ? 'grid-cols-1' : 'cards gap-4'"
+        :class="opened.settings.viewStyle === 'Lines' ? 'grid-cols-1' : 'cards gap-4'"
       >
         <BookItem
           v-for="item in sortedFiles"
           :key="item.path"
           :current-file="item"
           :draggable="true"
+          :settings="opened.settings"
           @dragstart="startDrag($event, item)"
           @click.right="(e) => openContextMenu(e, item)"
         />
@@ -121,6 +113,7 @@ const props = defineProps({
 });
 
 watchEffect(async () => {
+  console.log('NEW FETCH');
   if (props.opened.type === 'folder') {
     files.value = await api.files.loadFilesFromFolder(props.opened.thing, props.opened.recursive);
   }
@@ -132,16 +125,11 @@ watchEffect(async () => {
 const openHandler = (file: IFile, newTab = false) => {
   const newOpened: IOpenedFile = { type: 'file', thing: file.path };
   if (newTab) {
-    store.addOpened(newOpened);
+    store.addOpened('file', file.path);
   } else {
-    store.updateOpened(props.index, newOpened);
+    store.updateOpened(props.index, 'file', file.path);
   }
 };
-
-const addBook = () => {
-  store.addOpened({ type: 'newFile', thing: props.opened.thing });
-};
-
 //
 // Update event handling
 //
@@ -194,12 +182,11 @@ watchEffect(() => {
   collectionIndex.value++;
 });
 
-const searchQueryPreDebounce = ref('');
 const searchQuery = ref('');
 watch(
-  searchQueryPreDebounce,
+  () => props.opened.settings.searchQuery,
   _debounce(() => {
-    searchQuery.value = searchQueryPreDebounce.value;
+    searchQuery.value = props.opened.settings.searchQuery;
   }, 250),
 );
 
@@ -207,8 +194,8 @@ const filteredFiles = computed(() => {
   // This is a way to force update computed when we do fuse.setCollection, which is not reactive by itself
   if (collectionIndex.value < 0) return [];
 
-  if (!searchQuery.value) return filesArray.value;
-  const res = fuse.search(searchQuery.value);
+  if (!props.opened.settings.searchQuery) return filesArray.value;
+  const res = fuse.search(props.opened.settings.searchQuery);
   return res.map((el) => el.item);
 });
 
@@ -216,12 +203,10 @@ const filteredFiles = computed(() => {
 // Sort
 //
 const sortedFiles = computed(() => {
-  if (!store.settings) throw 'No settings on view';
-  const sortFunction = getSortFunction(store.settings.viewSettings.sortBy);
+  const sortFunction = getSortFunction(props.opened.settings.sortBy);
 
   return [...filteredFiles.value].sort((a, b) => {
-    if (!store.settings) throw 'No settings on view';
-    return sortFunction(a, b, store.settings.viewSettings.sortDirection);
+    return sortFunction(a, b, props.opened.settings.sortDirection);
   });
 });
 
@@ -229,9 +214,7 @@ const sortedFiles = computed(() => {
 // Grouping
 //
 const groupedFiles = computed(() => {
-  if (!store.settings) throw 'No settings on view';
-
-  return groupItems(sortedFiles.value, store.settings.viewSettings.sortBy);
+  return groupItems(sortedFiles.value, props.opened.settings.sortBy);
 });
 
 //

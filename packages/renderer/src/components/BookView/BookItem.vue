@@ -1,6 +1,6 @@
 <template>
   <div :id="currentFile.name" ref="itemRef">
-    <template v-if="store.settings?.viewSettings.viewStyle === 'Covers'">
+    <template v-if="settings.viewStyle === 'Covers'">
       <Cover
         v-if="inViewport"
         :file="currentFile"
@@ -14,7 +14,7 @@
         class="aspect-[6/8] min-w-[150px] bg-neutral-300 dark:bg-neutral-600 rounded"
       ></div>
     </template>
-    <template v-if="store.settings?.viewSettings.viewStyle === 'Lines'">
+    <template v-if="settings.viewStyle === 'Lines'">
       <div
         class="grid grid-cols-5 gap-5 cursor-pointer pl-1 transition-colors rounded hover:bg-neutral-100 hover:dark:bg-neutral-800 py-1"
         @click.exact="openFullEditor(false)"
@@ -54,7 +54,7 @@ import Rating from '../Rating/Rating.vue';
 
 import type { PropType } from 'vue';
 import type { IFile } from '/@main/services/files';
-import type { IOpenedFile } from '/@main/services/watcher';
+import type { IOpenedFile, IViewSettings } from '/@main/services/watcher';
 import { dateReducerAllYears } from './getDateReducer';
 
 export type IBookStyle = 'CARDS' | 'LINES';
@@ -66,16 +66,20 @@ const props = defineProps({
     type: Object as PropType<IFile>,
     required: true,
   },
+  settings: {
+    type: Object as PropType<IViewSettings>,
+    required: true,
+  },
 });
 
 const openFullEditor = (newTab: boolean, openImmediatelly = true) => {
   const newOpened: IOpenedFile = { type: 'file', thing: props.currentFile.path };
   if (newTab) {
-    store.addOpened(newOpened, openImmediatelly);
+    store.addOpened('file', props.currentFile.path, openImmediatelly);
   } else {
     console.log('updopened', store.activeOpenedIndex);
     if (store.activeOpenedIndex === null) return;
-    store.updateOpened(store.activeOpenedIndex, newOpened);
+    store.updateOpened(store.activeOpenedIndex, 'file', props.currentFile.path);
   }
 };
 

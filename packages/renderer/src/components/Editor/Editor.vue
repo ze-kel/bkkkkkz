@@ -1,6 +1,6 @@
 <template>
   <div v-if="!loading" class="flex flex-col h-full">
-    <div class="grid customTopGrid gap-4 px-4">
+    <div class="grid customTopGrid gap-4 px-2">
       <div class="py-2" :draggable="true" @dragstart="startDrag($event)">
         <Cover :file="file" class="aspect-[6/8] max-h-60" @click.right="coverRightClick" />
       </div>
@@ -18,7 +18,7 @@
             v-model="file.author"
             spellcheck="false"
             tag="div"
-            class="text-xl w-fit min-w-[100px] input-default font-light"
+            class="text-xl w-fit min-w-[100px] input-default font-regular"
             placeholder="Author"
             :placeholder-classes="'text-neutral-400 hover:text-neutral-600'"
           />
@@ -27,7 +27,7 @@
             :number="true"
             spellcheck="false"
             tag="div"
-            class="text-md mt-2 w-fit min-w-[75px] input-default font-semibold"
+            class="text-md mt-1 w-fit min-w-[75px] input-default font-semibold"
             placeholder="Year"
             :placeholder-classes="'text-neutral-400 hover:text-neutral-600'"
           />
@@ -37,7 +37,7 @@
           <div class="flex gap-3">
             <div class="flex items-center">
               <div
-                class="text-neutral-800 text-xs font-light border-r pr-1 mr-1 border-neutral-800"
+                class="text-neutral-800 dark:text-neutral-100 text-xs font-light border-r pr-1 mr-1 border-neutral-800"
               >
                 ISBN
               </div>
@@ -52,7 +52,7 @@
             </div>
             <div class="flex items-center">
               <div
-                class="text-neutral-800 text-xs font-light border-r pr-1 mr-1 border-neutral-800"
+                class="text-neutral-800 dark:text-neutral-100 text-xs font-light border-r pr-1 mr-1 border-neutral-800"
               >
                 ISBN13
               </div>
@@ -68,7 +68,9 @@
           </div>
 
           <div class="flex items-center">
-            <div class="text-neutral-800 text-xs font-light border-r pr-1 mr-1 border-neutral-800">
+            <div
+              class="text-neutral-800 dark:text-neutral-100 text-xs font-light border-r pr-1 mr-1 border-neutral-800"
+            >
               Filename
             </div>
             <div class="flex items-center">
@@ -92,23 +94,23 @@
         </div>
       </div>
 
-      <div class="border-neutral-300 h-full border-l">
-        <div class="border-b border-neutral-300 p-2">
-          <div class="text-neutral-800 font-medium">Read dates</div>
+      <div class="border-neutral-200 dark:border-neutral-700 h-full border-l">
+        <div class="border-b border-neutral-200 dark:border-neutral-700 p-2">
+          <div class="text-neutral-800 dark:text-neutral-100 font-medium">Read dates</div>
           <ReadDetails v-model="file.read" />
         </div>
-        <div class="border-b border-neutral-300 p-2">
-          <div class="text-neutral-800 font-medium">Rating</div>
+        <div class="border-b border-neutral-200 dark:border-neutral-700 p-2">
+          <div class="text-neutral-800 dark:text-neutral-100 font-medium">Rating</div>
           <Rating v-model="file.myRating" />
         </div>
         <div class="p-2">
-          <div class="text-neutral-800 font-medium">Tags</div>
-          <Tags v-model="file.tags" />
+          <div class="text-neutral-800 dark:text-neutral-100 font-medium">Tags</div>
+          <Tags v-model="file.tags" class="my-1" />
         </div>
       </div>
     </div>
 
-    <div class="h-full border-t border-neutral-300 p-4">
+    <div class="h-full border-t border-neutral-300 dark:border-neutral-700 p-4">
       <Milkdown v-model="file.content" />
     </div>
   </div>
@@ -118,7 +120,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted, watchEffect, onUnmounted, watch, nextTick } from 'vue';
+import { ref, onMounted, watchEffect, onUnmounted, watch, nextTick, computed } from 'vue';
 import { useStore } from '/@/use/store';
 import { useElectron } from '/@/use/electron';
 import { openMenu } from '/@/use/contextMenu';
@@ -183,10 +185,7 @@ const manualSave = async () => {
       path: props.opened.thing + '/' + file.value.name,
     };
     await api.files.saveFileContent(_cloneDeep(toBeSaved));
-    store.updateOpened(props.index, {
-      type: 'file',
-      thing: toBeSaved.path,
-    });
+    store.updateOpened(props.index, 'file', toBeSaved.path);
     autoSave.value = true;
   } else {
     save(file.value);
@@ -200,7 +199,7 @@ const save = (file: ISavedFile) => {
 const rename = async (newName: string) => {
   if (!file.value || 'unsaved' in file.value) return;
   const newPath = await api.files.rename(file.value?.path, newName);
-  store.updateOpened(props.index, { type: 'file', thing: newPath });
+  store.updateOpened(props.index, 'file', newPath);
 };
 
 const debouncedSave = _debounce(save, 500);
@@ -272,6 +271,38 @@ const startDrag = (devt: DragEvent) => {
   }, []);
 
   devt.dataTransfer.setData('indexesToUpdate', JSON.stringify(toUpdateIndexes));
+};
+
+//
+// Title Split
+//
+const mainTitle = computed({
+  get() {
+    return file.value.title?.split(':')[0] || '';
+  },
+  set(val: string) {
+    file.value.title = secondaryTitle.value ? val + ':' + secondaryTitle.value : val;
+  },
+});
+
+const secondaryTitle = computed({
+  get() {
+    const [main, ...rest] = file.value.title?.split(':') || ['', ''];
+    return rest.join(':');
+  },
+  set(val: string) {
+    file.value.title = val ? mainTitle.value + ':' + val : mainTitle.value;
+  },
+});
+
+const mainTitleRef = ref<HTMLElement | undefined>(undefined);
+
+const removeSecondary = () => {
+  file.value.title = mainTitle.value + secondaryTitle.value;
+  nextTick(() => {
+    console.log('next tick ref', mainTitleRef.value);
+    mainTitleRef.value?.focus();
+  });
 };
 
 ///

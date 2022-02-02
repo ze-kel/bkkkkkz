@@ -1,9 +1,22 @@
 <template>
-  <div class="w-full">
+  <div v-if="store.settings" class="w-full">
     <PathControllerVue title="Root Path" :path="rootPath" @change="changeRootPath" />
+
     <hr class="hr-default my-2" />
 
-    <div class="block">
+    <div class="">
+      <h2 class="font-semibold mb-1">Theme</h2>
+      <ButtonsSwitch
+        v-model="store.settings.darkMode"
+        :options="[
+          { label: 'Light', key: -1 },
+          { label: 'System', key: 0 },
+          { label: 'Dark', key: 1 },
+        ]"
+      />
+    </div>
+
+    <div class="my-2">
       <h2 class="font-semibold mb-1">Import Goodread .csv</h2>
       <button class="basic-button" @click="importGoodreads">Select</button>
     </div>
@@ -14,29 +27,25 @@
 import { computed, getCurrentInstance, onBeforeMount, ref } from 'vue';
 import { useElectron } from '/@/use/electron';
 import PathControllerVue from './PathController.vue';
+import ButtonsSwitch from '/@/components/_UI/ButtonsSwitch.vue';
+import { useStore } from '/@/use/store';
 
 import type { ILocalSettings } from '/@main/services/settings';
 
-const emit = defineEmits<{
-  (e: 'changeRootPath'): void;
-}>();
-
+const store = useStore();
 const api = useElectron();
-const settings = ref<ILocalSettings | null>(null);
 
-const rootPath = computed(() => settings.value?.rootPath || '');
+const rootPath = computed(() => store.settings?.rootPath || '');
 const changeRootPath = async () => {
   const result = await api.settings.newRootPath();
-  if (result) {
-    settings.value = await api.settings.getSettings();
-  }
 };
 
 const importGoodreads = () => api.parsers.parseGoodreadsCsv();
 
-onBeforeMount(async () => {
-  settings.value = await api.settings.getSettings();
-});
+const setDarkMode = (val: -1 | 0 | 1) => {
+  if (!store.settings) return;
+  store.settings.darkMode = val;
+};
 </script>
 
 <style scoped></style>

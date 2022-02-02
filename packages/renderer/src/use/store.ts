@@ -7,8 +7,9 @@ import _cloneDeep from 'lodash-es/cloneDeep';
 
 import type { IFolderTree } from '/@main/services/files';
 import type { ILocalSettings } from '/@main/services/settings';
-import type { IOpened } from '/@main/services/watcher';
+import type { IOpened, IViewSettings, IViewStyle } from '/@main/services/watcher';
 import type { ITags } from '/@main/services/tags';
+import { getDefaultViewSettings } from '../utils/getDefaultViewSettings';
 
 const api = useElectron();
 
@@ -50,15 +51,44 @@ export const useStore = defineStore('main', {
         this.initCore();
       }
     },
-    addOpened(newOne: IOpened, open = true) {
-      this.opened.push(newOne);
+
+    //
+    // Opened Tabs
+    //
+    addOpened(type: IOpened['type'], thing: string, open = true) {
+      if (type === 'folder' || type === 'tag') {
+        let settings: IViewSettings;
+        if (
+          this.openedItem &&
+          (this.openedItem.type === 'tag' || this.openedItem.type === 'folder')
+        ) {
+          settings = _cloneDeep(this.openedItem.settings);
+        } else {
+          settings = getDefaultViewSettings();
+        }
+
+        const newOne: IOpened = { type, thing, settings };
+
+        this.opened.push(newOne);
+      } else {
+        const newOne: IOpened = { type, thing };
+        this.opened.push(newOne);
+      }
+
       if (open) {
         this.activeOpenedIndex = this.opened.length - 1;
       }
       this.syncOpened();
     },
-    updateOpened(index: number, updated: IOpened) {
-      this.opened[index] = updated;
+    updateOpened(index: number, type: IOpened['type'], thing: string) {
+      let newOne: IOpened;
+      if (type === 'folder' || type === 'tag') {
+        newOne = { type, thing, settings: getDefaultViewSettings() };
+      } else {
+        newOne = { type, thing };
+      }
+
+      this.opened[index] = newOne;
       this.syncOpened();
     },
     closeOpened(index: number) {
@@ -77,6 +107,25 @@ export const useStore = defineStore('main', {
       this.activeOpenedIndex = _clamp(index, 0, this.opened.length - 1);
     },
 
+    changeOpenedView(style: IViewStyle) {
+      if (this.openedItem?.type !== 'folder' && this.openedItem?.type !== 'tag') {
+        throw 'Trying to change view settings when current view isn not a folder or a tag';
+      }
+
+      this.openedItem.settings.viewStyle = style;
+      this.syncOpened();
+    },
+    flipGrouped() {
+      if (this.openedItem?.type !== 'folder' && this.openedItem?.type !== 'tag') {
+        throw 'Trying to change view settings when current view isn not a folder or a tag';
+      }
+      this.openedItem.settings.grouped = !this.openedItem.settings.grouped;
+      this.syncOpened();
+    },
+
+    //
+    // Initialization
+    //
     async initCore() {
       const allGood = await api.core.init();
       if (allGood) {
@@ -119,6 +168,15 @@ export const useStore = defineStore('main', {
       if (state.activeOpenedIndex === null) return null;
       return state.opened[state.activeOpenedIndex];
     },
+    currentViewSettings(state) {
+      if (state.activeOpenedIndex === null) return undefined;
+      const opened = state.opened[state.activeOpenedIndex];
+
+      if (opened.type !== 'folder' && opened.type !== 'tag') return undefined;
+
+      return opened.settings;
+    },
+
     tags(state) {
       if (!state.tagsInternal) return [];
       return state.tagsInternal.sort((a, b) => a.localeCompare(b));

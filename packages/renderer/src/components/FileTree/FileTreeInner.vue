@@ -76,13 +76,16 @@
 
 <script setup lang="ts">
 import { computed, onUpdated, ref, watchEffect } from 'vue';
-import type { PropType } from 'vue';
-import type { IFolderTree } from '/@main/services/files';
+import { getDefaultViewSettings } from '/@/utils/getDefaultViewSettings';
 import { useElectron } from '/@/use/electron';
 import { openMenu } from '/@/use/contextMenu';
-import type { IOpened } from '/@main/services/watcher';
-import type { ContextMenu } from '/@/use/contextMenu';
 import { useStore } from '/@/use/store';
+import _cloneDeep from 'lodash-es/cloneDeep';
+
+import type { PropType } from 'vue';
+import type { IFolderTree } from '/@main/services/files';
+import type { IOpenedPath, IViewSettings } from '/@main/services/watcher';
+import type { ContextMenu } from '/@/use/contextMenu';
 
 const api = useElectron();
 const store = useStore();
@@ -112,16 +115,11 @@ const makeNewOpenedAndSelect = (recursive: boolean, newTab: boolean, openImmedia
   if (isRoot) {
     recursive = true;
   }
-  const newOpened: IOpened = {
-    type: 'folder',
-    thing: props.content.path,
-    recursive,
-  };
 
   if (newTab || store.activeOpenedIndex === null || !openImmediatelly) {
-    store.addOpened(newOpened, openImmediatelly);
+    store.addOpened('folder', props.content.path, openImmediatelly);
   } else {
-    store.updateOpened(store.activeOpenedIndex, newOpened);
+    store.updateOpened(store.activeOpenedIndex, 'folder', props.content.path);
   }
 };
 
@@ -163,8 +161,7 @@ const onDrop = async (e: DragEvent, targetPath: string) => {
     const newPath = await api.files.move(draggedPath, targetPath);
 
     indexes.forEach((index) => {
-      const newOpened = { ...store.opened[index], thing: newPath };
-      store.updateOpened(index, newOpened);
+      store.updateOpened(index, store.opened[index].type, newPath);
     });
   }
 };
@@ -221,11 +218,11 @@ const saveName = async () => {
 
     store.opened.forEach((item, index) => {
       if (item.type === 'folder' && item.thing === oldPath) {
-        store.updateOpened(index, { ...item, thing: newPath });
+        store.updateOpened(index, item.type, newPath);
       }
 
       if (item.type === 'file' && item.thing.includes(oldPath)) {
-        store.updateOpened(index, { ...item, thing: item.thing.replace(oldPath, newPath) });
+        store.updateOpened(index, item.type, item.thing.replace(oldPath, newPath));
       }
     });
   }
