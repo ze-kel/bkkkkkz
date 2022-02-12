@@ -12,6 +12,7 @@ import {
   editorViewCtx,
   parserCtx,
 } from '@milkdown/core';
+import type {Ctx,} from '@milkdown/core';
 import { commonmark } from '@milkdown/preset-commonmark';
 import { listener, listenerCtx } from '@milkdown/plugin-listener';
 import { getCurrentInstance, watch, ref, onMounted } from 'vue';
@@ -26,27 +27,31 @@ const props = defineProps({
 });
 
 let contentCache = '';
-const myListener = {
-  markdown: [
-    (getMarkdown: () => string) => {
-      contentCache = getMarkdown();
-      emit('update:modelValue', contentCache);
-    },
-  ],
-};
 
 const emit = defineEmits<{
   (e: 'update:modelValue', thing: string): void;
 }>();
+
+const myTheme = themeFactory(emotion => ({
+  font: {},
+  size: {},
+  color: {},
+  slots: () => ({})
+}));
+
+const chagesListener = (ctx: Ctx, markdown: string, prevMarkdown: string | null) => {
+  contentCache = markdown;
+  emit('update:modelValue', contentCache);
+};
 
 const makeEditor = (element: HTMLElement) => {
   return Editor.make()
     .config((ctx) => {
       ctx.set(rootCtx, element);
       ctx.set(defaultValueCtx, props.modelValue);
-      ctx.set(listenerCtx, myListener);
+      ctx.get(listenerCtx).markdownUpdated(chagesListener)
     })
-    .use(themeFactory({}))
+    .use(myTheme)
     .use(commonmark.headless())
     .use(listener);
 };

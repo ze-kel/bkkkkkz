@@ -206,7 +206,7 @@ const debouncedSave = _debounce(save, 500);
 const debouncedRename = _debounce(rename, 500);
 
 watch(
-  file,
+  file.value,
   (newFile, oldFile) => {
     if (!oldFile || !newFile || !autoSave.value || 'unsaved' in newFile || loading.value) return;
 
