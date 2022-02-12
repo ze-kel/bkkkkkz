@@ -20,7 +20,7 @@ export type StateType = {
   fileTree: IFolderTree | null;
   tagsInternal: ITags | null;
   opened: IOpened[];
-  activeOpenedIndex: number | null;
+  activeOpenedIndex: number;
 };
 
 export const useStore = defineStore('main', {
@@ -32,7 +32,7 @@ export const useStore = defineStore('main', {
       fileTree: null,
       tagsInternal: null,
       opened: [],
-      activeOpenedIndex: null,
+      activeOpenedIndex: -1,
     };
   },
   actions: {
@@ -55,7 +55,7 @@ export const useStore = defineStore('main', {
     //
     // Opened Tabs
     //
-    addOpened(type: IOpened['type'], thing: string, open = true) {
+    addOpened(type: IOpened['type'], thing: string, open = true, recursive?: boolean) {
       if (type === 'folder' || type === 'tag') {
         let settings: IViewSettings;
         if (
@@ -69,6 +69,10 @@ export const useStore = defineStore('main', {
 
         const newOne: IOpened = { type, thing, settings };
 
+        if (newOne.type === 'folder') {
+          newOne.recursive = recursive;
+        }
+
         this.opened.push(newOne);
       } else {
         const newOne: IOpened = { type, thing };
@@ -80,12 +84,16 @@ export const useStore = defineStore('main', {
       }
       this.syncOpened();
     },
-    updateOpened(index: number, type: IOpened['type'], thing: string) {
+    updateOpened(index: number, type: IOpened['type'], thing: string, recursive?: boolean) {
       let newOne: IOpened;
       if (type === 'folder' || type === 'tag') {
         newOne = { type, thing, settings: getDefaultViewSettings() };
       } else {
         newOne = { type, thing };
+      }
+
+      if (newOne.type === 'folder') {
+        newOne.recursive = recursive;
       }
 
       this.opened[index] = newOne;
@@ -94,12 +102,12 @@ export const useStore = defineStore('main', {
     closeOpened(index: number) {
       this.opened.splice(index, 1);
       if (this.activeOpenedIndex !== null && this.activeOpenedIndex >= this.opened.length) {
-        this.activeOpenedIndex = this.opened.length ? this.opened.length - 1 : null;
+        this.activeOpenedIndex = this.opened.length - 1;
       }
       this.syncOpened();
     },
     async syncOpened() {
-      await api.files.syncOpened(_cloneDeep(this.opened));
+      await api.files.syncOpened(_cloneDeep(this.opened), this.activeOpenedIndex);
     },
 
     setOpenedIndex(index: number) {
@@ -136,7 +144,14 @@ export const useStore = defineStore('main', {
           this.updateSettings(start);
           await this.initFileTree();
           await this.initTags();
+
           this.initialSetup = false;
+
+          if (this.settings && this.settings.lastOpened.length) {
+            this.opened = this.settings.lastOpened;
+            this.activeOpenedIndex = this.settings.lastActiveIndex;
+            this.syncOpened();
+          }
         } catch (e) {
           console.log('e', e);
         }

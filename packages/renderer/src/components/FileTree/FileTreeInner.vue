@@ -116,10 +116,10 @@ const makeNewOpenedAndSelect = (recursive: boolean, newTab: boolean, openImmedia
     recursive = true;
   }
 
-  if (newTab || store.activeOpenedIndex === null || !openImmediatelly) {
-    store.addOpened('folder', props.content.path, openImmediatelly);
+  if (newTab || store.activeOpenedIndex < 0 || !openImmediatelly) {
+    store.addOpened('folder', props.content.path, openImmediatelly, recursive);
   } else {
-    store.updateOpened(store.activeOpenedIndex, 'folder', props.content.path);
+    store.updateOpened(store.activeOpenedIndex, 'folder', props.content.path, recursive);
   }
 };
 

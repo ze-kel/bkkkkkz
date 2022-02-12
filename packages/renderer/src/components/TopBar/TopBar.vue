@@ -14,7 +14,7 @@ import formatHeader from '/@/utils/formatHeader';
 const store = useStore();
 
 const opened = computed(() => {
-  if (store.activeOpenedIndex === null || !store.settings) return '';
+  if (store.activeOpenedIndex < 0 || !store.settings) return '';
   return formatHeader(store.opened[store.activeOpenedIndex], store.settings.rootPath);
 });
 </script>

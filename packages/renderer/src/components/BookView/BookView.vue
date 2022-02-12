@@ -122,14 +122,6 @@ watchEffect(async () => {
   }
 });
 
-const openHandler = (file: IFile, newTab = false) => {
-  const newOpened: IOpenedFile = { type: 'file', thing: file.path };
-  if (newTab) {
-    store.addOpened('file', file.path);
-  } else {
-    store.updateOpened(props.index, 'file', file.path);
-  }
-};
 //
 // Update event handling
 //

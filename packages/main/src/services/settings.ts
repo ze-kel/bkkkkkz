@@ -3,6 +3,7 @@ import * as fs from 'fs-extra';
 import { dialog } from 'electron';
 import type * as IStore from 'electron-store';
 import WebContentsProxy from '../ipc/webContents';
+import type { IOpened } from './watcher';
 const Store = require('electron-store');
 
 const SETTINGS_PATH = '.bkz';
@@ -37,6 +38,25 @@ const SCHEMA = {
     minimum: -1,
     maximum: 1,
   },
+  lastOpened: {
+    type: 'array',
+    items: {
+      type: 'object',
+      properties: {
+        type: {
+          type: 'string',
+        },
+        thing: {
+          type: 'string',
+        },
+      },
+    },
+    default: [],
+  },
+  lastActiveIndex: {
+    type: 'number',
+    default: -1,
+  },
 };
 
 export type ILocalSettings = {
@@ -47,6 +67,8 @@ export type ILocalSettings = {
   trashPath: string;
   splitTitle: boolean;
   darkMode: -1 | 0 | 1;
+  lastOpened: IOpened[];
+  lastActiveIndex: number;
 };
 
 const globalStore: IStore = new Store();
@@ -114,6 +136,31 @@ const saveStore = (settings: ILocalSettings) => {
   localStore.store = settings;
 };
 
+const getLastOpened = () => {
+  if (!localStore) {
+    initStore();
+    if (!localStore) {
+      throw 'Failed to init local Store';
+    }
+  }
+
+  return {
+    opened: localStore.store.lastOpened,
+    activeOpenedIndex: localStore.store.lastActiveIndex,
+  };
+};
+
+const saveLastOpened = (opened: IOpened[], activeOpenedIndex: number) => {
+  if (!localStore) {
+    initStore();
+    if (!localStore) {
+      throw 'Failed to init local Store';
+    }
+  }
+  localStore.set('lastOpened', opened);
+  localStore.set('lastActiveIndex', activeOpenedIndex);
+};
+
 const getLocalSettings = (): ILocalSettings => {
   if (!localStore) throw 'No local store';
   return localStore.store;
@@ -127,4 +174,6 @@ export default {
   getStore,
   saveStore,
   getLocalSettings,
+  getLastOpened,
+  saveLastOpened,
 };

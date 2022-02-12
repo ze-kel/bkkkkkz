@@ -65,7 +65,7 @@ import formatHeader from '/@/utils/formatHeader';
 const store = useStore();
 
 const opened = computed(() => {
-  if (store.activeOpenedIndex === null) return null;
+  if (store.activeOpenedIndex < 0) return null;
   return store.opened[store.activeOpenedIndex];
 });
 

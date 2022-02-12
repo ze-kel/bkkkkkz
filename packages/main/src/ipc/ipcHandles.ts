@@ -11,6 +11,7 @@ import { callWithoutEvent } from '/@/helpers/utils';
 import type { ISavedFile } from '../services/files';
 import { dialog } from 'electron';
 import { format } from 'date-fns';
+import settings from '../services/settings';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type IIpcHandle = (...args: any) => any;
@@ -49,8 +50,9 @@ const handles: IHandles = {
     await FileService.saveFileContent(file);
   },
 
-  syncOpened: (_, opened: IOpened[]) => {
+  syncOpened: (_, opened: IOpened[], index: number) => {
     TheWatcher.opened = opened;
+    settings.saveLastOpened(opened, index);
   },
   closeWatcher: TheWatcher.destroy,
   move: callWithoutEvent(FileService.moveToFolder),

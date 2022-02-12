@@ -26,8 +26,8 @@ const api: ElectronApi = {
       const result = await ipcRenderer.invoke('saveFileContent', file);
       return result;
     },
-    syncOpened: async (file) => {
-      const result = await ipcRenderer.invoke('syncOpened', file);
+    syncOpened: async (opened, index) => {
+      const result = await ipcRenderer.invoke('syncOpened', opened, index);
       return result;
     },
 

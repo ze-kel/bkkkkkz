@@ -3,7 +3,7 @@
     <div class="flex gap-2 w-3/12 py-2">
       <input
         v-model="store.currentViewSettings.searchQuery"
-        class="input-default border border-neutral-50 rounded-sm"
+        class="input-default border border-neutral-50 rounded-sm px-2 py-1"
         placeholder="Search Books"
       />
       <button
@@ -76,7 +76,7 @@
 </template>
 
 <script lang="ts" setup>
-import { defineProps, defineEmits, computed, onUnmounted, onUpdated } from 'vue';
+import { defineEmits, computed, onUnmounted, onUpdated } from 'vue';
 import { useStore } from '/@/use/store';
 import type { IViewSettings, ISortByOption } from '/@main/services/watcher';
 

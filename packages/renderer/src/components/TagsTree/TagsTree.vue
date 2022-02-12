@@ -30,7 +30,7 @@ const openedTag = computed(() => {
 });
 
 const select = (tag: string, newTab: boolean) => {
-  if (newTab || store.activeOpenedIndex === null) {
+  if (newTab || store.activeOpenedIndex < 0) {
     store.addOpened('tag', tag);
   } else {
     store.updateOpened(store.activeOpenedIndex, 'tag', tag);

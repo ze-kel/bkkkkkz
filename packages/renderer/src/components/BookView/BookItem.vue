@@ -4,7 +4,7 @@
       <Cover
         v-if="inViewport"
         :file="currentFile"
-        class="cursor-pointer"
+        class="cursor-pointer transition-transform"
         @click.exact="openFullEditor(false)"
         @click.middle.exact="openFullEditor(true, false)"
         @click.alt="openFullEditor(true)"
@@ -16,7 +16,7 @@
     </template>
     <template v-if="settings.viewStyle === 'Lines'">
       <div
-        class="grid grid-cols-5 gap-5 cursor-pointer pl-1 transition-colors rounded hover:bg-neutral-100 hover:dark:bg-neutral-800 py-1"
+        class="grid grid-cols-5 gap-5 cursor-pointer pl-1 transition-colors rounded-sm hover:bg-neutral-100 hover:dark:bg-neutral-800 py-1"
         @click.exact="openFullEditor(false)"
         @click.middle.exact="openFullEditor(true, false)"
         @click.alt="openFullEditor(true)"
@@ -78,7 +78,7 @@ const openFullEditor = (newTab: boolean, openImmediatelly = true) => {
     store.addOpened('file', props.currentFile.path, openImmediatelly);
   } else {
     console.log('updopened', store.activeOpenedIndex);
-    if (store.activeOpenedIndex === null) return;
+    if (store.activeOpenedIndex < 0) return;
     store.updateOpened(store.activeOpenedIndex, 'file', props.currentFile.path);
   }
 };

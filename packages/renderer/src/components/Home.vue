@@ -88,7 +88,7 @@ onUnmounted(() => {
 const globalShortcuts = (e: KeyboardEvent) => {
   if (e.key === 'w' && (e.ctrlKey || e.metaKey)) {
     e.preventDefault();
-    if (store.activeOpenedIndex !== null) {
+    if (store.activeOpenedIndex >= 0) {
       store.closeOpened(store.activeOpenedIndex);
     }
   }

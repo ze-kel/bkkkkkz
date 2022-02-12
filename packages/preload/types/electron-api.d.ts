@@ -19,7 +19,7 @@ interface ElectronApi {
     loadFilesFromTag: (tag: string) => Promise<ILoadedFiles>;
     loadFileContent: (path: string) => Promise<ILoadedFile>;
     saveFileContent: (file: ILoadedFile) => Promise<void>;
-    syncOpened: (opened: IOpened[]) => Promise<void>;
+    syncOpened: (opened: IOpened[], index: number | null) => Promise<void>;
 
     removeCoverFile: (path: string) => Promise<void>;
     setCover: (path: string) => Promise<void>;
