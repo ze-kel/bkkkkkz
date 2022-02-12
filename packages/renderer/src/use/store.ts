@@ -82,7 +82,6 @@ export const useStore = defineStore('main', {
       if (open) {
         this.activeOpenedIndex = this.opened.length - 1;
       }
-      this.syncOpened();
     },
     updateOpened(index: number, type: IOpened['type'], thing: string, recursive?: boolean) {
       let newOne: IOpened;
@@ -97,14 +96,12 @@ export const useStore = defineStore('main', {
       }
 
       this.opened[index] = newOne;
-      this.syncOpened();
     },
     closeOpened(index: number) {
       this.opened.splice(index, 1);
       if (this.activeOpenedIndex !== null && this.activeOpenedIndex >= this.opened.length) {
         this.activeOpenedIndex = this.opened.length - 1;
       }
-      this.syncOpened();
     },
     async syncOpened() {
       await api.files.syncOpened(_cloneDeep(this.opened), this.activeOpenedIndex);
@@ -113,22 +110,6 @@ export const useStore = defineStore('main', {
     setOpenedIndex(index: number) {
       if (!this.opened.length) return;
       this.activeOpenedIndex = _clamp(index, 0, this.opened.length - 1);
-    },
-
-    changeOpenedView(style: IViewStyle) {
-      if (this.openedItem?.type !== 'folder' && this.openedItem?.type !== 'tag') {
-        throw 'Trying to change view settings when current view isn not a folder or a tag';
-      }
-
-      this.openedItem.settings.viewStyle = style;
-      this.syncOpened();
-    },
-    flipGrouped() {
-      if (this.openedItem?.type !== 'folder' && this.openedItem?.type !== 'tag') {
-        throw 'Trying to change view settings when current view isn not a folder or a tag';
-      }
-      this.openedItem.settings.grouped = !this.openedItem.settings.grouped;
-      this.syncOpened();
     },
 
     //
@@ -150,7 +131,6 @@ export const useStore = defineStore('main', {
           if (this.settings && this.settings.lastOpened.length) {
             this.opened = this.settings.lastOpened;
             this.activeOpenedIndex = this.settings.lastActiveIndex;
-            this.syncOpened();
           }
         } catch (e) {
           console.log('e', e);

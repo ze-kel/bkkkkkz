@@ -40,6 +40,7 @@
               :current-file="item"
               :draggable="true"
               :settings="opened.settings"
+              :observer="elementObserver"
               @dragstart="startDrag($event, item)"
               @click.right="(e) => openContextMenu(e, item)"
             />
@@ -60,6 +61,7 @@
           :current-file="item"
           :draggable="true"
           :settings="opened.settings"
+          :observer="elementObserver"
           @dragstart="startDrag($event, item)"
           @click.right="(e) => openContextMenu(e, item)"
         />
@@ -92,7 +94,7 @@ import type { PropType } from 'vue';
 import type { IOpenedTag, IOpenedPath, IOpenedFile } from '/@main/services/watcher';
 import type { ContextMenu } from '/@/use/contextMenu';
 import ViewConrols from './ViewConrols.vue';
-import { initializeOserver } from './commonOserver';
+import ElObserver from './elementObserver';
 
 const api = useElectron();
 
@@ -113,7 +115,6 @@ const props = defineProps({
 });
 
 watchEffect(async () => {
-  console.log('NEW FETCH');
   if (props.opened.type === 'folder') {
     files.value = await api.files.loadFilesFromFolder(props.opened.thing, props.opened.recursive);
   }
@@ -249,9 +250,11 @@ const openContextMenu = (e: MouseEvent, book: IFile) => {
 //
 const scrollRoot = ref<HTMLElement>();
 
+let elementObserver = ref<ElObserver>();
+
 onMounted(() => {
   if (!scrollRoot.value) return;
-  initializeOserver(scrollRoot.value);
+  elementObserver.value = new ElObserver(scrollRoot.value);
 });
 </script>
 

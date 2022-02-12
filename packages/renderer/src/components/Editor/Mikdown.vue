@@ -1,5 +1,15 @@
 <template>
-  <div ref="editor" class="h-full"></div>
+  <div class="w-full h-full relative">
+    <transition name="fade">
+      <div
+        v-if="!hasFocus && (!modelValue || modelValue === '\n' || modelValue === '\n\n')"
+        class="absolute left-[50%] top-[50%] -translate-x-full -translate-y-full text-neutral-500"
+      >
+        No markdown content
+      </div>
+    </transition>
+    <div ref="editor" class="h-full"></div>
+  </div>
 </template>
 
 <script lang="ts" setup>
@@ -12,7 +22,7 @@ import {
   editorViewCtx,
   parserCtx,
 } from '@milkdown/core';
-import type {Ctx,} from '@milkdown/core';
+import type { Ctx } from '@milkdown/core';
 import { commonmark } from '@milkdown/preset-commonmark';
 import { listener, listenerCtx } from '@milkdown/plugin-listener';
 import { getCurrentInstance, watch, ref, onMounted } from 'vue';
@@ -32,16 +42,24 @@ const emit = defineEmits<{
   (e: 'update:modelValue', thing: string): void;
 }>();
 
-const myTheme = themeFactory(emotion => ({
+const myTheme = themeFactory((emotion) => ({
   font: {},
   size: {},
   color: {},
-  slots: () => ({})
+  slots: () => ({}),
 }));
 
 const chagesListener = (ctx: Ctx, markdown: string, prevMarkdown: string | null) => {
   contentCache = markdown;
+  console.log('emit', contentCache);
   emit('update:modelValue', contentCache);
+};
+
+const hasFocus = ref(false);
+
+const focusWatcher = (ctx: Ctx) => {
+  const view = ctx.get(editorViewCtx);
+  hasFocus.value = view.hasFocus();
 };
 
 const makeEditor = (element: HTMLElement) => {
@@ -49,7 +67,9 @@ const makeEditor = (element: HTMLElement) => {
     .config((ctx) => {
       ctx.set(rootCtx, element);
       ctx.set(defaultValueCtx, props.modelValue);
-      ctx.get(listenerCtx).markdownUpdated(chagesListener)
+      ctx.get(listenerCtx).markdownUpdated(chagesListener);
+      ctx.get(listenerCtx).focus(focusWatcher);
+      ctx.get(listenerCtx).blur(focusWatcher);
     })
     .use(myTheme)
     .use(commonmark.headless())
@@ -92,4 +112,16 @@ watch(
 <style>
 @import url(./style/base.css);
 @import url(./style/theme.css);
+
+.fade-enter-active {
+  transition: opacity 0.5s ease;
+}
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
 </style>

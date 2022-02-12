@@ -3,7 +3,7 @@
     <div class="flex gap-2 w-3/12 py-2">
       <input
         v-model="store.currentViewSettings.searchQuery"
-        class="input-default border border-neutral-50 rounded-sm px-2 py-1"
+        class="input-default border border-neutral-900 dark:border-neutral-50 rounded-sm px-2 py-1"
         placeholder="Search Books"
       />
       <button
@@ -26,34 +26,22 @@
         </svg>
       </div>
 
-      <div class="flex border border-neutral-300 rounded-sm overflow-hidden mr-2 items-center">
-        <div
-          class="group p-1 border-0"
-          :class="
-            store.currentViewSettings.viewStyle === 'Covers'
-              ? 'border-neutral-900 bg-white'
-              : 'basic-button '
-          "
-        >
-          <svg width="24" height="24" viewBox="0 0 24 24" @click="store.changeOpenedView('Covers')">
+      <ButtonsSwitch
+        v-model="store.currentViewSettings.viewStyle"
+        class="mr-2"
+        :options="[{ key: 'Covers' }, { key: 'Lines' }]"
+        :option-classes="['px-1']"
+      >
+        <template #option="{ key }">
+          <svg width="24" height="24" viewBox="0 0 24 24">
             <path
+              v-if="key === 'Covers'"
               d="M20 20H16V16H20V20ZM14 20H10V16H14V20ZM8 20H4V16H8V20ZM20 14H16V10H20V14ZM14 14H10V10H14V14ZM8 14H4V10H8V14ZM20 8H16V4H20V8ZM14 8H10V4H14V8ZM8 8H4V4H8V8Z"
             />
+            <path v-if="key === 'Lines'" d="M21 18H3V16H21V18ZM21 13H3V11H21V13ZM21 8H3V6H21V8Z" />
           </svg>
-        </div>
-        <div
-          class="group p-1 border-0"
-          :class="
-            store.currentViewSettings.viewStyle === 'Lines'
-              ? 'border-neutral-900 bg-white'
-              : 'basic-button '
-          "
-        >
-          <svg width="24" height="24" viewBox="0 0 24 24" @click="store.changeOpenedView('Lines')">
-            <path d="M21 18H3V16H21V18ZM21 13H3V11H21V13ZM21 8H3V6H21V8Z" />
-          </svg>
-        </div>
-      </div>
+        </template>
+      </ButtonsSwitch>
 
       <select v-model="store.currentViewSettings.sortBy" class="basic-button">
         <option v-for="item in canSortby" :key="item">{{ item }}</option>
@@ -78,7 +66,8 @@
 <script lang="ts" setup>
 import { defineEmits, computed, onUnmounted, onUpdated } from 'vue';
 import { useStore } from '/@/use/store';
-import type { IViewSettings, ISortByOption } from '/@main/services/watcher';
+import type { IViewSettings, ISortByOption, IViewStyle } from '/@main/services/watcher';
+import ButtonsSwitch from '../_UI/ButtonsSwitch.vue';
 
 const store = useStore();
 

@@ -115,8 +115,8 @@ const saveFileContent = async (file: ISavedFile): Promise<void> => {
 
 const saveNewFile = async (basePath: string, file: IUnsavedFile): Promise<void> => {
   const baseName = `${file.author ? file.author : 'unknown'} — ${
-    file.title ? file.title : 'unknown'
-  }`.replace(FILENAME_REGEX, '');
+    file.title ? file.title.split(':')[0] : 'unknown'
+  }.md`.replace(FILENAME_REGEX, '');
   let newName = baseName;
   let uniquenessNumber = 2;
 

@@ -4,7 +4,7 @@
       <div
         v-for="(item, index) in store.opened"
         :key="index"
-        class="px-2 py-1 max-w-[200px] flex items-center cursor-pointer"
+        class="px-2 py-1 max-w-[200px] flex items-center cursor-pointer transition-colors border-transparent hover:bg-neutral-200 dark:hover:bg-neutral-700"
         :class="
           index === store.activeOpenedIndex && [
             'bg-neutral-50 dark:bg-neutral-900 text-neutral-900 dark:text-neutral-50',
@@ -44,14 +44,18 @@
         @dragover.prevent
       ></div>
     </div>
-    <div v-if="opened && store.activeOpenedIndex !== null" class="w-full h-[calc(100%_-_32px)]">
-      <Editor
-        v-if="opened.type === 'file' || opened.type === 'newFile'"
-        :opened="opened"
-        :index="store.activeOpenedIndex"
-      />
-      <BookView v-else :opened="opened" :index="store.activeOpenedIndex" />
-    </div>
+    <template v-if="opened && store.activeOpenedIndex !== null">
+      <template v-for="(item, index) in store.opened" :key="item.thing">
+        <div v-show="index === store.activeOpenedIndex" class="w-full h-[calc(100%_-_32px)]">
+          <Editor
+            v-if="item.type === 'file' || item.type === 'newFile'"
+            :opened="item"
+            :index="store.activeOpenedIndex"
+          />
+          <BookView v-else :opened="item" :index="store.activeOpenedIndex" />
+        </div>
+      </template>
+    </template>
   </div>
 </template>
 

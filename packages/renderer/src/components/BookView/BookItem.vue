@@ -46,16 +46,16 @@
 import { computed, onMounted, ref } from 'vue';
 
 import _debounce from 'lodash-es/debounce';
+import { dateReducerAllYears } from './getDateReducer';
 
 import Cover from '../Cover/Cover.vue';
-import { watchElement } from './commonOserver';
 import { useStore } from '/@/use/store';
 import Rating from '../Rating/Rating.vue';
 
 import type { PropType } from 'vue';
 import type { IFile } from '/@main/services/files';
 import type { IOpenedFile, IViewSettings } from '/@main/services/watcher';
-import { dateReducerAllYears } from './getDateReducer';
+import type ElObserver from './elementObserver';
 
 export type IBookStyle = 'CARDS' | 'LINES';
 
@@ -69,6 +69,10 @@ const props = defineProps({
   settings: {
     type: Object as PropType<IViewSettings>,
     required: true,
+  },
+  observer: {
+    type: Object as PropType<ElObserver>,
+    default: undefined
   },
 });
 
@@ -92,8 +96,8 @@ const triggerInView = (visible: boolean) => {
 };
 
 onMounted(() => {
-  if (!itemRef.value) return;
-  watchElement(itemRef.value, triggerInView);
+  if (!itemRef.value || !props.observer) return;
+  props.observer.watchElement(itemRef.value, triggerInView);
 });
 
 const onlyMainTitle = computed(() => props.currentFile.title?.split(':')[0]);

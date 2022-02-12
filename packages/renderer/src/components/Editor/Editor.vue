@@ -36,11 +36,6 @@
         <div class="flex flex-col gap-2 mt-2">
           <div class="flex gap-3">
             <div class="flex items-center">
-              <div
-                class="text-neutral-800 dark:text-neutral-100 text-xs font-light border-r pr-1 mr-1 border-neutral-800"
-              >
-                ISBN
-              </div>
               <ContentEditable
                 v-model="file.ISBN"
                 spellcheck="false"
@@ -51,11 +46,6 @@
               />
             </div>
             <div class="flex items-center">
-              <div
-                class="text-neutral-800 dark:text-neutral-100 text-xs font-light border-r pr-1 mr-1 border-neutral-800"
-              >
-                ISBN13
-              </div>
               <ContentEditable
                 v-model="file.ISBN13"
                 spellcheck="false"
@@ -68,11 +58,6 @@
           </div>
 
           <div class="flex items-center">
-            <div
-              class="text-neutral-800 dark:text-neutral-100 text-xs font-light border-r pr-1 mr-1 border-neutral-800"
-            >
-              Filename
-            </div>
             <div class="flex items-center">
               <ContentEditable
                 v-model="file.name"
@@ -206,7 +191,7 @@ const debouncedSave = _debounce(save, 500);
 const debouncedRename = _debounce(rename, 500);
 
 watch(
-  file.value,
+  file,
   (newFile, oldFile) => {
     if (!oldFile || !newFile || !autoSave.value || 'unsaved' in newFile || loading.value) return;
 

@@ -36,7 +36,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, getCurrentInstance, onMounted, onUnmounted, ref } from 'vue';
+import { computed, watch, onMounted, onUnmounted, ref } from 'vue';
 import { useStore } from '/@/use/store';
 
 import _debounce from 'lodash-es/debounce';
@@ -67,6 +67,25 @@ const changeFileTreeSize = (ev: any) => {
 
 onMounted(async () => {
   await store.initCore();
+
+  // Not sure, perhaps there is a better way to watch for changes?
+  watch(
+    () => store.settings,
+    () => {
+      console.log('settings change');
+      store.saveSettings();
+    },
+    { deep: true },
+  );
+
+  watch(
+    () => store.opened,
+    () => {
+      console.log('opened change');
+      store.syncOpened();
+    },
+    { deep: true },
+  );
 
   resizeHandle.value?.addEventListener('mousedown', () => {
     isResizing.value = true;

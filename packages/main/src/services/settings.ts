@@ -87,6 +87,7 @@ const getRootPathSafe = (): string => {
   if (data && typeof data === 'string' && fs.existsSync(data)) {
     return data;
   }
+
   // eslint-disable-next-line quotes
   throw "Trying to do operation that requires root path, but it isn't set yet";
 };
@@ -108,11 +109,12 @@ const initStore = () => {
   const rootPath = getRootPath();
   if (rootPath) {
     localStore = new Store({ cwd: path.join(rootPath, SETTINGS_PATH), schema: SCHEMA });
-    localStore?.onDidAnyChange((newValue) => {
-      if (!newValue) return;
-      WebContentsProxy.SETTINGS_UPDATE({ ...newValue, rootPath });
-    });
+    sendUpdatesToClient();
   }
+};
+
+const sendUpdatesToClient = () => {
+  WebContentsProxy.SETTINGS_UPDATE(getStore());
 };
 
 const getStore = (): ILocalSettings => {

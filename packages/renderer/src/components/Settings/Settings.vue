@@ -13,7 +13,9 @@
           { label: 'System', key: 0 },
           { label: 'Dark', key: 1 },
         ]"
-      />
+      >
+      <template #option="{label}">{{label}}</template>
+      </ButtonsSwitch>
     </div>
 
     <div class="my-2">
@@ -24,7 +26,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, getCurrentInstance, onBeforeMount, ref } from 'vue';
+import { computed } from 'vue';
 import { useElectron } from '/@/use/electron';
 import PathControllerVue from './PathController.vue';
 import ButtonsSwitch from '/@/components/_UI/ButtonsSwitch.vue';
