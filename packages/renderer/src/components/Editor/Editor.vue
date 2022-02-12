@@ -34,26 +34,27 @@
         </div>
 
         <div class="flex flex-col gap-2 mt-2">
-          <div class="flex gap-3">
-            <div class="flex items-center">
-              <ContentEditable
-                v-model="file.ISBN"
-                spellcheck="false"
-                tag="div"
-                class="text-xs w-fit min-w-[100px] input-default"
-                placeholder="ISBN"
-                :placeholder-classes="'text-neutral-400 hover:text-neutral-600'"
-              />
-            </div>
-            <div class="flex items-center">
-              <ContentEditable
-                v-model="file.ISBN13"
-                spellcheck="false"
-                tag="div"
-                class="text-xs w-fit min-w-[100px] input-default"
-                placeholder="ISBN13"
-                :placeholder-classes="'text-neutral-400 hover:text-neutral-600'"
-              />
+          <div class="flex group">
+            <ContentEditable
+              v-model="file.ISBN13"
+              :number="true"
+              spellcheck="false"
+              tag="div"
+              class="text-xs w-fit min-w-[100px] input-default"
+              placeholder="ISBN13"
+              :placeholder-classes="'text-neutral-400 hover:text-neutral-600'"
+            />
+            <div
+              v-if="showConvertISBNButton"
+              class="text-xs pl-2 cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity"
+              :class="showISBNConversionError && 'text-red-700'"
+              @click="convertISBN"
+            >
+              {{
+                showISBNConversionError
+                  ? 'Please enter a valid 10 digit ISBN'
+                  : 'Convert from ISBN10'
+              }}
             </div>
           </div>
 
@@ -125,6 +126,8 @@ import type { PropType } from 'vue';
 import type { IFile, ISavedFile, IUnsavedFile } from '/@main/services/files';
 import type { IOpenedFile, IOpenedNewFile } from '/@main/services/watcher';
 import type { ContextMenu } from '/@/use/contextMenu';
+import { ISBN10to13 } from '/@main/helpers/utils';
+import { stringify } from 'querystring';
 
 const api = useElectron();
 const store = useStore();
@@ -327,6 +330,25 @@ const coverRightClick = (e: MouseEvent) => {
   }
 
   openMenu(menu, e.x, e.y);
+};
+
+//
+// Isbn Conversion
+//
+const showISBNConversionError = ref(false);
+const showConvertISBNButton = computed(() => {
+  return !file.value.ISBN13 || String(file.value.ISBN13).length < 13;
+});
+
+const convertISBN = () => {
+  if (!file.value.ISBN13 || String(file.value.ISBN13).length != 10) {
+    showISBNConversionError.value = true;
+    setTimeout(() => {
+      showISBNConversionError.value = false;
+    }, 3000);
+  } else {
+    file.value.ISBN13 = ISBN10to13(file.value.ISBN13);
+  }
 };
 </script>
 

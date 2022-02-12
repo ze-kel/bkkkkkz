@@ -1,5 +1,5 @@
 <template>
-  <div :id="currentFile.name" ref="itemRef">
+  <div :id="currentFile.path" ref="itemRef">
     <template v-if="settings.viewStyle === 'Covers'">
       <Cover
         v-if="inViewport"
@@ -72,7 +72,7 @@ const props = defineProps({
   },
   observer: {
     type: Object as PropType<ElObserver>,
-    default: undefined
+    default: undefined,
   },
 });
 

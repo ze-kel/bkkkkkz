@@ -108,7 +108,7 @@ function blurHandler() {
 }
 
 const makeNumber = (input: string) => {
-  return Number(input.match(NUMBERS_REGEX)?.join());
+  return Number(input.replace(NUMBERS_REGEX, ''));
 };
 
 function inputHandler() {

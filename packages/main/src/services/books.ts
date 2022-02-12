@@ -16,8 +16,7 @@ export interface IBookData {
   read?: IDateRead[];
   tags?: string[];
   cover?: string;
-  ISBN?: numbersOnlyString;
-  ISBN13?: numbersOnlyString;
+  ISBN13?: number;
 }
 
 const numberVerifier = (v: unknown) => {
@@ -42,6 +41,12 @@ const dateVerifier = (date: unknown, dateFormat: string): string | null => {
   const parsed = parse(date, dateFormat, new Date());
   if (!isValid(parsed)) return null;
   return date;
+};
+
+const ISBNVerifier = (isbn: unknown) => {
+  if (typeof isbn != 'number') return;
+  if (String(isbn).length != 13) return;
+  return isbn;
 };
 
 const readDatesVerifier = (v: unknown) => {
@@ -85,10 +90,6 @@ const bookDataProps: BoodataProp[] = [
     verifier: stringVerifier,
   },
   {
-    key: 'cover',
-    verifier: stringVerifier,
-  },
-  {
     key: 'year',
     verifier: numberVerifier,
   },
@@ -97,12 +98,20 @@ const bookDataProps: BoodataProp[] = [
     verifier: numberVerifier,
   },
   {
+    key: 'read',
+    verifier: readDatesVerifier,
+  },
+  {
     key: 'tags',
     verifier: stringArrayVerifier,
   },
   {
-    key: 'read',
-    verifier: readDatesVerifier,
+    key: 'cover',
+    verifier: stringVerifier,
+  },
+  {
+    key: 'ISBN13',
+    verifier: ISBNVerifier,
   },
 ];
 
@@ -118,7 +127,8 @@ export const makeBookFile = (path: string, name: string): ISavedFile => {
   bookDataProps.forEach((prop) => {
     const data: unknown = parsed.data[prop.key];
     if (data) {
-      file[prop.key] = prop.verifier(data);
+      const verified = prop.verifier(data);
+      if (verified) file[prop.key] = prop.verifier(data);
     }
   });
 
@@ -131,7 +141,8 @@ export const makeEncodedBook = (file: ISavedFile): string => {
   bookDataProps.forEach((prop) => {
     const property = file[prop.key];
     if (property) {
-      data[prop.key] = prop.verifier(property);
+      const verified = prop.verifier(property);
+      if (verified) data[prop.key] = verified;
     }
   });
 

@@ -7,7 +7,7 @@
       <div
         v-for="{ label, handler } in menuItems"
         :key="label"
-        class="py-1 px-2 cursor-pointer text-neutral-900 hover:text-neutral-50 dark:text-neutral-50 dark:hover:bg-neutral-800 transition-colors"
+        class="py-1 px-2 cursor-pointer text-neutral-900 hover:text-neutral-800 hover:bg-neutral-200 dark:hover:text-neutral-50 dark:text-neutral-50 dark:hover:bg-neutral-800 transition-colors"
         @click="handlerAndClose(handler)"
       >
         {{ label }}

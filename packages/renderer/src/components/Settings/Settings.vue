@@ -14,13 +14,17 @@
           { label: 'Dark', key: 1 },
         ]"
       >
-      <template #option="{label}">{{label}}</template>
+        <template #option="{ label }">{{ label }}</template>
       </ButtonsSwitch>
     </div>
 
     <div class="my-2">
       <h2 class="font-semibold mb-1">Import Goodread .csv</h2>
       <button class="basic-button" @click="importGoodreads">Select</button>
+      <p class="text-xs max-w-xs my-1">
+        Note: due to GoodReads export limitation only one read date will be imported and only
+        containing finish date.
+      </p>
     </div>
   </div>
 </template>

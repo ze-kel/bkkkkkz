@@ -8,6 +8,7 @@ import Settings from './settings';
 import type { IUnsavedFile } from './files';
 
 import { parse, format } from 'date-fns';
+import { NUMBERS_REGEX } from '../helpers/utils';
 
 const ParseGoodreadsCSV = async (csvPath: string): Promise<Array<IUnsavedFile>> => {
   if (path.extname(csvPath) !== '.csv') {
@@ -37,11 +38,16 @@ const ParseGoodreadsCSV = async (csvPath: string): Promise<Array<IUnsavedFile>> 
     const newBook: IUnsavedFile = {
       author: book.Author,
       title: book.Title.replace('--', '—'),
-      ISBN: book.ISBN,
-      ISBN13: book.ISBN13,
       read: [],
       tags: [],
     };
+
+    if (book['ISBN13']) {
+      const clearISBN = book['ISBN13'].replace(NUMBERS_REGEX, '');
+      if (clearISBN.length === 13) {
+        newBook.ISBN13 = Number(clearISBN);
+      }
+    }
 
     if (book['Original Publication Year']) {
       newBook.year = Number(book['Original Publication Year']);
