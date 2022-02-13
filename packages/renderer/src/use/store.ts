@@ -67,7 +67,7 @@ export const useStore = defineStore('main', {
           settings = getDefaultViewSettings();
         }
 
-        const newOne: IOpened = { type, thing, settings };
+        const newOne: IOpened = { type, thing, settings, scrollPosition: 0 };
 
         if (newOne.type === 'folder') {
           newOne.recursive = recursive;
@@ -75,20 +75,21 @@ export const useStore = defineStore('main', {
 
         this.opened.push(newOne);
       } else {
-        const newOne: IOpened = { type, thing };
+        const newOne: IOpened = { type, thing, scrollPosition: 0 };
         this.opened.push(newOne);
       }
 
       if (open) {
         this.activeOpenedIndex = this.opened.length - 1;
       }
+      this.syncOpened()
     },
     updateOpened(index: number, type: IOpened['type'], thing: string, recursive?: boolean) {
       let newOne: IOpened;
       if (type === 'folder' || type === 'tag') {
-        newOne = { type, thing, settings: getDefaultViewSettings() };
+        newOne = { type, thing, settings: getDefaultViewSettings(), scrollPosition: 0 };
       } else {
-        newOne = { type, thing };
+        newOne = { type, thing, scrollPosition: 0 };
       }
 
       if (newOne.type === 'folder') {
@@ -96,12 +97,14 @@ export const useStore = defineStore('main', {
       }
 
       this.opened[index] = newOne;
+      this.syncOpened()
     },
     closeOpened(index: number) {
       this.opened.splice(index, 1);
       if (this.activeOpenedIndex !== null && this.activeOpenedIndex >= this.opened.length) {
         this.activeOpenedIndex = this.opened.length - 1;
       }
+      this.syncOpened()
     },
     async syncOpened() {
       await api.files.syncOpened(_cloneDeep(this.opened), this.activeOpenedIndex);
@@ -110,6 +113,10 @@ export const useStore = defineStore('main', {
     setOpenedIndex(index: number) {
       if (!this.opened.length) return;
       this.activeOpenedIndex = _clamp(index, 0, this.opened.length - 1);
+    },
+
+    saveScrollPosition(index: number, value: number){
+      this.opened[index].scrollPosition = value;
     },
 
     //
@@ -129,8 +136,9 @@ export const useStore = defineStore('main', {
           this.initialSetup = false;
 
           if (this.settings && this.settings.lastOpened.length) {
-            this.opened = this.settings.lastOpened;
+            this.opened = _cloneDeep(this.settings.lastOpened);
             this.activeOpenedIndex = this.settings.lastActiveIndex;
+            this.syncOpened();
           }
         } catch (e) {
           console.log('e', e);

@@ -35,6 +35,7 @@ export type IOpenedPath = {
   thing: string;
   settings: IViewSettings;
   recursive?: boolean;
+  scrollPosition: number;
 };
 
 export type IOpenedTag = {
@@ -42,18 +43,21 @@ export type IOpenedTag = {
   // Tag name
   thing: string;
   settings: IViewSettings;
+  scrollPosition: number;
 };
 
 export type IOpenedFile = {
   type: 'file';
   // Path
   thing: string;
+  scrollPosition: number;
 };
 
 export type IOpenedNewFile = {
   type: 'newFile';
   // Path to be saved at
   thing: string;
+  scrollPosition: number;
 };
 
 export type IOpened = IOpenedTag | IOpenedPath | IOpenedFile | IOpenedNewFile;

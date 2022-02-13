@@ -72,17 +72,7 @@ onMounted(async () => {
   watch(
     () => store.settings,
     () => {
-      console.log('settings change');
       store.saveSettings();
-    },
-    { deep: true },
-  );
-
-  watch(
-    () => store.opened,
-    () => {
-      console.log('opened change');
-      store.syncOpened();
     },
     { deep: true },
   );

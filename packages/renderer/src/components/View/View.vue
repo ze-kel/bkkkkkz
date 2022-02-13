@@ -4,11 +4,11 @@
       <div
         v-for="(item, index) in store.opened"
         :key="index"
-        class="px-2 py-1 max-w-[200px] flex items-center cursor-pointer transition-colors border-transparent hover:bg-neutral-200 dark:hover:bg-neutral-700"
+        class="px-2 py-1 max-w-[200px] flex items-center transition-colors border-transparent"
         :class="
-          index === store.activeOpenedIndex && [
-            'bg-neutral-50 dark:bg-neutral-900 text-neutral-900 dark:text-neutral-50',
-          ]
+          index === store.activeOpenedIndex
+            ? 'bg-neutral-50 dark:bg-neutral-900 text-neutral-900 dark:text-neutral-50'
+            : 'hover:bg-neutral-200 dark:hover:bg-neutral-700 cursor-pointer'
         "
         @click="store.setOpenedIndex(index)"
       >
@@ -44,18 +44,18 @@
         @dragover.prevent
       ></div>
     </div>
-    <template v-if="opened && store.activeOpenedIndex !== null">
-      <template v-for="(item, index) in store.opened" :key="item.thing">
-        <div v-show="index === store.activeOpenedIndex" class="w-full h-[calc(100%_-_32px)]">
-          <Editor
-            v-if="item.type === 'file' || item.type === 'newFile'"
-            :opened="item"
-            :index="store.activeOpenedIndex"
-          />
-          <BookView v-else :opened="item" :index="store.activeOpenedIndex" />
-        </div>
-      </template>
-    </template>
+    <div
+      v-if="opened && store.activeOpenedIndex !== null"
+      :key="opened.thing + store.activeOpenedIndex"
+      class="w-full h-[calc(100%_-_32px)]"
+    >
+      <Editor
+        v-if="opened.type === 'file' || opened.type === 'newFile'"
+        :opened="opened"
+        :index="store.activeOpenedIndex"
+      />
+      <BookView v-else :opened="opened" :index="store.activeOpenedIndex" />
+    </div>
   </div>
 </template>
 

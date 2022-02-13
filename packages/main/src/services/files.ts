@@ -61,7 +61,8 @@ const getFileContent = async (filePath: string): Promise<ISavedFile> => {
     throw new Error('No such file');
   }
 
-  return makeBookFile(filePath, path.basename(filePath));
+  const result = makeBookFile(filePath, path.basename(filePath));
+  return result;
 };
 
 const loadFilesFromFolder = async (basePath: string, recursive: boolean): Promise<IFiles> => {
@@ -84,12 +85,13 @@ const loadFilesFromFolder = async (basePath: string, recursive: boolean): Promis
         }
         return;
       } else {
-        const fileContent = await getFileContent(fullPath);
-        result[fullPath] = fileContent;
+        if (path.extname(fullPath) === '.md') {
+          const fileContent = await getFileContent(fullPath);
+          result[fullPath] = fileContent;
+        }
       }
     }),
   );
-
   return result;
 };
 

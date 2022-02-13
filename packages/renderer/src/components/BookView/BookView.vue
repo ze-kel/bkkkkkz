@@ -74,7 +74,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, watch, watchEffect } from 'vue';
+import { computed, onMounted, onUnmounted, ref, watch, watchEffect, nextTick } from 'vue';
 import Fuse from 'fuse.js';
 import { useElectron } from '/@/use/electron';
 import { useStore } from '/@/use/store';
@@ -84,17 +84,17 @@ import _debounce from 'lodash-es/debounce';
 import _cloneDeep from 'lodash-es/cloneDeep';
 import getSortFunction from './getSortFunction';
 import { groupItems } from './groupItems';
+import ElObserver from './elementObserver';
 
 import BookItem from './BookItem.vue';
 import DragDisplay from '../_UI/DragDisplay.vue';
 import Rating from '../Rating/Rating.vue';
+import ViewConrols from './ViewConrols.vue';
 
 import type { IFile, IFiles } from '/@main/services/files';
 import type { PropType } from 'vue';
 import type { IOpenedTag, IOpenedPath, IOpenedFile } from '/@main/services/watcher';
 import type { ContextMenu } from '/@/use/contextMenu';
-import ViewConrols from './ViewConrols.vue';
-import ElObserver from './elementObserver';
 
 const api = useElectron();
 
@@ -114,14 +114,17 @@ const props = defineProps({
   },
 });
 
-watchEffect(async () => {
+const loadContent = async () => {
   if (props.opened.type === 'folder') {
     files.value = await api.files.loadFilesFromFolder(props.opened.thing, props.opened.recursive);
   }
   if (props.opened.type === 'tag') {
     files.value = await api.files.loadFilesFromTag(props.opened.thing);
   }
-});
+  nextTick(setScrollPositionFromSaved);
+};
+
+loadContent();
 
 //
 // Update event handling
@@ -255,6 +258,36 @@ let elementObserver = ref<ElObserver>();
 onMounted(() => {
   if (!scrollRoot.value) return;
   elementObserver.value = new ElObserver(scrollRoot.value);
+});
+
+onUnmounted(() => {
+  if (!scrollRoot.value) return;
+  elementObserver.value?.destroy(scrollRoot.value);
+});
+
+//
+// Scroll position
+//
+
+const setScrollPositionFromSaved = () => {
+  if (!scrollRoot.value) return;
+  console.timeEnd('LOAD');
+  scrollRoot.value.scrollTop = props.opened.scrollPosition;
+};
+
+const saveScrollPos = () => {
+  if (!scrollRoot.value) return;
+  store.saveScrollPosition(props.index, scrollRoot.value.scrollTop);
+};
+
+onMounted(() => {
+  if (!scrollRoot.value) return;
+  scrollRoot.value.addEventListener('scroll', saveScrollPos);
+});
+
+onUnmounted(() => {
+  if (!scrollRoot.value) return;
+  scrollRoot.value.removeEventListener('scroll', saveScrollPos);
 });
 </script>
 

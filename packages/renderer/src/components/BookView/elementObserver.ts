@@ -34,6 +34,10 @@ class ElObserver {
     });
     this.callbacks = {};
   }
+
+  destroy(element: Element) {
+    this.observer.unobserve(element);
+  }
 }
 
 export default ElObserver;
