@@ -77,7 +77,6 @@ const props = defineProps({
 });
 
 const openFullEditor = (newTab: boolean, openImmediatelly = true) => {
-  const newOpened: IOpenedFile = { type: 'file', thing: props.currentFile.path };
   if (newTab) {
     store.addOpened('file', props.currentFile.path, openImmediatelly);
   } else {
