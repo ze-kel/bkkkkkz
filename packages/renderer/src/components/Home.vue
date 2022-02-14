@@ -11,16 +11,15 @@
       v-if="store.initialized"
       class="h-full max-h-full flex overflow-hidden bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-50"
     >
-      <div
-        class="flex-auto px-2 overflow-y-auto overflow-x-hidden"
-        :style="{ width: `${fileTreeSize}px` }"
-      >
+      <div class="flex-auto px-2 box-border" :style="{ width: `${fileTreeSize}px` }">
         <IconsMenu />
 
-        <FileTree />
+        <div class="overflow-y-auto overflow-x-hidden">
+          <FileTree />
 
-        <hr class="hr-default my-3" />
-        <TagsTree />
+          <hr class="hr-default my-3" />
+          <TagsTree />
+        </div>
       </div>
 
       <div

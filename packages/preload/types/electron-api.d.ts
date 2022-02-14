@@ -24,7 +24,7 @@ interface ElectronApi {
     removeCoverFile: (path: string) => Promise<void>;
     setCover: (path: string) => Promise<void>;
 
-    createFolder: (path: string, name: string) => Promise<void>;
+    createFolder: (path: string, name: string) => Promise<string>;
 
     move: (srcPath: string, targetPath: string) => Promise<string>;
     rename: (srcPath: string, newName: string) => Promise<string>;

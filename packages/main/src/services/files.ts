@@ -211,7 +211,9 @@ const setCover = async (filePath: string) => {
 };
 
 const createFolder = (pathForFolder: string, name: string) => {
+  const newPath = path.join(pathForFolder, name);
   fs.mkdirSync(path.join(pathForFolder, name));
+  return newPath;
 };
 
 export default {

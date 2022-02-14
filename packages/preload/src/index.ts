@@ -41,7 +41,8 @@ const api: ElectronApi = {
     },
 
     createFolder: async (path, name) => {
-      await ipcRenderer.invoke('createFolder', path, name);
+      const result = await ipcRenderer.invoke('createFolder', path, name);
+      return result;
     },
 
     move: async (srcPath, targetPath) => {

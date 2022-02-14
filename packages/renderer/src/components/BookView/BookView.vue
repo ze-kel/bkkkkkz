@@ -271,7 +271,6 @@ onUnmounted(() => {
 
 const setScrollPositionFromSaved = () => {
   if (!scrollRoot.value) return;
-  console.timeEnd('LOAD');
   scrollRoot.value.scrollTop = props.opened.scrollPosition;
 };
 

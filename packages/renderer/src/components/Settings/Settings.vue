@@ -20,11 +20,20 @@
 
     <div class="my-2">
       <h2 class="font-semibold mb-1">Import Goodread .csv</h2>
-      <button class="basic-button" @click="importGoodreads">Select</button>
-      <p class="text-xs max-w-xs my-1">
-        Note: due to GoodReads export limitation only one read date will be imported and only
-        containing finish date.
-      </p>
+
+      <button class="basic-button" @click="importGoodreadsCsv">Select</button>
+      <div class="text-xs max-w-xs my-1">
+        <p class="text-xs">You can export csv at https://www.goodreads.com/dsar/user</p>
+        <p class="my-1">
+          Due to GoodReads export limitation only one read date will be imported and only containing
+          finish date.
+        </p>
+      </div>
+    </div>
+
+    <div>
+      <h2 class="font-semibold mb-1">Import Goodread .html</h2>
+      <input type="file" @change="importGoodReadsHTML" />
     </div>
   </div>
 </template>
@@ -35,6 +44,7 @@ import { useElectron } from '/@/use/electron';
 import PathControllerVue from './PathController.vue';
 import ButtonsSwitch from '/@/components/_UI/ButtonsSwitch.vue';
 import { useStore } from '/@/use/store';
+import { parseBook } from '/@/utils/goodreadsHTMLParser';
 
 import type { ILocalSettings } from '/@main/services/settings';
 
@@ -46,11 +56,28 @@ const changeRootPath = async () => {
   const result = await api.settings.newRootPath();
 };
 
-const importGoodreads = () => api.parsers.parseGoodreadsCsv();
+const importGoodreadsCsv = () => api.parsers.parseGoodreadsCsv();
 
-const setDarkMode = (val: -1 | 0 | 1) => {
-  if (!store.settings) return;
-  store.settings.darkMode = val;
+const importGoodReadsHTML = (event: any) => {
+  if (event.target.files === null) {
+    return;
+  }
+  const fr = new FileReader();
+  var parser = new DOMParser();
+  fr.readAsText(event.target.files[0]);
+  fr.onload = async function () {
+    if (typeof fr.result === 'string') {
+      const html = parser.parseFromString(fr.result, 'text/html');
+      const books = html.getElementById('booksBody')?.children;
+      console.log('books', books);
+      if (!books) return;
+      console.log(`found ${books} books`);
+
+      for (const book of books) {
+        parseBook(book);
+      }
+    }
+  };
 };
 </script>
 
