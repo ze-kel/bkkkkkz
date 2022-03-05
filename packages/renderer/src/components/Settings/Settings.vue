@@ -44,7 +44,7 @@ import { useElectron } from '/@/use/electron';
 import PathControllerVue from './PathController.vue';
 import ButtonsSwitch from '/@/components/_UI/ButtonsSwitch.vue';
 import { useStore } from '/@/use/store';
-import { parseBook } from '/@/utils/goodreadsHTMLParser';
+import { importGoodReadsHTML } from '/@/utils/goodreadsHTMLParser';
 
 import type { ILocalSettings } from '/@main/services/settings';
 
@@ -57,28 +57,6 @@ const changeRootPath = async () => {
 };
 
 const importGoodreadsCsv = () => api.parsers.parseGoodreadsCsv();
-
-const importGoodReadsHTML = (event: any) => {
-  if (event.target.files === null) {
-    return;
-  }
-  const fr = new FileReader();
-  var parser = new DOMParser();
-  fr.readAsText(event.target.files[0]);
-  fr.onload = async function () {
-    if (typeof fr.result === 'string') {
-      const html = parser.parseFromString(fr.result, 'text/html');
-      const books = html.getElementById('booksBody')?.children;
-      console.log('books', books);
-      if (!books) return;
-      console.log(`found ${books} books`);
-
-      for (const book of books) {
-        parseBook(book);
-      }
-    }
-  };
-};
 </script>
 
 <style scoped></style>

@@ -64,6 +64,9 @@ const handles: IHandles = {
 
   createFolder: callWithoutEvent(FileService.createFolder),
 
+  saveNewFile: callWithoutEvent(FileService.saveNewFile),
+  saveNewFiles: callWithoutEvent(FileService.saveNewFiles),
+
   ///
   /// Core
   ///

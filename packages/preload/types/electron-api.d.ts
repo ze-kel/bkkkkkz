@@ -1,4 +1,10 @@
-import type { IFolder, ILoadedFile, ILoadedFiles } from '/@main/services/files';
+import type {
+  IFolder,
+  ILoadedFile,
+  ILoadedFiles,
+  ISavedFile,
+  IUnsavedFile,
+} from '/@main/services/files';
 import type { ILocalSettings } from '/@main/services/localSettings';
 import type { IOpened } from '/@main/services/watcher';
 
@@ -31,6 +37,9 @@ interface ElectronApi {
     delete: (path: string) => void;
 
     getTags: () => Promise<ITags>;
+
+    saveNewFile: (basePath: string, newFile: IUnsavedFile) => Promise<ISavedFile>;
+    saveNewFiles: (basePath: string, newFiles: IUnsavedFile[]) => Promise<void>;
   };
   subscriptions: {
     TREE_UPDATE: (callback: I_TREE_UPDATE) => () => void;

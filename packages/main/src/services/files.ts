@@ -20,12 +20,13 @@ export type IFolderTree = {
 
 export interface IUnsavedFile extends IBookData {
   content?: string;
-  name: string;
+  name?: string;
   unsaved: true;
 }
 
 export interface ISavedFile extends Omit<IUnsavedFile, 'unsaved'> {
   path: string;
+  name: string;
 }
 
 export type IFile = ISavedFile;
@@ -115,15 +116,26 @@ const saveFileContent = async (file: ISavedFile): Promise<void> => {
   await fs.writeFile(file.path, encoded);
 };
 
-const saveNewFile = async (basePath: string, file: IUnsavedFile): Promise<void> => {
-  const baseName = `${file.author ? file.author : 'unknown'} — ${
-    file.title ? file.title.split(':')[0] : 'unknown'
-  }.md`.replace(FILENAME_REGEX, '');
-  let newName = baseName;
+const saveNewFile = async (basePath: string, file: IUnsavedFile): Promise<ISavedFile> => {
+  let newName;
+
+  if (file.name) {
+    newName = file.name;
+    if (!path.extname(newName)) {
+      newName += '.md';
+    }
+  } else {
+    newName = `${file.author ? file.author : 'unknown'} — ${
+      file.title ? file.title.split(':')[0] : 'unknown'
+    }.md`;
+  }
+
+  newName = newName.replace(FILENAME_REGEX, '');
+
   let uniquenessNumber = 2;
 
   while (fs.existsSync(path.join(basePath, newName))) {
-    newName = `${baseName} (${uniquenessNumber})`;
+    newName = `${newName} (${uniquenessNumber})`;
     uniquenessNumber++;
   }
 
@@ -131,10 +143,17 @@ const saveNewFile = async (basePath: string, file: IUnsavedFile): Promise<void> 
     ...file,
     name: newName,
     path: path.join(basePath, newName),
-    content: '',
   };
 
   await saveFileContent(fileToSave);
+
+  return fileToSave;
+};
+
+const saveNewFiles = async (basePath: string, files: IUnsavedFile[]): Promise<void> => {
+  console.log('SAVING files', files.length);
+
+  await Promise.all(files.map((file) => saveNewFile(basePath, file)));
 };
 
 const moveToFolder = async (moveItemPath: string, toFolderPath: string): Promise<string> => {
@@ -223,6 +242,7 @@ export default {
   loadFilesFromTag,
   saveFileContent,
   saveNewFile,
+  saveNewFiles,
   remove,
   moveToFolder,
   rename,

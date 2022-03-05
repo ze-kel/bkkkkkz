@@ -167,13 +167,9 @@ watchEffect(async () => {
 
 const manualSave = async () => {
   if ('unsaved' in file.value) {
-    const { unsaved, ...restProps } = file.value;
-    const toBeSaved: ISavedFile = {
-      ...restProps,
-      path: props.opened.thing + '/' + file.value.name,
-    };
-    await api.files.saveFileContent(_cloneDeep(toBeSaved));
-    store.updateOpened(props.index, 'file', toBeSaved.path);
+    const saved = await api.files.saveNewFile(props.opened.thing, _cloneDeep(file.value));
+    file.value = saved;
+    store.updateOpened(props.index, 'file', saved.path);
     autoSave.value = true;
   } else {
     save(file.value);
@@ -200,7 +196,7 @@ watch(
 
     // Can't check against oldFile because after mutation it will be the same
     // OldFile is still useful to eliminate initial load case
-    if (newFile.name !== previousName.value) {
+    if (newFile.name && newFile.name !== previousName.value) {
       debouncedRename(newFile.name);
     } else {
       debouncedSave(newFile);
@@ -242,7 +238,7 @@ onUnmounted(() => {
 const dragging = ref('');
 const forDrag = ref();
 const startDrag = (devt: DragEvent) => {
-  if (devt.dataTransfer === null || !file.value || 'unsaved' in file.value) {
+  if (devt.dataTransfer === null || !file.value || 'unsaved' in file.value || !file.value.name) {
     return;
   }
 

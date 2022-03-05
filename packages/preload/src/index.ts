@@ -61,6 +61,15 @@ const api: ElectronApi = {
       const result = await ipcRenderer.invoke('getTags');
       return result;
     },
+
+    saveNewFile: async (basePath, file) => {
+      const result = await ipcRenderer.invoke('saveNewFile', basePath, file);
+      return result;
+    },
+    saveNewFiles: async (basePath, files) => {
+      const result = await ipcRenderer.invoke('saveNewFiles', basePath, files);
+      return result;
+    },
   },
   subscriptions: {
     TREE_UPDATE: (callback) => {
