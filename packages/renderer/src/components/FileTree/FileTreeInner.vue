@@ -1,75 +1,82 @@
 <template>
-  <div class="mt-[1px]">
+  <div
+    v-test-class="'T-file-tree-item'"
+    class="mt-[1px] px-2 py-0.5 border"
+    :class="[nodeClasses, extraClasses]"
+    :draggable="!isRoot"
+    @dragstart="startDrag($event, content.path)"
+    @drop="onDrop($event, content.path)"
+    @dragenter="dragEnter"
+    @dragleave="dragLeave"
+    @dragover.prevent
+    @click.exact="makeNewOpenedAndSelect(false)"
+    @click.alt.exact="makeNewOpenedAndSelect(true)"
+    @click.middle.exact="makeNewOpenedAndSelect(true, true)"
+    @click.right.exact="openContextMenu"
+  >
     <div
-      class="px-2 py-0.5 border"
-      :class="[nodeClasses, extraClasses]"
-      :draggable="!isRoot"
-      @dragstart="startDrag($event, content.path)"
-      @drop="onDrop($event, content.path)"
-      @dragenter="dragEnter"
-      @dragleave="dragLeave"
-      @dragover.prevent
-      @click.exact="makeNewOpenedAndSelect(false)"
-      @click.alt.exact="makeNewOpenedAndSelect(true)"
-      @click.middle.exact="makeNewOpenedAndSelect(true, true)"
-      @click.right.exact="openContextMenu"
+      v-if="foldable"
+      @click="
+        () => {
+          isFolded = !isFolded;
+        }
+      "
     >
-      <div
-        v-if="foldable"
-        @click="
-          () => {
-            isFolded = !isFolded;
-          }
-        "
+      <svg
+        icon="angle-down"
+        :class="[
+          isFolded && '-rotate-90',
+          isOpened
+            ? 'fill-neutral-100 dark:fill-neutral-100'
+            : 'fill-neutral-300 dark:fill-neutral-600',
+        ]"
+        class="pointer-events-none"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
       >
-        <svg
-          icon="angle-down"
-          :class="[
-            isFolded && '-rotate-90',
-            isOpened
-              ? 'fill-neutral-100 dark:fill-neutral-100'
-              : 'fill-neutral-300 dark:fill-neutral-600',
-          ]"
-          class="pointer-events-none"
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-        >
-          <path d="M12 14.5L17 9.5H7L12 14.5Z" />
-        </svg>
-      </div>
-      <template v-if="isRoot">
-        <span class="pointer-events-none font-bold">All Books</span></template
-      >
-      <template v-else>
-        <span v-if="!isRenaming" class="pointer-events-none truncate">{{ content.name }}</span>
-        <input
-          v-else
-          ref="inputName"
-          v-model="newName"
-          :class="[nodeClasses, extraClasses, !isOpened && 'bg-transparent', 'border-neutral-500']"
-          @blur="saveName"
-          @keyup.enter="removeFocus"
-        />
-      </template>
+        <path d="M12 14.5L17 9.5H7L12 14.5Z" />
+      </svg>
     </div>
-    <div v-if="!isFolded || isCreating" :class="(foldable || isCreating) && 'pl-2'">
-      <FileTreeInner
-        v-for="item in content.content"
-        :key="item.path"
-        :content="item"
-        :depth="depth + 10"
+    <template v-if="isRoot">
+      <span v-test-class="'T-file-tree-label'" class="pointer-events-none font-bold">
+        All Books
+      </span>
+    </template>
+    <template v-else>
+      <span
+        v-if="!isRenaming"
+        v-test-class="'T-file-tree-label'"
+        class="pointer-events-none truncate"
+      >
+        {{ content.name }}
+      </span>
+      <input
+        v-else
+        ref="inputName"
+        v-model="newName"
+        :class="[nodeClasses, extraClasses, !isOpened && 'bg-transparent', 'border-neutral-500']"
+        @blur="saveName"
+        @keyup.enter="removeFocus"
       />
-      <div v-if="isCreating" class="px-2 py-0.5 border mt-[1px]" :class="[nodeClasses]">
-        <input
-          ref="inputName"
-          v-model="newName"
-          :class="nodeClasses"
-          class="bg-transparent"
-          @blur="saveFolder"
-          @keyup.enter="removeFocus"
-        />
-      </div>
+    </template>
+  </div>
+  <div v-if="!isFolded || isCreating" :class="(foldable || isCreating) && 'pl-2'">
+    <FileTreeInner
+      v-for="item in content.content"
+      :key="item.path"
+      :content="item"
+      :depth="depth + 10"
+    />
+    <div v-if="isCreating" class="px-2 py-0.5 border mt-[1px]" :class="[nodeClasses]">
+      <input
+        ref="inputName"
+        v-model="newName"
+        :class="nodeClasses"
+        class="bg-transparent"
+        @blur="saveFolder"
+        @keyup.enter="removeFocus"
+      />
     </div>
   </div>
 </template>

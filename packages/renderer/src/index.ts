@@ -1,9 +1,11 @@
 import { createApp } from 'vue';
 import App from './components/App.vue';
-import router from '/@/router';
 import VCalendar from 'v-calendar';
 import { createPinia } from 'pinia';
+import registerTestClassDirective from './utils/testClassDirective';
 
 import '/@/styles/Global.css';
 
-createApp(App).use(router).use(createPinia()).use(VCalendar, {}).mount('#app');
+const app = createApp(App).use(createPinia()).use(VCalendar, {});
+registerTestClassDirective(app);
+app.mount('#app');

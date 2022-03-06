@@ -80,6 +80,10 @@ const handles: IHandles = {
       return false;
     }
   },
+  isTest: () => {
+    return process.env['TEST_MODE'] === 'true';
+  },
+
   newRootPath: Setting.setRootPath,
   ///
   /// Settings

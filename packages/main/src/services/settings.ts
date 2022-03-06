@@ -75,6 +75,9 @@ const globalStore: IStore = new Store();
 let localStore: IStore<ILocalSettings> | undefined;
 
 const getRootPath = (): string | null => {
+  if (process.env['FORCE_ROOT_PATH']) {
+    return process.env['FORCE_ROOT_PATH'];
+  }
   const data = globalStore.get('rootPath');
   if (data && typeof data === 'string' && fs.existsSync(data)) {
     return data;
@@ -83,13 +86,13 @@ const getRootPath = (): string | null => {
 };
 
 const getRootPathSafe = (): string => {
-  const data = globalStore.get('rootPath');
-  if (data && typeof data === 'string' && fs.existsSync(data)) {
-    return data;
-  }
+  const path = getRootPath();
 
-  // eslint-disable-next-line quotes
-  throw "Trying to do operation that requires root path, but it isn't set yet";
+  if (path === null) {
+    // eslint-disable-next-line quotes
+    throw "Trying to do operation that requires root path, but it isn't set yet";
+  }
+  return path;
 };
 
 const setRootPath = async () => {

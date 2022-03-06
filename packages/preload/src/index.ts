@@ -121,6 +121,10 @@ const api: ElectronApi = {
       const result = await ipcRenderer.invoke('init');
       return result;
     },
+    isTest: async () => {
+      const result = await ipcRenderer.invoke('isTest');
+      return result;
+    },
   },
   settings: {
     newRootPath: async () => {

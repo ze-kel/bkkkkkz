@@ -52,6 +52,7 @@ interface ElectronApi {
 
   core: {
     init: () => Promise<boolean>;
+    isTest: () => Promise<boolean>;
   };
   settings: {
     newRootPath: () => Promise<boolean>;
