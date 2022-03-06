@@ -33,13 +33,14 @@
 
     <div>
       <h2 class="font-semibold mb-1">Import Goodread .html</h2>
-      <input type="file" @change="importGoodReadsHTML" />
+      <input ref="importHTMLButton" type="file" class="hidden" @change="importGoodReadsHTML" />
+      <button class="basic-button" @click="importHTML">Select</button>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useElectron } from '/@/use/electron';
 import PathControllerVue from './PathController.vue';
 import ButtonsSwitch from '/@/components/_UI/ButtonsSwitch.vue';
@@ -57,6 +58,12 @@ const changeRootPath = async () => {
 };
 
 const importGoodreadsCsv = () => api.parsers.parseGoodreadsCsv();
+
+const importHTMLButton = ref<HTMLElement>();
+
+const importHTML = () => {
+  if (importHTMLButton.value) importHTMLButton.value.click();
+};
 </script>
 
 <style scoped></style>

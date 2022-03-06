@@ -64,9 +64,9 @@
 </template>
 
 <script lang="ts" setup>
-import { defineEmits, computed, onUnmounted, onUpdated } from 'vue';
+import { onUnmounted } from 'vue';
 import { useStore } from '/@/use/store';
-import type { IViewSettings, ISortByOption, IViewStyle } from '/@main/services/watcher';
+import type { ISortByOption } from '/@main/services/watcher';
 import ButtonsSwitch from '../_UI/ButtonsSwitch.vue';
 
 const store = useStore();
@@ -103,6 +103,6 @@ onUnmounted(() => {
 
 const addBook = () => {
   if (!store.openedItem) return;
-  store.addOpened('newFile', store.openedItem.thing);
+  store.openNewOne({ type: 'newFile', thing: store.openedItem.thing, scrollPosition: 0 });
 };
 </script>

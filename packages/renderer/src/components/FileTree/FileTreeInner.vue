@@ -9,9 +9,9 @@
       @dragenter="dragEnter"
       @dragleave="dragLeave"
       @dragover.prevent
-      @click.exact="makeNewOpenedAndSelect(false, false)"
-      @click.alt.exact="makeNewOpenedAndSelect(false, true)"
-      @click.middle.exact="makeNewOpenedAndSelect(false, true, false)"
+      @click.exact="makeNewOpenedAndSelect(false)"
+      @click.alt.exact="makeNewOpenedAndSelect(true)"
+      @click.middle.exact="makeNewOpenedAndSelect(true, true)"
       @click.right.exact="openContextMenu"
     >
       <div
@@ -76,7 +76,6 @@
 
 <script setup lang="ts">
 import { computed, onUpdated, ref, watchEffect } from 'vue';
-import { getDefaultViewSettings } from '/@/utils/getDefaultViewSettings';
 import { useElectron } from '/@/use/electron';
 import { openMenu } from '/@/use/contextMenu';
 import { useStore } from '/@/use/store';
@@ -86,6 +85,8 @@ import type { PropType } from 'vue';
 import type { IFolderTree } from '/@main/services/files';
 import type { IOpenedPath, IViewSettings } from '/@main/services/watcher';
 import type { ContextMenu } from '/@/use/contextMenu';
+import type { OpenNewOneParams } from '/@/use/store';
+import { getDefaultViewSettings } from '/@/utils/getDefaultViewSettings';
 
 const api = useElectron();
 const store = useStore();
@@ -111,16 +112,23 @@ const isOpened = computed(() => {
 
 const foldable = computed(() => Object.keys(props.content.content).length > 0 && !isRoot);
 
-const makeNewOpenedAndSelect = (recursive: boolean, newTab: boolean, openImmediatelly = true) => {
-  if (isRoot) {
-    recursive = true;
-  }
+const makeNewOpenedAndSelect = (newTab: boolean, doNotFocus = false) => {
+  const params: OpenNewOneParams = {
+    doNotFocus,
+  };
 
-  if (newTab || store.activeOpenedIndex < 0 || !openImmediatelly) {
-    store.addOpened('folder', props.content.path, openImmediatelly, recursive);
-  } else {
-    store.updateOpened(store.activeOpenedIndex, 'folder', props.content.path, recursive);
-  }
+  if (!newTab) params.index = 'current';
+
+  store.openNewOne(
+    {
+      type: 'folder',
+      thing: props.content.path,
+      scrollPosition: 0,
+      settings: getDefaultViewSettings(),
+      recursive: isRoot,
+    },
+    params,
+  );
 };
 
 ///
@@ -161,7 +169,10 @@ const onDrop = async (e: DragEvent, targetPath: string) => {
     const newPath = await api.files.move(draggedPath, targetPath);
 
     indexes.forEach((index) => {
-      store.updateOpened(index, store.opened[index].type, newPath);
+      const before = store.opened[index];
+      if (before.type === 'file' || before.type === 'folder') {
+        store.openNewOne({ ...before, thing: newPath }, { index });
+      }
     });
   }
 };
@@ -218,11 +229,11 @@ const saveName = async () => {
 
     store.opened.forEach((item, index) => {
       if (item.type === 'folder' && item.thing === oldPath) {
-        store.updateOpened(index, item.type, newPath);
+        store.openNewOne({ ...item, thing: newPath }, { index });
       }
 
       if (item.type === 'file' && item.thing.includes(oldPath)) {
-        store.updateOpened(index, item.type, item.thing.replace(oldPath, newPath));
+        store.openNewOne({ ...item, thing: item.thing.replace(oldPath, newPath) }, { index });
       }
     });
   }
@@ -301,7 +312,7 @@ const extraClasses = computed(() => {
   if (isOpened.value) {
     base.push('bg-indigo-600', 'text-neutral-50', 'hover:bg-indigo-800');
   } else {
-    base.push('hover:text-neutral-600');
+    base.push('hover:text-neutral-600 dark:hover:text-neutral-400');
   }
 
   if (canDropHere.value) {

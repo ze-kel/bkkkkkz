@@ -127,7 +127,6 @@ import type { IFile, ISavedFile, IUnsavedFile } from '/@main/services/files';
 import type { IOpenedFile, IOpenedNewFile } from '/@main/services/watcher';
 import type { ContextMenu } from '/@/use/contextMenu';
 import { ISBN10to13 } from '/@main/helpers/utils';
-import { stringify } from 'querystring';
 
 const api = useElectron();
 const store = useStore();
@@ -169,7 +168,11 @@ const manualSave = async () => {
   if ('unsaved' in file.value) {
     const saved = await api.files.saveNewFile(props.opened.thing, _cloneDeep(file.value));
     file.value = saved;
-    store.updateOpened(props.index, 'file', saved.path);
+    store.openNewOne(
+      {  ...props.opened, thing: saved.path },
+      { index: props.index },
+    );
+
     autoSave.value = true;
   } else {
     save(file.value);
@@ -182,8 +185,8 @@ const save = (file: ISavedFile) => {
 
 const rename = async (newName: string) => {
   if (!file.value || 'unsaved' in file.value) return;
-  const newPath = await api.files.rename(file.value?.path, newName);
-  store.updateOpened(props.index, 'file', newPath);
+  const newPath = await api.files.rename(file.value.path, newName);
+  store.openNewOne({ ...props.opened, thing: newPath,  }, { index: props.index });
 };
 
 const debouncedSave = _debounce(save, 500);

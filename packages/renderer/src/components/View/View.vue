@@ -49,12 +49,16 @@
       :key="opened.thing + store.activeOpenedIndex"
       class="w-full h-[calc(100%_-_32px)]"
     >
-      <Editor
-        v-if="opened.type === 'file' || opened.type === 'newFile'"
-        :opened="opened"
-        :index="store.activeOpenedIndex"
-      />
-      <BookView v-else :opened="opened" :index="store.activeOpenedIndex" />
+      <template v-if="opened.type === 'innerPage'">
+        <HomePage v-if="opened.thing === 'home'" />
+      </template>
+      <template v-else>
+        <Editor
+          v-if="opened.type === 'file' || opened.type === 'newFile'"
+          :opened="opened"
+          :index="store.activeOpenedIndex" />
+        <BookView v-else :opened="opened" :index="store.activeOpenedIndex"
+      /></template>
     </div>
   </div>
 </template>
@@ -65,6 +69,8 @@ import { computed, ref } from 'vue';
 import BookView from '/@/components/BookView/BookView.vue';
 import Editor from '../Editor/Editor.vue';
 import formatHeader from '/@/utils/formatHeader';
+import { getDefaultViewSettings } from '/@/utils/getDefaultViewSettings';
+import HomePage from '../HomePage/HomePage.vue';
 
 const store = useStore();
 
@@ -89,7 +95,6 @@ const dragLeave = (e: DragEvent) => {
 };
 
 const onDrop = (e: DragEvent) => {
-  console.log('droppd');
   canDropHere.value = false;
 
   const type = e.dataTransfer?.getData('type');
@@ -98,6 +103,11 @@ const onDrop = (e: DragEvent) => {
   if (type !== 'file' && type !== 'folder') return;
   if (!draggedPath) return;
 
-  store.addOpened(type, draggedPath);
+  store.openNewOne({
+    type,
+    thing: draggedPath,
+    scrollPosition: 0,
+    settings: getDefaultViewSettings(),
+  });
 };
 </script>

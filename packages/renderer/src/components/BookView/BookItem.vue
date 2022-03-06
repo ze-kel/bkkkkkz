@@ -6,8 +6,8 @@
         :file="currentFile"
         class="cursor-pointer transition-transform"
         @click.exact="openFullEditor(false)"
-        @click.middle.exact="openFullEditor(true, false)"
-        @click.alt="openFullEditor(true)"
+        @click.alt.exact="openFullEditor(true)"
+        @click.middle.exact="openFullEditor(true, true)"
       />
       <div
         v-else
@@ -18,7 +18,7 @@
       <div
         class="grid grid-cols-5 gap-5 cursor-pointer pl-1 transition-colors rounded-sm hover:bg-neutral-100 hover:dark:bg-neutral-800 py-1"
         @click.exact="openFullEditor(false)"
-        @click.middle.exact="openFullEditor(true, false)"
+        @click.middle.exact="openFullEditor(true, true)"
         @click.alt="openFullEditor(true)"
       >
         <div class="truncate">
@@ -47,15 +47,16 @@ import { computed, onMounted, ref } from 'vue';
 
 import _debounce from 'lodash-es/debounce';
 import { dateReducerAllYears } from './getDateReducer';
+import { useStore } from '/@/use/store';
 
 import Cover from '../Cover/Cover.vue';
-import { useStore } from '/@/use/store';
 import Rating from '../Rating/Rating.vue';
 
 import type { PropType } from 'vue';
 import type { IFile } from '/@main/services/files';
 import type { IOpenedFile, IViewSettings } from '/@main/services/watcher';
 import type ElObserver from './elementObserver';
+import type { OpenNewOneParams } from '/@/use/store';
 
 export type IBookStyle = 'CARDS' | 'LINES';
 
@@ -76,14 +77,14 @@ const props = defineProps({
   },
 });
 
-const openFullEditor = (newTab: boolean, openImmediatelly = true) => {
-  if (newTab) {
-    store.addOpened('file', props.currentFile.path, openImmediatelly);
-  } else {
-    console.log('updopened', store.activeOpenedIndex);
-    if (store.activeOpenedIndex < 0) return;
-    store.updateOpened(store.activeOpenedIndex, 'file', props.currentFile.path);
-  }
+const openFullEditor = (newTab: boolean, doNotFocus = false) => {
+  const params: OpenNewOneParams = {
+    doNotFocus,
+  };
+
+  if (!newTab) params.index = 'current';
+
+  store.openNewOne({ type: 'file', thing: props.currentFile.path, scrollPosition: 0 }, params);
 };
 
 const itemRef = ref<HTMLElement>();

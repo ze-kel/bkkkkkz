@@ -6,7 +6,7 @@
       :key="tag"
       :is-opened="openedTag === tag"
       :tag="tag"
-      @click="select(tag, false)"
+      @click.exact="select(tag, false)"
       @click.alt="select(tag, true)"
     />
   </div>
@@ -18,8 +18,9 @@ import { useElectron } from '/@/use/electron';
 import Tag from './TagFromTree.vue';
 import { useStore } from '/@/use/store';
 import _cloneDeep from 'lodash-es/cloneDeep';
-import type { IOpenedTag, IViewSettings } from '/@main/services/watcher';
 import { getDefaultViewSettings } from '/@/utils/getDefaultViewSettings';
+
+import type { OpenNewOneParams } from '/@/use/store';
 
 const api = useElectron();
 const store = useStore();
@@ -29,12 +30,19 @@ const openedTag = computed(() => {
   return store.openedItem.thing;
 });
 
-const select = (tag: string, newTab: boolean) => {
-  if (newTab || store.activeOpenedIndex < 0) {
-    store.addOpened('tag', tag);
-  } else {
-    store.updateOpened(store.activeOpenedIndex, 'tag', tag);
-  }
+const select = (tag: string, newTab: boolean, doNotFocus = false) => {
+  const params: OpenNewOneParams = { doNotFocus };
+  if (!newTab) params.index = 'current';
+
+  store.openNewOne(
+    {
+      type: 'tag',
+      thing: tag,
+      scrollPosition: 0,
+      settings: getDefaultViewSettings(),
+    },
+    params,
+  );
 };
 </script>
 

@@ -60,7 +60,13 @@ export type IOpenedNewFile = {
   scrollPosition: number;
 };
 
-export type IOpened = IOpenedTag | IOpenedPath | IOpenedFile | IOpenedNewFile;
+export type IOpenedInnerPage = {
+  type: 'innerPage';
+  thing: 'home' | 'settings';
+  scrollPosition: number;
+};
+
+export type IOpened = IOpenedTag | IOpenedPath | IOpenedFile | IOpenedNewFile | IOpenedInnerPage;
 
 type IWatcher = {
   watcher: FSWatcher | null;

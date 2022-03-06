@@ -1,6 +1,10 @@
 import { useStore } from '../use/store';
 import type { IOpened } from '/@main/services/watcher';
 
+const capitalize = (string: string) => {
+  return string.charAt(0).toUpperCase() + string.slice(1);
+};
+
 export default function formatHeader(opened: IOpened, rootPath: string) {
   if (!opened) return '';
   if (opened.type === 'folder') {
@@ -20,6 +24,10 @@ export default function formatHeader(opened: IOpened, rootPath: string) {
 
   if (opened.type === 'newFile') {
     return 'Unsaved File';
+  }
+
+  if (opened.type === 'innerPage') {
+    return capitalize(opened.thing);
   }
 
   return '';

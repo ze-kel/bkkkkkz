@@ -1,8 +1,8 @@
 import { createApp } from 'vue';
-import App from '/@/App.vue';
+import App from './components/App.vue';
 import router from '/@/router';
 import VCalendar from 'v-calendar';
-import { createPinia } from 'pinia'
+import { createPinia } from 'pinia';
 
 import '/@/styles/Global.css';
 

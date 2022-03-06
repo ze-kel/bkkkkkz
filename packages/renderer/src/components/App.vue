@@ -122,4 +122,13 @@ const darkModeClass = computed(() => {
 });
 </script>
 
-<style scoped></style>
+<style>
+#app {
+  font-family: BlinkMacSystemFont, 'SF PRO DISPLAY', 'Roboto', 'Segoe UI';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  background-color: var(--bg-main);
+  color: var(--text-main);
+}
+</style>

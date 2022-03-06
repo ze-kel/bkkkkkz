@@ -1,15 +1,13 @@
 import { defineStore, acceptHMRUpdate } from 'pinia';
 import { useElectron } from './electron';
-import { internalTagsList } from '/@main/services/tags';
 
 import _clamp from 'lodash-es/clamp';
 import _cloneDeep from 'lodash-es/cloneDeep';
 
 import type { IFolderTree } from '/@main/services/files';
 import type { ILocalSettings } from '/@main/services/settings';
-import type { IOpened, IViewSettings, IViewStyle } from '/@main/services/watcher';
+import type { IOpened } from '/@main/services/watcher';
 import type { ITags } from '/@main/services/tags';
-import { getDefaultViewSettings } from '../utils/getDefaultViewSettings';
 
 const api = useElectron();
 
@@ -21,6 +19,11 @@ export type StateType = {
   tagsInternal: ITags | null;
   opened: IOpened[];
   activeOpenedIndex: number;
+};
+
+export type OpenNewOneParams = {
+  index?: number | 'current';
+  doNotFocus?: boolean;
 };
 
 export const useStore = defineStore('main', {
@@ -55,56 +58,48 @@ export const useStore = defineStore('main', {
     //
     // Opened Tabs
     //
-    addOpened(type: IOpened['type'], thing: string, open = true, recursive?: boolean) {
-      if (type === 'folder' || type === 'tag') {
-        let settings: IViewSettings;
-        if (
-          this.openedItem &&
-          (this.openedItem.type === 'tag' || this.openedItem.type === 'folder')
-        ) {
-          settings = _cloneDeep(this.openedItem.settings);
+    openNewOne(item: IOpened, params: OpenNewOneParams = {}) {
+      let indexToSet: number;
+
+      if (params.index) {
+        if (params.index === 'current') {
+          indexToSet = this.activeOpenedIndex;
         } else {
-          settings = getDefaultViewSettings();
+          indexToSet = params.index;
         }
+      } else {
+        indexToSet = this.opened.length;
+      }
 
-        const newOne: IOpened = { type, thing, settings, scrollPosition: 0 };
+      // Inner pages can't be opened in two different tabs
+      if (item.type === 'innerPage') {
+        const existing = this.opened.findIndex(
+          (el) => el.type === item.type && el.thing === item.thing,
+        );
+        if (existing >= 0) indexToSet = existing;
+      }
 
-        if (newOne.type === 'folder') {
-          newOne.recursive = recursive;
+      indexToSet = _clamp(indexToSet, 0, this.opened.length);
+
+      this.opened[indexToSet] = item;
+
+      if (!params.doNotFocus) {
+        if (params.index) {
+          this.activeOpenedIndex = indexToSet;
+        } else {
+          this.activeOpenedIndex = this.opened.length - 1;
         }
-
-        this.opened.push(newOne);
-      } else {
-        const newOne: IOpened = { type, thing, scrollPosition: 0 };
-        this.opened.push(newOne);
       }
 
-      if (open) {
-        this.activeOpenedIndex = this.opened.length - 1;
-      }
-      this.syncOpened()
+      this.syncOpened();
     },
-    updateOpened(index: number, type: IOpened['type'], thing: string, recursive?: boolean) {
-      let newOne: IOpened;
-      if (type === 'folder' || type === 'tag') {
-        newOne = { type, thing, settings: getDefaultViewSettings(), scrollPosition: 0 };
-      } else {
-        newOne = { type, thing, scrollPosition: 0 };
-      }
 
-      if (newOne.type === 'folder') {
-        newOne.recursive = recursive;
-      }
-
-      this.opened[index] = newOne;
-      this.syncOpened()
-    },
     closeOpened(index: number) {
       this.opened.splice(index, 1);
       if (this.activeOpenedIndex !== null && this.activeOpenedIndex >= this.opened.length) {
         this.activeOpenedIndex = this.opened.length - 1;
       }
-      this.syncOpened()
+      this.syncOpened();
     },
     async syncOpened() {
       await api.files.syncOpened(_cloneDeep(this.opened), this.activeOpenedIndex);
@@ -115,7 +110,7 @@ export const useStore = defineStore('main', {
       this.activeOpenedIndex = _clamp(index, 0, this.opened.length - 1);
     },
 
-    saveScrollPosition(index: number, value: number){
+    saveScrollPosition(index: number, value: number) {
       this.opened[index].scrollPosition = value;
     },
 
