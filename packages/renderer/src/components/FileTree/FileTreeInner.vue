@@ -1,6 +1,6 @@
 <template>
   <div
-    v-test-class="'T-file-tree-item'"
+    v-test-class="['T-file-tree-item', isOpened && 'T-opened-folder']"
     class="mt-[1px] px-2 py-0.5 border"
     :class="[nodeClasses, extraClasses]"
     :draggable="!isRoot"
@@ -39,16 +39,10 @@
       </svg>
     </div>
     <template v-if="isRoot">
-      <span v-test-class="'T-file-tree-label'" class="pointer-events-none font-bold">
-        All Books
-      </span>
+      <span v-test-class="'T-label'" class="pointer-events-none font-bold"> All Books </span>
     </template>
     <template v-else>
-      <span
-        v-if="!isRenaming"
-        v-test-class="'T-file-tree-label'"
-        class="pointer-events-none truncate"
-      >
+      <span v-if="!isRenaming" v-test-class="'T-label'" class="pointer-events-none truncate">
         {{ content.name }}
       </span>
       <input

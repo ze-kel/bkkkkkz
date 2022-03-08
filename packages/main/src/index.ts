@@ -6,14 +6,13 @@ import initHandles from './ipc/ipcHandles';
 import WebContentsProxy from './ipc/webContents';
 import Files from './services/files';
 
+const isTestMode = process.env['TEST_MODE'] === 'true';
 const isSingleInstance = app.requestSingleInstanceLock();
 
-if (!isSingleInstance) {
+if (!isSingleInstance && !isTestMode) {
   app.quit();
   process.exit(0);
 }
-
-app.disableHardwareAcceleration();
 
 // Install "Vue.js devtools"
 if (import.meta.env.MODE === 'development') {

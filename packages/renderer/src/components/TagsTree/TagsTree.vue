@@ -4,6 +4,7 @@
     <Tag
       v-for="tag in store.tags"
       :key="tag"
+      v-test-class="['T-tag-tree-item', openedTag === tag && 'T-opened-tag']"
       :is-opened="openedTag === tag"
       :tag="tag"
       @click.exact="select(tag, false)"

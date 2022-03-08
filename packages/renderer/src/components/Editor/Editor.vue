@@ -8,6 +8,7 @@
         <div>
           <ContentEditable
             v-model="file.title"
+            v-test-class="'T-editor-title'"
             spellcheck="false"
             tag="div"
             class="text-2xl w-fit min-w-[100px] input-default"
@@ -16,6 +17,7 @@
           />
           <ContentEditable
             v-model="file.author"
+            v-test-class="'T-editor-author'"
             spellcheck="false"
             tag="div"
             class="text-xl w-fit min-w-[100px] input-default font-regular"
@@ -24,6 +26,7 @@
           />
           <ContentEditable
             v-model="file.year"
+            v-test-class="'T-editor-year'"
             :number="true"
             spellcheck="false"
             tag="div"
@@ -37,6 +40,7 @@
           <div class="flex group">
             <ContentEditable
               v-model="file.ISBN13"
+              v-test-class="'T-editor-isbn'"
               :number="true"
               spellcheck="false"
               tag="div"
@@ -62,6 +66,7 @@
             <div class="flex items-center">
               <ContentEditable
                 v-model="file.name"
+                v-test-class="'T-editor-filename'"
                 spellcheck="false"
                 tag="div"
                 class="text-xs w-fit min-w-[100px] input-default"
@@ -168,10 +173,7 @@ const manualSave = async () => {
   if ('unsaved' in file.value) {
     const saved = await api.files.saveNewFile(props.opened.thing, _cloneDeep(file.value));
     file.value = saved;
-    store.openNewOne(
-      {  ...props.opened, thing: saved.path },
-      { index: props.index },
-    );
+    store.openNewOne({ ...props.opened, thing: saved.path }, { index: props.index });
 
     autoSave.value = true;
   } else {
@@ -186,7 +188,7 @@ const save = (file: ISavedFile) => {
 const rename = async (newName: string) => {
   if (!file.value || 'unsaved' in file.value) return;
   const newPath = await api.files.rename(file.value.path, newName);
-  store.openNewOne({ ...props.opened, thing: newPath,  }, { index: props.index });
+  store.openNewOne({ ...props.opened, thing: newPath }, { index: props.index });
 };
 
 const debouncedSave = _debounce(save, 500);

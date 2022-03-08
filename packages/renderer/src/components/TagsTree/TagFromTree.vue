@@ -1,5 +1,5 @@
 <template>
-  <div class="px-2 py-0.5 border" :class="nodeClasses">#{{ tag }}</div>
+  <div v-test-class="'T-label'" class="px-2 py-0.5 border" :class="nodeClasses">#{{ tag }}</div>
 </template>
 
 <script lang="ts" setup>

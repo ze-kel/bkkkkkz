@@ -8,7 +8,7 @@
         No markdown content
       </div>
     </transition>
-    <div ref="editor" class="h-full"></div>
+    <div ref="editorRef" v-test-class="'T-editor-markdown'" class="h-full"></div>
   </div>
 </template>
 
@@ -26,6 +26,7 @@ import type { Ctx } from '@milkdown/core';
 import { commonmark } from '@milkdown/preset-commonmark';
 import { listener, listenerCtx } from '@milkdown/plugin-listener';
 import { getCurrentInstance, watch, ref, onMounted } from 'vue';
+import { log } from 'console';
 
 const internalInstance = getCurrentInstance();
 
@@ -78,9 +79,11 @@ const makeEditor = (element: HTMLElement) => {
 
 let editor: Editor;
 
-onMounted(async () => {
-  const el = internalInstance?.refs.editor as HTMLElement;
-  editor = await makeEditor(el);
+const editorRef = ref<HTMLElement>();
+
+watch(editorRef, async () => {
+  if (!editorRef.value) return;
+  editor = await makeEditor(editorRef.value);
   editor.create();
   contentCache = props.modelValue;
 });

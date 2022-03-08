@@ -1,14 +1,15 @@
 <template>
-  <div :id="currentFile.path" ref="itemRef">
+  <div
+    :id="currentFile.path"
+    ref="itemRef"
+    v-test-class="'T-book-item'"
+    class="cursor-pointer"
+    @click.exact="openFullEditor(false)"
+    @click.alt="openFullEditor(true)"
+    @click.middle.exact="openFullEditor(true, true)"
+  >
     <template v-if="settings.viewStyle === 'Covers'">
-      <Cover
-        v-if="inViewport"
-        :file="currentFile"
-        class="cursor-pointer transition-transform"
-        @click.exact="openFullEditor(false)"
-        @click.alt.exact="openFullEditor(true)"
-        @click.middle.exact="openFullEditor(true, true)"
-      />
+      <Cover v-if="inViewport" :file="currentFile" class="transition-transform" />
       <div
         v-else
         class="aspect-[6/8] min-w-[150px] bg-neutral-300 dark:bg-neutral-600 rounded"
@@ -17,9 +18,6 @@
     <template v-if="settings.viewStyle === 'Lines'">
       <div
         class="grid grid-cols-5 gap-5 cursor-pointer pl-1 transition-colors rounded-sm hover:bg-neutral-100 hover:dark:bg-neutral-800 py-1"
-        @click.exact="openFullEditor(false)"
-        @click.middle.exact="openFullEditor(true, true)"
-        @click.alt="openFullEditor(true)"
       >
         <div class="truncate">
           {{ onlyMainTitle }}

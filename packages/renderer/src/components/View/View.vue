@@ -4,6 +4,7 @@
       <div
         v-for="(item, index) in store.opened"
         :key="index"
+        v-test-class="['T-view-tab', index === store.activeOpenedIndex && 'T-view-tab-opened']"
         class="px-2 py-1 max-w-[200px] flex items-center transition-colors border-transparent"
         :class="
           index === store.activeOpenedIndex
@@ -12,7 +13,9 @@
         "
         @click="store.setOpenedIndex(index)"
       >
-        <div class="truncate">{{ formatHeader(item, store.settings.rootPath) }}</div>
+        <div v-test-class="'T-label'" class="truncate">
+          {{ formatHeader(item, store.settings.rootPath) }}
+        </div>
 
         <div
           class="hover:bg-neutral-800 rounded flex items-center h-4 ml-1 transition-colors"
