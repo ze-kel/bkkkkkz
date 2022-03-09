@@ -127,7 +127,9 @@ const TheWatcher: IWatcher = {
     this.watchPath = initPath;
 
     this.watcher = chokidar.watch(initPath, {
-      ignored: (path: string) => DOTFILE_REGEX.test(path) || DOTDIR_REGEX.test(path),
+      ignored: (pathStr: string) => {
+        return DOTFILE_REGEX.test(pathStr) || DOTDIR_REGEX.test(pathStr);
+      },
       persistent: true,
     });
 
@@ -143,26 +145,28 @@ const TheWatcher: IWatcher = {
       WebContentsProxy.TREE_UPDATE(newFiles);
     };
 
-    const sendUpdatedFile = async (path: string) => {
-      const newFile = await FileService.getFileContent(path);
+    const sendUpdatedFile = async (P: string) => {
+      if (path.extname(P) !== '.md') return;
+
+      const newFile = await FileService.getFileContent(P);
 
       TagsStore.processUpdatedFile(newFile, this.opened);
-      const ignoreDate = this.filesIgnore[path];
+      const ignoreDate = this.filesIgnore[P];
 
       if (ignoreDate) {
         const currentTime = new Date();
         if (currentTime < ignoreDate) {
           return;
         } else {
-          delete this.filesIgnore[path];
+          delete this.filesIgnore[P];
         }
       }
 
-      const relevantIndexex = getRelevantIndexes(this.opened, path);
+      const relevantIndexex = getRelevantIndexes(this.opened, P);
 
       if (!relevantIndexex.length) return;
 
-      WebContentsProxy.FILE_UPDATE(path, newFile, relevantIndexex);
+      WebContentsProxy.FILE_UPDATE(P, newFile, relevantIndexex);
     };
 
     const sendUnlink = (unlinkedPath: string) => {
@@ -175,14 +179,15 @@ const TheWatcher: IWatcher = {
       WebContentsProxy.FILE_REMOVE(unlinkedPath, relevantIndexex);
     };
 
-    const sendAdd = async (addedPath: string) => {
-      const file = await FileService.getFileContent(addedPath);
+    const sendAdd = async (P: string) => {
+      if (path.extname(P) !== '.md') return;
+      const file = await FileService.getFileContent(P);
       TagsStore.processAddedFile(file);
-      const relevantIndexex = getRelevantIndexes(this.opened, addedPath);
+      const relevantIndexex = getRelevantIndexes(this.opened, P);
 
       if (!relevantIndexex.length) return;
 
-      WebContentsProxy.FILE_ADD(addedPath, file, relevantIndexex);
+      WebContentsProxy.FILE_ADD(P, file, relevantIndexex);
     };
 
     this.watcher

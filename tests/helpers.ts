@@ -36,6 +36,7 @@ export const sleep = (ms: number) => {
 export const getLocators = (page: Page) => {
   return {
     fileTreeItems: page.locator('.T-file-tree-item'),
+    tagTreeItem: page.locator('.T-tag-tree-item'),
     bookItems: page.locator('.T-book-item'),
     openedTab: page.locator('.T-view-tab-opened'),
     editorTitle: page.locator('.T-editor-title'),

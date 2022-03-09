@@ -1,0 +1,14 @@
+---
+title: >-
+  Glass Jaw: A Manifesto for Defending Fragile Reputations in an Age of Instant
+  Scandal
+author: 'Dezenhall, Eric'
+year: 2014
+read:
+  - started: '2015-03-03'
+tags:
+  - tag7
+  - tag8
+ISBN13: 9781455582976
+---
+

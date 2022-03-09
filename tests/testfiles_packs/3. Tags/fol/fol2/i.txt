@@ -1,0 +1,14 @@
+---
+title: 'Influence: The Psychology of Persuasion'
+author: 'Cialdini, Robert B.'
+year: 1984
+myRating: 3
+read:
+  - finished: '2015-03-03'
+tags:
+  - tag9
+  - tag7
+  - tag6
+ISBN13: 9780061241895
+---
+
