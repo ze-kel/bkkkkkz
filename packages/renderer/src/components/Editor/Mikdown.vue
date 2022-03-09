@@ -52,7 +52,6 @@ const myTheme = themeFactory((emotion) => ({
 
 const chagesListener = (ctx: Ctx, markdown: string, prevMarkdown: string | null) => {
   contentCache = markdown;
-  console.log('emit', contentCache);
   emit('update:modelValue', contentCache);
 };
 

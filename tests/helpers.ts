@@ -1,8 +1,9 @@
 import * as fs from 'fs-extra';
-import type { ElectronApplication, Page } from 'playwright';
+import type { ElectronApplication, Locator, Page } from 'playwright';
 import { _electron as electron } from 'playwright';
 
 export const setupTest = async (originalPath: string, workingPath: string) => {
+  fs.removeSync(workingPath);
   fs.copySync(originalPath, workingPath);
 
   const electronApp = await electron.launch({
@@ -43,5 +44,64 @@ export const getLocators = (page: Page) => {
     editorIsbn: page.locator('.T-editor-isbn'),
     editorFilename: page.locator('.T-editor-filename'),
     editorMarkdown: page.locator('.T-editor-markdown'),
+    editorTag: page.locator('.T-editor-tag'),
+    editorAddTag: page.locator('.T-editor-add-tag'),
+    editorStar: page.locator('.T-editor-star'),
+    editorStarFilled: page.locator('.T-editor-star-filled'),
+    editorStarHalf: page.locator('.T-editor-star-half'),
+    editorStarEmpty: page.locator('.T-editor-star-empty'),
+    editorDateFrom: page.locator('.T-editor-date-from'),
+    editorDateTo: page.locator('.T-editor-date-to'),
+    editorDateAdd: page.locator('.T-editor-date-add'),
+    editorDateRemove: page.locator('.T-editor-date-remove'),
   };
+};
+
+type TestBookDate = { from: string; to: string };
+
+export type TestBookFromEditor = {
+  author: string;
+  title: string;
+  year: string;
+  ISBN: string;
+  tags: string[];
+  dates: TestBookDate[];
+  rating: number;
+};
+
+export const getBookFromEditor = async (
+  L: Record<string, Locator>,
+): Promise<TestBookFromEditor> => {
+  const author = await L.editorAuthor.innerText();
+  const title = await L.editorTitle.innerText();
+  const year = await L.editorYear.innerText();
+  const ISBN = await L.editorIsbn.innerText();
+
+  const numberOfTags = await L.editorTag.count();
+  const tags = [];
+  for (let i = 0; i < numberOfTags; i++) {
+    tags.push(await L.editorTag.nth(i).innerText());
+  }
+
+  const dates: TestBookDate[] = [];
+  const numberFromDates = await L.editorDateFrom.count();
+  const numberToDates = await L.editorDateTo.count();
+
+  for (let i = 0; i < numberFromDates; i++) {
+    if (!dates[i]) dates[i] = { from: '', to: '' };
+    const field = await L.editorDateFrom.nth(i);
+    dates[i]['from'] = await field.inputValue();
+  }
+  for (let i = 0; i < numberToDates; i++) {
+    if (!dates[i]) dates[i] = { from: '', to: '' };
+    const field = await L.editorDateTo.nth(i);
+    dates[i]['to'] = await field.inputValue();
+  }
+
+  const filledStars = await L.editorStarFilled.count();
+  const halfStars = await L.editorStarHalf.count();
+
+  const rating = filledStars + halfStars * 0.5;
+
+  return { author, title, year, ISBN, tags, dates, rating };
 };

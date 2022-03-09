@@ -2,10 +2,13 @@
 title: Meditations
 author: Marcus Aurelius
 year: 180
-myRating: 3
+myRating: 3.5
+tags: ['1one', '2two', '3three']
 read:
   - started: '2019-06-01'
     finished: '2019-07-30'
+  - started: '2020-02-10'
+    finished: '2020-07-30'
 ISBN13: 9780140449334
 ---
 

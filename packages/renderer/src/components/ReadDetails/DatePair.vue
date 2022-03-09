@@ -4,10 +4,15 @@
       v-model="dateStart"
       :model-config="modelConfig"
       :max-date="dates.end"
-      :popover="{ visibility: 'focus' }"
+      :popover="popoverConfig"
+      :is-dark="isDarkMode"
+      :input-debounce="100"
+      :locale="store.settings?.dateLocale"
+      color="indigo"
     >
       <template #default="{ inputValue, inputEvents }">
         <input
+          v-test-class="'T-editor-date-from'"
           :value="inputValue"
           class="w-full input-default"
           placeholder="Started"
@@ -35,10 +40,14 @@
       v-model="dateEnd"
       :model-config="modelConfig"
       :min-date="dates.start"
-      :popover="{ visibility: 'focus' }"
+      :popover="popoverConfig"
+      :is-dark="isDarkMode"
+      :locale="store.settings?.dateLocale"
+      color="indigo"
     >
       <template #default="{ inputValue, inputEvents }">
         <input
+          v-test-class="'T-editor-date-to'"
           :value="inputValue"
           placeholder="Finished"
           class="w-full input-default"
@@ -51,8 +60,12 @@
 
 <script lang="ts" setup>
 import { computed } from 'vue';
+import { useStore } from '/@/use/store';
+
 import type { PropType } from 'vue';
 import type { IDateRead } from '/@main/services/books';
+
+const store = useStore();
 
 const props = defineProps({
   modelValue: {
@@ -104,6 +117,18 @@ const dateEnd = computed({
     emit('update:modelValue', { ...props.modelValue, finished: val });
   },
 });
+
+const isDarkMode = computed(() => {
+  if (!store.settings || store.settings.darkMode === -1) return false;
+  if (store.settings.darkMode === 0) {
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? true : false;
+  }
+  return true;
+});
+
+const popoverConfig = {
+  visibility: 'focus',
+};
 </script>
 
 <style scoped></style>

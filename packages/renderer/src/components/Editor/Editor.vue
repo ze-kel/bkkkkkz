@@ -289,7 +289,6 @@ const mainTitleRef = ref<HTMLElement | undefined>(undefined);
 const removeSecondary = () => {
   file.value.title = mainTitle.value + secondaryTitle.value;
   nextTick(() => {
-    console.log('next tick ref', mainTitleRef.value);
     mainTitleRef.value?.focus();
   });
 };

@@ -5,7 +5,6 @@ type IBinding = { value: string | string[] };
 
 const testIdDirective: Directive = (el: HTMLElement, binding: IBinding) => {
   if (Array.isArray(binding.value)) {
-    console.log('add arr');
     el.classList.add(...binding.value);
   } else if (typeof binding.value === 'string') {
     el.classList.add(binding.value);

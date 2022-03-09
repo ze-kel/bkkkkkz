@@ -1,6 +1,6 @@
 import * as path from 'path';
 import type { ElectronApplication } from 'playwright';
-import { afterEach, beforeEach, expect, test } from 'vitest';
+import { afterAll, beforeAll, expect, test } from 'vitest';
 import { setupTest, afterTest, sleep, getLocators, LOAD_TIMEOUT } from './helpers';
 
 let electronApp: ElectronApplication;
@@ -8,11 +8,11 @@ let electronApp: ElectronApplication;
 const originalPath = path.join(process.cwd(), 'tests', 'testfiles_packs', '1. Basic');
 const workingPath = path.join(process.cwd(), 'tests', 'core');
 
-beforeEach(async () => {
+beforeAll(async () => {
   electronApp = await setupTest(originalPath, workingPath);
 });
 
-afterEach(async () => await afterTest(electronApp, workingPath));
+afterAll(async () => await afterTest(electronApp, workingPath));
 
 test('App loads and vue mounts correctly', async () => {
   const page = await electronApp.firstWindow();

@@ -151,8 +151,6 @@ const saveNewFile = async (basePath: string, file: IUnsavedFile): Promise<ISaved
 };
 
 const saveNewFiles = async (basePath: string, files: IUnsavedFile[]): Promise<void> => {
-  console.log('SAVING files', files.length);
-
   await Promise.all(files.map((file) => saveNewFile(basePath, file)));
 };
 

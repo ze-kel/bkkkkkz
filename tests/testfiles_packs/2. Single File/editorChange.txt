@@ -1,0 +1,17 @@
+---
+title: Six Pillars of Self-Esteem
+author: 'Branden, Nathaniel'
+year: 1994
+myRating: 5
+read:
+  - started: '2020-02-10'
+    finished: '2020-07-30'
+  - started: '2021-01-01'
+    finished: '2021-01-07'
+tags:
+  - 2two
+  - 3three
+  - tag3
+ISBN13: 9780553374391
+---
+This is some sample markdown and some more

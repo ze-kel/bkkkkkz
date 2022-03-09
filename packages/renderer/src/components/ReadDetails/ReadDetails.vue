@@ -2,13 +2,13 @@
   <div class="rounded w-full overflow-hidden">
     <div class="grid customGrid gap-y-1 gap-x-2">
       <template v-for="(date, index) in modelValue" :key="index">
-        <SingleDate
+        <DatePair
           v-if="store.settings"
           :model-value="date"
           :date-format="store.settings.dateFormat"
           @update:model-value="(val) => updateValue(index, val)"
         />
-        <div @click="removeDate(index)">
+        <div v-test-class="'T-editor-date-remove'" @click="removeDate(index)">
           <svg
             class="fill-neutral-200 hover:fill-neutral-700 cursor-pointer"
             width="24"
@@ -24,7 +24,13 @@
         </div>
       </template>
     </div>
-    <div class="basic-button text-center my-1" @click="addNewDate">Log new</div>
+    <div
+      v-test-class="'T-editor-date-add'"
+      class="basic-button text-center my-1"
+      @click="addNewDate"
+    >
+      Log new
+    </div>
   </div>
 </template>
 
@@ -32,7 +38,7 @@
 import { getCurrentInstance } from 'vue';
 import type { PropType } from 'vue';
 import type { IDateRead } from '/@main/services/books';
-import SingleDate from './SingleDate.vue';
+import DatePair from './DatePair.vue';
 import { format } from 'date-fns';
 import { useStore } from '/@/use/store';
 

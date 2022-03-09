@@ -3,6 +3,7 @@
     <template v-for="(tag, index) in tags" :key="index">
       <ContentEditable
         ref="tagRefs"
+        v-test-class="'T-editor-tag'"
         :model-value="tag"
         tag="div"
         spellcheck="false"
@@ -11,6 +12,7 @@
       />
     </template>
     <div
+      v-test-class="'T-editor-add-tag'"
       class="bg-neutral-800 w-fit pl-1 pr-2 rounded-lg text-neutral-50 cursor-pointer flex items-center"
       @click="createNewTag"
     >

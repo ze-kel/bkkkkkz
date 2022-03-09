@@ -20,6 +20,10 @@ const SCHEMA = {
     type: 'string',
     default: 'yyyy-MM-dd',
   },
+  dateLocale: {
+    type: 'string',
+    default: 'en-GB',
+  },
   coversPath: {
     type: 'string',
     default: '.covers',
@@ -63,6 +67,7 @@ export type ILocalSettings = {
   recursiveFolders: boolean;
   rootPath: string;
   dateFormat: string;
+  dateLocale: string;
   coversPath: string;
   trashPath: string;
   splitTitle: boolean;
