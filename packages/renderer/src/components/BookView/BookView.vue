@@ -93,7 +93,7 @@ import ViewConrols from './ViewConrols.vue';
 
 import type { IFile, IFiles } from '/@main/services/files';
 import type { PropType } from 'vue';
-import type { IOpenedTag, IOpenedPath, IOpenedFile } from '/@main/services/watcher';
+import type { IOpenedTag, IOpenedPath, IOpenedFile } from '/@main/watcher/openedTabs';
 import type { ContextMenu } from '/@/use/contextMenu';
 
 const api = useElectron();
@@ -129,16 +129,16 @@ loadContent();
 //
 // Update event handling
 //
-const updateHandlerApi = (path: string, content: IFile, indexes: number[]) => {
+const updateHandlerApi = (file: IFile, indexes: number[]) => {
   if (!indexes.includes(props.index)) return;
-  if (files.value[path]) {
-    files.value[path] = content;
+  if (files.value[file.path]) {
+    files.value[file.path] = file;
   }
 };
 
-const addHandlerApi = (path: string, content: IFile, indexes: number[]) => {
+const addHandlerApi = (file: IFile, indexes: number[]) => {
   if (!indexes.includes(props.index)) return;
-  files.value[path] = content;
+  files.value[file.path] = file;
 };
 
 const removeHandlerApi = (path: string, indexes: number[]) => {

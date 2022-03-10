@@ -66,7 +66,7 @@
 <script lang="ts" setup>
 import { onUnmounted } from 'vue';
 import { useStore } from '/@/use/store';
-import type { ISortByOption } from '/@main/services/watcher';
+import type { ISortByOption } from '/@main/watcher/openedTabs';
 import ButtonsSwitch from '../_UI/ButtonsSwitch.vue';
 
 const store = useStore();

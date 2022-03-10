@@ -129,7 +129,7 @@ import _debounce from 'lodash-es/debounce';
 
 import type { PropType } from 'vue';
 import type { IFile, ISavedFile, IUnsavedFile } from '/@main/services/files';
-import type { IOpenedFile, IOpenedNewFile } from '/@main/services/watcher';
+import type { IOpenedFile, IOpenedNewFile } from '/@main/watcher/openedTabs';
 import type { ContextMenu } from '/@/use/contextMenu';
 import { ISBN10to13 } from '/@main/helpers/utils';
 
@@ -213,7 +213,7 @@ watch(
 //
 // Update events handling
 //
-const updateHandlerApi = (path: string, newFile: IFile) => {
+const updateHandlerApi = (newFile: IFile) => {
   loading.value = true;
 
   file.value = newFile;

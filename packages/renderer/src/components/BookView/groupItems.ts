@@ -1,5 +1,5 @@
 import { getDateReducerSingle } from './getDateReducer';
-import type { ISortByOption } from '/@main/services/watcher';
+import type { ISortByOption } from '/@main/watcher/openedTabs';
 import type { ISavedFile } from '/@main/services/files';
 
 export type IBookGroup = {

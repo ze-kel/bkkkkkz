@@ -6,7 +6,7 @@ import type {
   IUnsavedFile,
 } from '/@main/services/files';
 import type { ILocalSettings } from '/@main/services/localSettings';
-import type { IOpened } from '/@main/services/watcher';
+import type { IOpened } from '/@main/watcher/openedTabs';
 
 import type {
   I_FILE_ADD,

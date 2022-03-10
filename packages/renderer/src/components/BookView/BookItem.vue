@@ -52,7 +52,7 @@ import Rating from '../Rating/Rating.vue';
 
 import type { PropType } from 'vue';
 import type { IFile } from '/@main/services/files';
-import type { IOpenedFile, IViewSettings } from '/@main/services/watcher';
+import type { IOpenedFile, IViewSettings } from '/@main/watcher/openedTabs';
 import type ElObserver from './elementObserver';
 import type { OpenNewOneParams } from '/@/use/store';
 

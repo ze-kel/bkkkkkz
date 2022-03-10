@@ -1,17 +1,20 @@
 import * as path from 'path';
 import * as fs from 'fs-extra';
 import FileService from '../services/files';
-import TagsStore from '../services/tags';
-import TheWatcher from '../services/watcher';
-import type { IOpened } from '../services/watcher';
+import TagsStore from '../watcher/tagUpdates';
+import TheWatcher from '../watcher/watcherCore';
 import ParseGoodreadsCSV from '../services/goodreadsCsvParser';
-import Setting from '../services/settings';
-import { callWithoutEvent } from '/@/helpers/utils';
+import Settings from '../services/settings';
+import { FileUpdates } from '/@/watcher/fileUpdates';
 
-import type { ISavedFile } from '../services/files';
 import { dialog } from 'electron';
 import { format } from 'date-fns';
-import settings from '../services/settings';
+import { callWithoutEvent } from '/@/helpers/utils';
+
+import { updateOpened } from '../watcher/openedTabs';
+
+import type { ISavedFile } from '../services/files';
+import type { IOpened } from '../watcher/openedTabs';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type IIpcHandle = (...args: any) => any;
@@ -25,7 +28,7 @@ const handles: IHandles = {
   /// Files
   ///
   getFileTree: async () => {
-    const rootPath = Setting.getRootPath();
+    const rootPath = Settings.getRootPath();
     if (!rootPath) throw 'No Root Path';
     const files = await FileService.getFileTree(rootPath);
     return files;
@@ -45,14 +48,14 @@ const handles: IHandles = {
   saveFileContent: async (_, file: ISavedFile) => {
     const currentTime = new Date();
 
-    TheWatcher.filesIgnore[file.path] = new Date(currentTime.getTime() + 3000);
+    FileUpdates.ignored[file.path] = new Date(currentTime.getTime() + 3000);
 
     await FileService.saveFileContent(file);
   },
 
   syncOpened: (_, opened: IOpened[], index: number) => {
-    TheWatcher.opened = opened;
-    settings.saveLastOpened(opened, index);
+    updateOpened(opened);
+    Settings.saveLastOpened(opened, index);
   },
   closeWatcher: TheWatcher.destroy,
   move: callWithoutEvent(FileService.moveToFolder),
@@ -71,7 +74,7 @@ const handles: IHandles = {
   /// Core
   ///
   init: async () => {
-    const rootPath = Setting.getRootPath();
+    const rootPath = Settings.getRootPath();
     if (rootPath) {
       await TheWatcher.init(rootPath);
       await FileService.loadTags(rootPath);
@@ -84,12 +87,12 @@ const handles: IHandles = {
     return process.env['TEST_MODE'] === 'true';
   },
 
-  newRootPath: Setting.setRootPath,
+  newRootPath: Settings.setRootPath,
   ///
   /// Settings
   ///
-  getSettings: Setting.getStore,
-  saveSettings: callWithoutEvent(Setting.saveStore),
+  getSettings: Settings.getStore,
+  saveSettings: callWithoutEvent(Settings.saveStore),
 
   ///
   /// Parsers
@@ -101,7 +104,7 @@ const handles: IHandles = {
     });
 
     if (file.canceled) return;
-    const rootPath = Setting.getRootPath();
+    const rootPath = Settings.getRootPath();
     if (!rootPath) return;
 
     const parsingResult = await ParseGoodreadsCSV(file.filePaths[0]);

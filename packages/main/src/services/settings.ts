@@ -3,7 +3,7 @@ import * as fs from 'fs-extra';
 import { dialog } from 'electron';
 import type * as IStore from 'electron-store';
 import WebContentsProxy from '../ipc/webContents';
-import type { IOpened } from './watcher';
+import type { IOpened } from '../watcher/openedTabs';
 const Store = require('electron-store');
 
 const SETTINGS_PATH = '.bkz';

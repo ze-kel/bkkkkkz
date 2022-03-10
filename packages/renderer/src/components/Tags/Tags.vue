@@ -34,7 +34,7 @@
 import { getCurrentInstance, computed, nextTick, ref } from 'vue';
 import type { PropType, Ref } from 'vue';
 import ContentEditable from '/@/components/_UI/ContentEditable.vue';
-import { internalTagsList } from '/@main/services/tags';
+import { internalTagsList } from '/@main/watcher/tagUpdates';
 
 const internalInstance = getCurrentInstance();
 

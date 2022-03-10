@@ -1,9 +1,9 @@
-import type { IFile, ISavedFile } from './files';
-
 import _difference from 'lodash-es/difference';
 import _debounce from 'lodash-es/debounce';
 import WebContentsProxy from '../ipc/webContents';
-import type { IOpened } from './watcher';
+import { OpenedTabs } from './openedTabs';
+import type { IFile, ISavedFile } from '../services/files';
+import type { IWatcherModule } from './watcherCore';
 
 export type ITagData = {
   [key: string]: Set<string>;
@@ -89,7 +89,7 @@ const processAddedFile = (file: ISavedFile) => {
   sendUpdates();
 };
 
-const processUpdatedFile = (file: ISavedFile, opened: IOpened[]) => {
+const processUpdatedFile = (file: ISavedFile) => {
   let tags = file.tags || [];
 
   tags = tags.filter((el) => !internalTagsList.includes(el));
@@ -107,10 +107,10 @@ const processUpdatedFile = (file: ISavedFile, opened: IOpened[]) => {
   files[file.path] = tags;
   sendUpdates();
 
-  opened.forEach((item, index) => {
+  OpenedTabs.forEach((item, index) => {
     if (item.type === 'tag') {
       if (added.includes(item.thing)) {
-        WebContentsProxy.FILE_ADD(file.path, file, [index]);
+        WebContentsProxy.FILE_ADD(file, [index]);
       }
       if (removed.includes(item.thing)) {
         WebContentsProxy.FILE_REMOVE(file.path, [index]);
@@ -136,6 +136,35 @@ const hasTag = (tag: string, path: string): boolean => {
   if (!tags[tag]) return false;
 
   return tags[tag].has(path);
+};
+
+const getRelevantIndexes = (pathInQuestion: string): number[] => {
+  const relevantTo: number[] = [];
+
+  OpenedTabs.forEach((openedEntry, index) => {
+    if (openedEntry.type === 'tag') {
+      if (hasTag(openedEntry.thing, pathInQuestion)) {
+        relevantTo.push(index);
+      }
+    }
+  });
+  return relevantTo;
+};
+
+export const TagUpdates: IWatcherModule = {
+  addFile(file) {
+    processAddedFile(file);
+    const relevantIndexex = getRelevantIndexes(file.path);
+    if (relevantIndexex.length) WebContentsProxy.FILE_ADD(file, relevantIndexex);
+  },
+  changeFile(file) {
+    processUpdatedFile(file);
+  },
+  unlinkFile(path) {
+    const relevantIndexex = getRelevantIndexes(path);
+    if (relevantIndexex.length) WebContentsProxy.FILE_REMOVE(path, relevantIndexex);
+    processDeletedFile(path);
+  },
 };
 
 export default {

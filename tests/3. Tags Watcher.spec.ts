@@ -28,16 +28,16 @@ const getTagsInLeftMenu = async (locator: Locator): Promise<string[]> => {
   return tags;
 };
 
-test('Tags watcher', async () => {
+const fol = path.join(workingPath, 'fol');
+const fol2 = path.join(fol, 'fol2');
+
+test('Opened tag watcher', async () => {
   const page = await electronApp.firstWindow();
   const L = getLocators(page);
 
   let tags = await getTagsInLeftMenu(L.tagTreeItem);
 
   expect(tags, 'Initial tags loaded correctly').toEqual(['tag1', 'tag2', 'tag3']);
-
-  const fol = path.join(workingPath, 'fol');
-  const fol2 = path.join(fol, 'fol2');
 
   fs.renameSync(path.join(fol, 'g.txt'), path.join(fol, 'g.md'));
   fs.renameSync(path.join(fol2, 'i.txt'), path.join(fol2, 'i.md'));
@@ -87,4 +87,34 @@ test('Tags watcher', async () => {
     'tag4',
     'tag5',
   ]);
-}, 50000);
+});
+
+test('Opened tag watcher', async () => {
+  const page = await electronApp.firstWindow();
+  const L = getLocators(page);
+
+  await L.tagTreeItem.last().click();
+
+  await sleep(LOAD_TIMEOUT);
+
+  expect(await L.bookItems.count(), 'Tag shows correct number of books associated').toBe(2);
+
+  fs.renameSync(path.join(fol, 'g2.txt'), path.join(fol, 'g2.md'));
+
+  await sleep(LOAD_TIMEOUT);
+
+  expect(await L.bookItems.count(), 'New file on disk with opened tag is shown').toBe(3);
+
+  fs.removeSync(path.join(workingPath, 'r.md'));
+
+  await sleep(LOAD_TIMEOUT);
+
+  expect(await L.bookItems.count(), 'File deleted from disk is removed correctly').toBe(2);
+
+  const toUpdate = fs.readFileSync(path.join(fol2, 'i.txt'));
+  fs.writeFileSync(path.join(workingPath, 'r2.md'), toUpdate.toString());
+
+  await sleep(LOAD_TIMEOUT);
+
+  expect(await L.bookItems.count(), 'File updated disk is removed correctly').toBe(1);
+});

@@ -1,4 +1,4 @@
-import type { IViewSettings } from '/@main/services/watcher';
+import type { IViewSettings } from '/@main/watcher/openedTabs';
 
 export const getDefaultViewSettings = (): IViewSettings => {
   return {

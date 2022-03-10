@@ -6,8 +6,8 @@ import _cloneDeep from 'lodash-es/cloneDeep';
 
 import type { IFolderTree } from '/@main/services/files';
 import type { ILocalSettings } from '/@main/services/settings';
-import type { IOpened } from '/@main/services/watcher';
-import type { ITags } from '/@main/services/tags';
+import type { IOpened } from '/@main/watcher/openedTabs';
+import type { ITags } from '/@main/watcher/tagUpdates';
 
 const api = useElectron();
 

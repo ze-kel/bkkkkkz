@@ -1,6 +1,6 @@
 import { getDateReducerSingle } from './getDateReducer';
 import type { ISavedFile } from '/@main/services/files';
-import type { ISortByOption, ISortDirection } from '/@main/services/watcher';
+import type { ISortByOption, ISortDirection } from '/@main/watcher/openedTabs';
 
 type ISortFuction = (a: ISavedFile, b: ISavedFile, direction: ISortDirection) => number;
 

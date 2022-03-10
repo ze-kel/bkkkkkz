@@ -3,7 +3,7 @@ import * as fs from 'fs-extra';
 
 import { makeBookFile, makeEncodedBook } from './books';
 import Settings from './settings';
-import TagsStore from './tags';
+import TagsStore from '../watcher/tagUpdates';
 import type { IBookData } from './books';
 
 import { DOTFILE_REGEX, FILENAME_REGEX } from '../helpers/utils';

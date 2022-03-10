@@ -84,7 +84,7 @@ import _cloneDeep from 'lodash-es/cloneDeep';
 
 import type { PropType } from 'vue';
 import type { IFolderTree } from '/@main/services/files';
-import type { IOpenedPath, IViewSettings } from '/@main/services/watcher';
+import type { IOpenedPath, IViewSettings } from '/@main/watcher/openedTabs';
 import type { ContextMenu } from '/@/use/contextMenu';
 import type { OpenNewOneParams } from '/@/use/store';
 import { getDefaultViewSettings } from '/@/utils/getDefaultViewSettings';
