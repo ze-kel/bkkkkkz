@@ -3,6 +3,7 @@
 @tailwind utilities;
 
 ::-webkit-scrollbar {
+  -webkit-appearance: none;
   @apply w-2;
 }
 ::-webkit-scrollbar-thumb {

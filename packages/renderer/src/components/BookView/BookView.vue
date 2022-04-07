@@ -15,7 +15,7 @@
 
     <div
       ref="scrollRoot"
-      class="w-full h-full box-border overflow-y-auto overflow-x-hidden px-2 items-start py-2"
+      class="w-full h-full box-border overflow-y-scroll overflow-x-hidden px-2 items-start py-2"
     >
       <div v-if="opened.settings.grouped">
         <div v-for="group in groupedFiles" :key="group.label" class="mt-4 first:mt-0">
@@ -39,7 +39,7 @@
               :key="item.path"
               :current-file="item"
               :draggable="true"
-              :settings="opened.settings"
+              :view-style="opened.settings.viewStyle"
               :observer="elementObserver"
               @dragstart="startDrag($event, item)"
               @click.right="(e) => openContextMenu(e, item)"
@@ -60,7 +60,7 @@
           :key="item.path"
           :current-file="item"
           :draggable="true"
-          :settings="opened.settings"
+          :view-style="opened.settings.viewStyle"
           :observer="elementObserver"
           @dragstart="startDrag($event, item)"
           @click.right="(e) => openContextMenu(e, item)"
@@ -268,7 +268,6 @@ onUnmounted(() => {
 //
 // Scroll position
 //
-
 const setScrollPositionFromSaved = () => {
   if (!scrollRoot.value) return;
   scrollRoot.value.scrollTop = props.opened.scrollPosition;

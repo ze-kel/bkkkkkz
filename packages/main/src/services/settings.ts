@@ -61,6 +61,31 @@ const SCHEMA = {
     type: 'number',
     default: -1,
   },
+  readChallenges: {
+    type: 'object',
+    properties: {
+      '/': {},
+    },
+    patternProperties: {
+      '^[0-9]+': {
+        type: 'object',
+        properties: {
+          year: {
+            type: 'number',
+          },
+          books: {
+            type: 'number',
+          },
+        },
+      },
+    },
+    default: {},
+  },
+};
+
+export type IReadChallengeData = {
+  year: number;
+  books: number;
 };
 
 export type ILocalSettings = {
@@ -74,6 +99,7 @@ export type ILocalSettings = {
   darkMode: -1 | 0 | 1;
   lastOpened: IOpened[];
   lastActiveIndex: number;
+  readChallenges: Record<number, IReadChallengeData>;
 };
 
 const globalStore: IStore = new Store();

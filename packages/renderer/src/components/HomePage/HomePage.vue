@@ -1,26 +1,17 @@
 <template>
   <div class="w-full h-full box-border overflow-y-auto overflow-x-hidden px-2 items-start py-2">
-    <div class="text-3xl">Hello</div>
-
-    <div>You've read</div>
-    <div class="flex gap-3 my-2">
-      <div class="shadow shadow-white py-2 px-4 rounded-sm">
-        <div>This year</div>
-        <div class="text-4xl font-semibold">65</div>
-        <div>Books</div>
-      </div>
-
-      <div>You've read N books total</div>
+    <div class="my-1 p-2 border border-neutral-200 dark:border-neutral-800 rounded-sm">
+      <CurrentlyReadingVue />
     </div>
-
-    <div>Curently reading:</div>
+    <div class="my-2 p-2 border border-neutral-200 dark:border-neutral-800 rounded-sm">
+      <ReadingChallenge />
+    </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { ref } from 'vue';
-
-const currentlyReading = ref([]);
+import CurrentlyReadingVue from './CurrentlyReading.vue';
+import ReadingChallenge from './ReadingChallenge/ReadingChallenge.vue';
 </script>
 
-<style></style>
+<style scoped></style>

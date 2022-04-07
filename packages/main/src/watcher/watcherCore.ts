@@ -13,8 +13,10 @@ import type { ISavedFile } from '../services/files';
 
 export type IWatcherFunction = (path: string) => void | Promise<void>;
 export type IWatcherFunctionFFile = (file: ISavedFile) => void | Promise<void>;
+export type IWatcherFunctionFFiles = (files: ISavedFile[]) => void | Promise<void>;
 
 export interface IWatcherModule {
+  initialFiles?: IWatcherFunctionFFiles;
   addFile?: IWatcherFunctionFFile;
   unlinkFile?: IWatcherFunction;
   changeFile?: IWatcherFunctionFFile;
@@ -52,6 +54,11 @@ const TheWatcher: IWatcher = {
     if (!this.watcher) {
       throw 'Watcher was not created for some reason';
     }
+
+    const initialFiles = await FileService.loadFilesFromFolder(initPath, true);
+    this.modules.forEach(async (module) => {
+      if (module.initialFiles) await module.initialFiles(Object.values(initialFiles));
+    });
 
     const add = async (path: string) => {
       if (extname(path) !== '.md') return;

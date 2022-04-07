@@ -176,11 +176,6 @@ const remove = async (delPath: string): Promise<void> => {
   await fs.move(delPath, targetPath);
 };
 
-const loadTags = async (rootPath: string): Promise<void> => {
-  const allFiles = await loadFilesFromFolder(rootPath, true);
-  TagsStore.addFilesBatch(Object.values(allFiles));
-};
-
 const locateCover = (filename: string) => {
   const root = Settings.getRootPathSafe();
   const localSettings = Settings.getStore();
@@ -244,7 +239,6 @@ export default {
   remove,
   moveToFolder,
   rename,
-  loadTags,
   removeCover,
   locateCover,
   setCover,

@@ -18,33 +18,29 @@ type IFilesTagsState = {
 const tags: ITagData = {};
 const files: IFilesTagsState = {};
 
-export const internalTagsList = ['_read', '_reading'];
+export const INTERNAL_TAG_PREFIX = '_i_';
+export const INTERNAL_TAGS = {
+  read: INTERNAL_TAG_PREFIX + 'read',
+  reading: INTERNAL_TAG_PREFIX + 'reading',
+  unread: INTERNAL_TAG_PREFIX + 'unread',
+};
 
-const generateInernalTags = (file: IFile) => {
-  if (!file.read) return [];
+const generateInternalTags = (file: IFile) => {
+  const toReturn = new Set<string>();
 
-  let isRead = false;
-  let isReading = false;
-
-  file.read.forEach((dates) => {
-    if (dates.finished) {
-      isRead = true;
-    } else {
-      isReading = true;
-    }
-  });
-
-  const toReturn = [];
-
-  if (isRead) {
-    toReturn.push('_read');
+  if (file.read) {
+    file.read.forEach((dates) => {
+      if (dates.finished) {
+        toReturn.add(INTERNAL_TAGS.read);
+      } else {
+        toReturn.add(INTERNAL_TAGS.reading);
+      }
+    });
   }
 
-  if (isReading) {
-    toReturn.push('_reading');
-  }
+  if (toReturn.size === 0) return [INTERNAL_TAGS.unread];
 
-  return toReturn;
+  return Array.from(toReturn);
 };
 
 const getTagPaths = (tag: string) => {
@@ -53,7 +49,7 @@ const getTagPaths = (tag: string) => {
 };
 
 const getTags = (): ITags => {
-  return Object.keys(tags);
+  return Object.keys(tags).filter((tag) => !tag.startsWith(INTERNAL_TAG_PREFIX));
 };
 
 const addFile = (tag: string, path: string) => {
@@ -81,7 +77,7 @@ const sendUpdates = _debounce(() => WebContentsProxy.TAGS_UPDATE(getTags()), 250
 const processAddedFile = (file: ISavedFile) => {
   const tags = file.tags || [];
 
-  tags.push(...generateInernalTags(file));
+  tags.push(...generateInternalTags(file));
 
   if (!tags.length) return;
   tags.forEach((tag) => addFile(tag, file.path));
@@ -90,11 +86,12 @@ const processAddedFile = (file: ISavedFile) => {
 };
 
 const processUpdatedFile = (file: ISavedFile) => {
-  let tags = file.tags || [];
+  const tags = file.tags || [];
 
-  tags = tags.filter((el) => !internalTagsList.includes(el));
+  const internal = generateInternalTags(file);
+  console.log('INTERNAL GENERATED ', internal);
 
-  tags.push(...generateInernalTags(file));
+  tags.push(...internal);
 
   const added = _difference(tags, files[file.path]);
   const removed = _difference(files[file.path], tags);
@@ -152,6 +149,9 @@ const getRelevantIndexes = (pathInQuestion: string): number[] => {
 };
 
 export const TagUpdates: IWatcherModule = {
+  initialFiles(files) {
+    addFilesBatch(files);
+  },
   addFile(file) {
     processAddedFile(file);
     const relevantIndexex = getRelevantIndexes(file.path);

@@ -18,7 +18,7 @@
         </div>
 
         <div
-          class="hover:bg-neutral-800 rounded flex items-center h-4 ml-1 transition-colors"
+          class="hover:bg-neutral-800 rounded flex items-center h-4 ml-1 transition-colors cursor-pointer"
           @click="store.closeOpened(index)"
         >
           <svg

@@ -31,9 +31,9 @@ const nodeClasses = computed(() => {
     'border-transparent',
   ];
   if (props.isOpened) {
-    base.push('bg-indigo-600', 'text-neutral-50 dark:text-neutral-900', 'hover:bg-indigo-800');
+    base.push('bg-indigo-600', 'text-neutral-50', 'hover:bg-indigo-800');
   } else {
-    base.push('hover:text-neutral-600');
+    base.push('hover:text-neutral-600 dark:hover:text-neutral-400');
   }
 
   return base;

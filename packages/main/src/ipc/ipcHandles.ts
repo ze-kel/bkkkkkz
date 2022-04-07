@@ -77,7 +77,6 @@ const handles: IHandles = {
     const rootPath = Settings.getRootPath();
     if (rootPath) {
       await TheWatcher.init(rootPath);
-      await FileService.loadTags(rootPath);
       return true;
     } else {
       return false;
