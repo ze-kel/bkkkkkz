@@ -1,4 +1,3 @@
-import { useStore } from '../use/store';
 import type { IOpened } from '/@main/watcher/openedTabs';
 
 const capitalize = (string: string) => {
