@@ -13,6 +13,7 @@
 </template>
 
 <script lang="ts" setup>
+import { getCurrentInstance, watch, ref, onMounted } from 'vue';
 import { Slice } from 'prosemirror-model';
 import {
   defaultValueCtx,
@@ -22,11 +23,10 @@ import {
   editorViewCtx,
   parserCtx,
 } from '@milkdown/core';
-import type { Ctx } from '@milkdown/core';
 import { commonmark } from '@milkdown/preset-commonmark';
 import { listener, listenerCtx } from '@milkdown/plugin-listener';
-import { getCurrentInstance, watch, ref, onMounted } from 'vue';
-import { log } from 'console';
+
+import type { Ctx } from '@milkdown/core';
 
 const internalInstance = getCurrentInstance();
 

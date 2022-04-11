@@ -49,14 +49,15 @@
 import { computed, ref } from 'vue';
 import { useElectron } from '/@/use/electron';
 import { useStore } from '/@/use/store';
-import _cloneDeep from 'lodash-es/cloneDeep';
 
 import BookItem from '/@/components/BookView/BookItem.vue';
 import ChallengeYear from './ChallengeYear.vue';
 
-import type { IFile, IFiles, ISavedFile } from '/@main/services/files';
 import getSortFunction from '/@/components/BookView/getSortFunction';
 import { dateReducerAllYears } from '/@/components/BookView/getDateReducer';
+import _cloneDeep from 'lodash-es/cloneDeep';
+
+import type { IFile, IFiles, ISavedFile } from '/@main/services/files';
 
 const api = useElectron();
 const store = useStore();

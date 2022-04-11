@@ -126,12 +126,12 @@ import Cover from '/@/components/Cover/Cover.vue';
 
 import _cloneDeep from 'lodash-es/cloneDeep';
 import _debounce from 'lodash-es/debounce';
+import { ISBN10to13 } from '/@main/helpers/utils';
 
 import type { PropType } from 'vue';
 import type { IFile, ISavedFile, IUnsavedFile } from '/@main/services/files';
 import type { IOpenedFile, IOpenedNewFile } from '/@main/watcher/openedTabs';
 import type { ContextMenu } from '/@/use/contextMenu';
-import { ISBN10to13 } from '/@main/helpers/utils';
 
 const api = useElectron();
 const store = useStore();

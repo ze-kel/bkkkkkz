@@ -81,13 +81,13 @@ import { useElectron } from '/@/use/electron';
 import { openMenu } from '/@/use/contextMenu';
 import { useStore } from '/@/use/store';
 import _cloneDeep from 'lodash-es/cloneDeep';
+import { getDefaultViewSettings } from '/@/utils/getDefaultViewSettings';
 
 import type { PropType } from 'vue';
 import type { IFolderTree } from '/@main/services/files';
 import type { IOpenedPath, IViewSettings } from '/@main/watcher/openedTabs';
 import type { ContextMenu } from '/@/use/contextMenu';
 import type { OpenNewOneParams } from '/@/use/store';
-import { getDefaultViewSettings } from '/@/utils/getDefaultViewSettings';
 
 const api = useElectron();
 const store = useStore();
