@@ -106,3 +106,8 @@ export const getBookFromEditor = async (
 
   return { author, title, year, ISBN, tags, dates, rating };
 };
+
+export const removeLineTerminators = (string: string) => {
+  // We need this to compare files as strings and not worry about different line terminators on different OS-es 
+  return string.replace(/\n|\r/g, '');
+};

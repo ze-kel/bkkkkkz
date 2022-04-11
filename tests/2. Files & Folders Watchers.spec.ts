@@ -18,7 +18,8 @@ afterEach(async () => await afterTest(electronApp, workingPath));
 test('File tree watcher', async () => {
   const page = await electronApp.firstWindow();
   const L = getLocators(page);
-
+  
+  await sleep(LOAD_TIMEOUT);
   expect(await L.fileTreeItems.count(), 'Number of folders seen is correct').toBe(3);
 
   const folderOneName = await L.fileTreeItems.nth(1).locator('.T-label');

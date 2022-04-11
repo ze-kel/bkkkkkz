@@ -10,7 +10,7 @@ export default function formatHeader(opened: IOpened, rootPath: string) {
     if (opened.thing === rootPath) {
       return 'All Books';
     }
-    return opened.thing.replace(rootPath + '/', '');
+    return opened.thing.replace(rootPath, '').replace(/[\\/]/, '');
   }
 
   if (opened.type === 'tag') {

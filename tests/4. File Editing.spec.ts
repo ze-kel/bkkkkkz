@@ -9,6 +9,7 @@ import {
   getLocators,
   LOAD_TIMEOUT,
   getBookFromEditor,
+  removeLineTerminators,
 } from './helpers';
 import type { TestBookFromEditor } from './helpers';
 
@@ -146,7 +147,11 @@ test('Changes made in edtior are saved to disk', async () => {
 
   fs.writeFileSync(path.join(originalPath, 'salkdasd.txt'), onDisk.toString());
 
-  expect(expected.toString(), 'After editing all changes are saved to disk').toEqual(
-    onDisk.toString(),
-  );
+  const expectedStr = removeLineTerminators(expected.toString());
+  const onDiskStr = removeLineTerminators(onDisk.toString());
+
+  console.log('exp', expectedStr);
+  console.log('ondisk', onDiskStr);
+
+  expect(expectedStr, 'After editing all changes are saved to disk').toEqual(onDiskStr);
 });

@@ -13,6 +13,8 @@ Commits making it closer to being usable are always appreciated. I may not care 
 
 ### Developing
 
+Use at least node specified in ```.nvmrc```
+
 ```npm run watch``` to run in dev mode
 
 ```npm run test``` to run e2e tests
