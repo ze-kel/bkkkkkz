@@ -19,7 +19,19 @@
     </div>
 
     <div class="my-2">
-      <h2 class="font-semibold mb-1">Import Goodread .csv</h2>
+      <div>
+        <h2 class="font-semibold mb-1">Import Goodreads .html</h2>
+        <input ref="importHTMLButton" type="file" class="hidden" @change="importGoodReadsHTML" />
+        <button class="basic-button" @click="importHTML">Select</button>
+        <div class="text-xs max-w-xs my-1">
+          <p class="text-xs">
+            Go to Goodreads -> My Books -> Print. Select maximum amount of books per page on the
+            bottom and save .html
+          </p>
+        </div>
+      </div>
+
+      <h2 class="font-semibold mb-1">Import Goodreads .csv</h2>
 
       <button class="basic-button" @click="importGoodreadsCsv">Select</button>
       <div class="text-xs max-w-xs my-1">
@@ -29,12 +41,6 @@
           finish date.
         </p>
       </div>
-    </div>
-
-    <div>
-      <h2 class="font-semibold mb-1">Import Goodread .html</h2>
-      <input ref="importHTMLButton" type="file" class="hidden" @change="importGoodReadsHTML" />
-      <button class="basic-button" @click="importHTML">Select</button>
     </div>
   </div>
 </template>

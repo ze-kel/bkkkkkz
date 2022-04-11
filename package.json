@@ -1,5 +1,6 @@
 {
-  "name": "vite-electron-builder",
+  "name": "bkzlogger",
+  "author": "ze_kel",
   "private": true,
   "main": "packages/main/dist/index.cjs",
   "scripts": {
@@ -8,7 +9,6 @@
     "compile": "electron-builder build --config electron-builder.config.js --dir --config.asar=false",
     "pretest": "npm run build",
     "test": "vitest run",
-    "test:w": "vitest -w",
     "watch": "node scripts/watch.js",
     "lint": "eslint . --ext js,ts,vue",
     "typecheck-main": "tsc --noEmit -p packages/main/tsconfig.json",

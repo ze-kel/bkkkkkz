@@ -140,7 +140,7 @@ test('Changes made in edtior are reflected in interface', async () => {
   expect(bookInEditor).toEqual(expected);
 });
 
-test('Changes made in edtior are reflected in interface', async () => {
+test('Changes made in edtior are saved to disk', async () => {
   const expected = fs.readFileSync(path.join(workingPath, 'editorChange.txt'));
   const onDisk = fs.readFileSync(path.join(workingPath, '48.md'));
 

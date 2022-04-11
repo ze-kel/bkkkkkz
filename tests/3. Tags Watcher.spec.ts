@@ -31,7 +31,7 @@ const getTagsInLeftMenu = async (locator: Locator): Promise<string[]> => {
 const fol = path.join(workingPath, 'fol');
 const fol2 = path.join(fol, 'fol2');
 
-test('Opened tag watcher', async () => {
+test('Tag editing', async () => {
   const page = await electronApp.firstWindow();
   const L = getLocators(page);
 
@@ -47,8 +47,6 @@ test('Opened tag watcher', async () => {
   tags = await getTagsInLeftMenu(L.tagTreeItem);
 
   expect(tags, 'Added files are parsed correctly').toEqual([
-    '_read',
-    '_reading',
     'tag1',
     'tag2',
     'tag3',
@@ -65,7 +63,6 @@ test('Opened tag watcher', async () => {
   tags = await getTagsInLeftMenu(L.tagTreeItem);
 
   expect(tags, 'Removed file is parsed correctly').toEqual([
-    '_reading',
     'tag1',
     'tag2',
     'tag3',
@@ -89,7 +86,7 @@ test('Opened tag watcher', async () => {
   ]);
 });
 
-test('Opened tag watcher', async () => {
+test('Tag page', async () => {
   const page = await electronApp.firstWindow();
   const L = getLocators(page);
 
