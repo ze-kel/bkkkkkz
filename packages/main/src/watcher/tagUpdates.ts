@@ -89,7 +89,6 @@ const processUpdatedFile = (file: ISavedFile) => {
   const tags = file.tags || [];
 
   const internal = generateInternalTags(file);
-  console.log('INTERNAL GENERATED ', internal);
 
   tags.push(...internal);
 

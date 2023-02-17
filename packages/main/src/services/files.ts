@@ -139,8 +139,9 @@ const saveNewFile = async (basePath: string, file: IUnsavedFile): Promise<ISaved
     uniquenessNumber++;
   }
 
-  const fileToSave: ISavedFile = {
+  const fileToSave = {
     ...file,
+    unsaved: false,
     name: newName,
     path: path.join(basePath, newName),
   };

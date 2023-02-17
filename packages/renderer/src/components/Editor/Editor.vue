@@ -173,8 +173,7 @@ const manualSave = async () => {
   if ('unsaved' in file.value) {
     const saved = await api.files.saveNewFile(props.opened.thing, _cloneDeep(file.value));
     file.value = saved;
-    store.openNewOne({ ...props.opened, thing: saved.path }, { index: props.index });
-
+    store.openNewOne({ ...props.opened, type: 'file', thing: saved.path }, { index: props.index });
     autoSave.value = true;
   } else {
     save(file.value);
