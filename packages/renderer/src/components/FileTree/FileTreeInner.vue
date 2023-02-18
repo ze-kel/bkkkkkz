@@ -88,6 +88,7 @@ import type { IFolderTree } from '/@main/services/files';
 import type { IOpenedPath, IViewSettings } from '/@main/watcher/openedTabs';
 import type { ContextMenu } from '/@/use/contextMenu';
 import type { OpenNewOneParams } from '/@/use/store';
+import { trpcApi } from '/@/utils/trpc';
 
 const api = useElectron();
 const store = useStore();
@@ -167,7 +168,10 @@ const onDrop = async (e: DragEvent, targetPath: string) => {
     if (!draggedPath) {
       throw 'no dragged path';
     }
-    const newPath = await api.files.move(draggedPath, targetPath);
+    const newPath = await trpcApi.move.mutate({
+      moveItemPath: draggedPath,
+      toFolderPath: targetPath,
+    });
 
     indexes.forEach((index) => {
       const before = store.opened[index];
@@ -226,7 +230,11 @@ const startRenaming = () => {
 const saveName = async () => {
   if (newName.value && newName.value !== props.content.name) {
     const oldPath = props.content.path;
-    const newPath = await api.files.rename(props.content.path, newName.value);
+
+    const newPath = await trpcApi.createFolder.mutate({
+      name: newName.value,
+      pathToFolder: props.content.path,
+    });
 
     store.opened.forEach((item, index) => {
       if (item.type === 'folder' && item.thing === oldPath) {
@@ -255,7 +263,7 @@ const saveFolder = () => {
   if (!newName.value) {
     isCreating.value = false;
   } else {
-    api.files.createFolder(props.content.path, newName.value);
+    trpcApi.createFolder.mutate({ name: newName.value, pathToFolder: props.content.path });
     flipOnNext.value = true;
   }
 };
@@ -279,7 +287,7 @@ const getMenu = (): ContextMenu => {
       },
       {
         label: 'Delete',
-        handler: () => api.files.delete(props.content.path),
+        handler: () => trpcApi.delete.mutate(props.content.path),
       },
     );
   }

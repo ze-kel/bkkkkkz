@@ -29,7 +29,7 @@
 <script lang="ts" setup>
 import { ref } from 'vue';
 import Popup from '../_UI/Popup.vue';
-import Settings from '../Settings/Settings.vue';
+import Settings from '../Settings/SettingsPage.vue';
 import { useStore } from '/@/use/store';
 
 const store = useStore();

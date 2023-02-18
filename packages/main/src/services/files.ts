@@ -4,10 +4,11 @@ import * as fs from 'fs-extra';
 import { makeBookFile, makeEncodedBook } from './books';
 import Settings from './settings';
 import TagsStore from '../watcher/tagUpdates';
-import type { IBookData } from './books';
 
 import { DOTFILE_REGEX, FILENAME_REGEX } from '../helpers/utils';
 import { dialog } from 'electron';
+import { zBookData } from './books';
+import { z } from 'zod';
 
 export type IFolderTree = {
   type: 'folder';
@@ -18,16 +19,25 @@ export type IFolderTree = {
   };
 };
 
-export interface IUnsavedFile extends IBookData {
-  content?: string;
-  name?: string;
-  unsaved: true;
-}
+export const zUnsavedFile = zBookData.and(
+  z.object({
+    content: z.string().optional(),
+    name: z.string().optional(),
+    unsaved: z.literal<boolean>(true),
+  }),
+);
 
-export interface ISavedFile extends Omit<IUnsavedFile, 'unsaved'> {
-  path: string;
-  name: string;
-}
+export type IUnsavedFile = z.infer<typeof zUnsavedFile>;
+
+export const zSavedFile = zBookData.and(
+  z.object({
+    content: z.string().optional(),
+    name: z.string(),
+    unsaved: z.literal<boolean>(false).optional(),
+    path: z.string(),
+  }),
+);
+export type ISavedFile = z.infer<typeof zSavedFile>;
 
 export type IFile = ISavedFile;
 
@@ -66,7 +76,7 @@ const getFileContent = async (filePath: string): Promise<ISavedFile> => {
   return result;
 };
 
-const loadFilesFromFolder = async (basePath: string, recursive: boolean): Promise<IFiles> => {
+const loadFilesFromFolder = async (basePath: string, recursive?: boolean): Promise<IFiles> => {
   fs.ensureDirSync(basePath);
   const files = fs.readdirSync(basePath);
 

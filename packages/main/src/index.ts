@@ -1,8 +1,7 @@
-import { app, ipcMain, protocol } from 'electron';
+import { app, protocol } from 'electron';
 import './security-restrictions';
 import { restoreOrCreateWindow } from '/@/mainWindow';
 import { platform } from 'node:process';
-import initHandles from './ipc/ipcHandles';
 import Files from './services/files';
 
 /**
@@ -91,6 +90,4 @@ app.whenReady().then(() => {
     const fullPath = Files.locateCover(coverPath);
     return callback(fullPath);
   });
-
-  initHandles(ipcMain);
 });

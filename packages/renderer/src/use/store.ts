@@ -3,6 +3,7 @@ import { useElectron } from './electron';
 
 import { clamp as _clamp } from 'lodash';
 import { cloneDeep as _cloneDeep } from 'lodash';
+import { trpcApi } from '../utils/trpc';
 
 import type { IFolderTree } from '/@main/services/files';
 import type { ILocalSettings } from '/@main/services/settings';
@@ -49,7 +50,7 @@ export const useStore = defineStore('main', {
       this.tagsInternal = val;
     },
     async newRootPath() {
-      const allGood = await api.settings.newRootPath();
+      const allGood = await trpcApi.newRootPath.mutate();
       if (allGood) {
         this.initCore();
       }
@@ -102,7 +103,10 @@ export const useStore = defineStore('main', {
       this.syncOpened();
     },
     async syncOpened() {
-      await api.files.syncOpened(_cloneDeep(this.opened), this.activeOpenedIndex);
+      await trpcApi.syncOpened.mutate({
+        opened: _cloneDeep(this.opened),
+        index: this.activeOpenedIndex,
+      });
     },
 
     setOpenedIndex(index: number) {
@@ -118,12 +122,12 @@ export const useStore = defineStore('main', {
     // Initialization
     //
     async initCore() {
-      const allGood = await api.core.init();
+      const allGood = await trpcApi.init.query();
       if (allGood) {
         try {
           await api.subscriptions.SETTINGS_UPDATE(this.updateSettings);
 
-          const start = await api.settings.getSettings();
+          const start = await trpcApi.getSettings.query();
           this.updateSettings(start);
           await this.initFileTree();
           await this.initTags();
@@ -145,7 +149,8 @@ export const useStore = defineStore('main', {
     },
 
     async initFileTree() {
-      const initial = await api.files.getFileTree();
+      const initial = await trpcApi.getFileTree.query();
+      console.log('initial', initial);
       this.fileTree = initial;
       this.initialized = true;
       api.subscriptions.TREE_UPDATE(this.updateTree);
@@ -153,12 +158,12 @@ export const useStore = defineStore('main', {
 
     async initTags() {
       api.subscriptions.TAGS_UPDATE(this.updateTags);
-      const start = await api.files.getTags();
+      const start = await trpcApi.getTags.query();
       this.updateTags(start);
     },
 
     async saveSettings() {
-      api.settings.saveSettings(_cloneDeep(this.settings));
+      trpcApi.saveSettings.mutate(_cloneDeep(this.settings));
     },
   },
   getters: {

@@ -1,5 +1,6 @@
 import type { App, Directive } from 'vue';
 import { useElectron } from '../use/electron';
+import { trpcApi } from './trpc';
 
 type IBinding = { value: string | string[] };
 
@@ -12,9 +13,7 @@ const testIdDirective: Directive = (el: HTMLElement, binding: IBinding) => {
 };
 
 const registerTestClassDirective = async (app: App<Element>) => {
-  const electron = useElectron();
-
-  if (await electron.core.isTest()) {
+  if (await trpcApi.isTest.query()) {
     app.directive('test-class', testIdDirective);
   } else {
     app.directive('test-class', {});

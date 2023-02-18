@@ -1,6 +1,7 @@
 import { format, parse, isValid } from 'date-fns';
 import { useElectron } from '../use/electron';
 import { useStore } from '../use/store';
+import { trpcApi } from './trpc';
 import type { IBookData, IDateRead } from '/@main/services/books';
 import type { IUnsavedFile } from '/@main/services/files';
 
@@ -127,12 +128,12 @@ export const importGoodReadsHTML = (event: any) => {
 
       if (!store.settings) throw 'No settings';
 
-      const path = await api.files.createFolder(
-        store.settings.rootPath,
-        `Goodreads Import ${format(new Date(), 'MM-dd HH-mm-ss')}`,
-      );
+      const path = await trpcApi.createFolder.mutate({
+        pathToFolder: store.settings.rootPath,
+        name: `Goodreads Import ${format(new Date(), 'MM-dd HH-mm-ss')}`,
+      });
 
-      await api.files.saveNewFiles(path, result);
+      await trpcApi.saveNewFiles.mutate({ basePath: path, files: result });
     }
   };
 };

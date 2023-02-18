@@ -6,7 +6,7 @@ const zDateRead = z.object({ started: z.string().optional(), finished: z.string(
 
 export type IDateRead = z.infer<typeof zDateRead>;
 
-const zBookData = z.object({
+export const zBookData = z.object({
   title: z.string().optional(),
   author: z.string().optional(),
   year: z.number().optional(),

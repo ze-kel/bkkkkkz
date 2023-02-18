@@ -85,6 +85,7 @@ import { cloneDeep as _cloneDeep } from 'lodash';
 import getSortFunction from './getSortFunction';
 import { groupItems } from './groupItems';
 import ElObserver from './elementObserver';
+import { trpcApi } from '/@/utils/trpc';
 
 import BookItem from './BookItem.vue';
 import DragDisplay from '../_UI/DragDisplay.vue';
@@ -116,10 +117,13 @@ const props = defineProps({
 
 const loadContent = async () => {
   if (props.opened.type === 'folder') {
-    files.value = await api.files.loadFilesFromFolder(props.opened.thing, props.opened.recursive);
+    files.value = await trpcApi.loadFilesFromFolder.query({
+      path: props.opened.thing,
+      recursive: props.opened.recursive,
+    });
   }
   if (props.opened.type === 'tag') {
-    files.value = await api.files.loadFilesFromTag(props.opened.thing);
+    files.value = await trpcApi.loadFilesFromTag.query(props.opened.thing);
   }
   nextTick(setScrollPositionFromSaved);
 };
@@ -241,7 +245,7 @@ const startDrag = (devt: DragEvent, file: IFile) => {
 // Right click
 //
 const getMenu = (book: IFile): ContextMenu => {
-  return [{ label: 'Delete', handler: () => api.files.delete(book.path) }];
+  return [{ label: 'Delete', handler: () => trpcApi.delete.mutate(book.path) }];
 };
 
 const openContextMenu = (e: MouseEvent, book: IFile) => {

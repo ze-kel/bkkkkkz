@@ -132,6 +132,7 @@ import type { PropType } from 'vue';
 import type { IFile, ISavedFile, IUnsavedFile } from '/@main/services/files';
 import type { IOpenedFile, IOpenedNewFile } from '/@main/watcher/openedTabs';
 import type { ContextMenu } from '/@/use/contextMenu';
+import { trpcApi } from '/@/utils/trpc';
 
 const api = useElectron();
 const store = useStore();
@@ -155,7 +156,7 @@ const loading = ref(true);
 watchEffect(async () => {
   if (props.opened.type === 'file') {
     loading.value = true;
-    const res = await api.files.loadFileContent(props.opened.thing);
+    const res = await trpcApi.loadFileContent.query(props.opened.thing);
     previousName.value = res.name || '';
     file.value = res;
 
@@ -171,7 +172,10 @@ watchEffect(async () => {
 
 const manualSave = async () => {
   if ('unsaved' in file.value) {
-    const saved = await api.files.saveNewFile(props.opened.thing, _cloneDeep(file.value));
+    const saved = await trpcApi.saveNewFile.mutate({
+      basePath: props.opened.thing,
+      file: _cloneDeep(file.value) as IUnsavedFile,
+    });
     file.value = saved;
     store.openNewOne({ ...props.opened, type: 'file', thing: saved.path }, { index: props.index });
     autoSave.value = true;
@@ -181,12 +185,12 @@ const manualSave = async () => {
 };
 
 const save = (file: ISavedFile) => {
-  api.files.saveFileContent(_cloneDeep(file));
+  trpcApi.saveFileContent.mutate(_cloneDeep(file));
 };
 
 const rename = async (newName: string) => {
   if (!file.value || 'unsaved' in file.value) return;
-  const newPath = await api.files.rename(file.value.path, newName);
+  const newPath = await trpcApi.rename.mutate({ srcPath: file.value.path, newName });
   store.openNewOne({ ...props.opened, thing: newPath }, { index: props.index });
 };
 
@@ -297,12 +301,12 @@ const removeSecondary = () => {
 ///
 const removeCover = () => {
   if ('unsaved' in file.value) return;
-  api.files.removeCoverFile(file.value.path);
+  trpcApi.removeCoverFile.mutate(file.value.path);
 };
 
 const setCover = () => {
   if ('unsaved' in file.value) return;
-  api.files.setCover(file.value.path);
+  trpcApi.setCover.mutate(file.value.path);
 };
 
 const coverRightClick = (e: MouseEvent) => {

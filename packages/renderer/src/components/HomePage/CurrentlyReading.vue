@@ -24,6 +24,7 @@ import { useElectron } from '/@/use/electron';
 import BookItem from '/@/components/BookView/BookItem.vue';
 
 import type { IFile, IFiles } from '/@main/services/files';
+import { trpcApi } from '/@/utils/trpc';
 
 const api = useElectron();
 
@@ -40,7 +41,7 @@ const currentlyReadingCollapsed = computed(
 );
 
 const load = async () => {
-  currentlyReading.value = await api.files.loadFilesFromTag('_i_reading');
+  currentlyReading.value = await trpcApi.loadFilesFromTag.query('_i_reading');
   console.log(currentlyReading.value);
 };
 

@@ -54,16 +54,17 @@ import { useStore } from '/@/use/store';
 import { importGoodReadsHTML } from '/@/utils/goodreadsHTMLParser';
 
 import type { ILocalSettings } from '/@main/services/settings';
+import { trpcApi } from '/@/utils/trpc';
 
 const store = useStore();
 const api = useElectron();
 
 const rootPath = computed(() => store.settings?.rootPath || '');
 const changeRootPath = async () => {
-  const result = await api.settings.newRootPath();
+  const result = await trpcApi.newRootPath.mutate();
 };
 
-const importGoodreadsCsv = () => api.parsers.parseGoodreadsCsv();
+const importGoodreadsCsv = () => trpcApi.parseGoodreadsCsv.mutate();
 
 const importHTMLButton = ref<HTMLElement>();
 

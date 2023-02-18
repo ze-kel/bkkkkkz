@@ -58,6 +58,7 @@ import { dateReducerAllYears } from '/@/components/BookView/getDateReducer';
 import { cloneDeep as _cloneDeep } from 'lodash';
 
 import type { IFile, IFiles, ISavedFile } from '/@main/services/files';
+import { trpcApi } from '/@/utils/trpc';
 
 const api = useElectron();
 const store = useStore();
@@ -65,7 +66,7 @@ const store = useStore();
 const read = ref<IFiles>({});
 
 const load = async () => {
-  read.value = await api.files.loadFilesFromTag('_i_read');
+  read.value = await trpcApi.loadFilesFromTag.query('_i_read');
 };
 
 const currentYear = computed(() => {
