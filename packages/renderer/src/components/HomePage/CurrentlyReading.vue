@@ -19,14 +19,11 @@
 
 <script lang="ts" setup>
 import { computed, ref } from 'vue';
-import { useElectron } from '/@/use/electron';
 
 import BookItem from '/@/components/BookView/BookItem.vue';
 
 import type { IFile, IFiles } from '/@main/services/files';
 import { trpcApi } from '/@/utils/trpc';
-
-const api = useElectron();
 
 const currentlyReading = ref<IFiles>({});
 const currentlyReadingArray = computed<IFile[]>(() => {
@@ -42,7 +39,6 @@ const currentlyReadingCollapsed = computed(
 
 const load = async () => {
   currentlyReading.value = await trpcApi.loadFilesFromTag.query('_i_reading');
-  console.log(currentlyReading.value);
 };
 
 load();

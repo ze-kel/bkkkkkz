@@ -1,5 +1,4 @@
 import { defineStore, acceptHMRUpdate } from 'pinia';
-import { useElectron } from './electron';
 
 import { clamp as _clamp } from 'lodash';
 import { cloneDeep as _cloneDeep } from 'lodash';
@@ -9,8 +8,6 @@ import type { IFolderTree } from '/@main/services/files';
 import type { ILocalSettings } from '/@main/services/settings';
 import type { IOpened } from '/@main/watcher/openedTabs';
 import type { ITags } from '/@main/watcher/tagUpdates';
-
-const api = useElectron();
 
 export type StateType = {
   initialized: boolean;
@@ -125,7 +122,7 @@ export const useStore = defineStore('main', {
       const allGood = await trpcApi.init.query();
       if (allGood) {
         try {
-          await api.subscriptions.SETTINGS_UPDATE(this.updateSettings);
+          await trpcApi.settingsUpdate.subscribe(undefined, { onData: this.updateSettings });
 
           const start = await trpcApi.getSettings.query();
           this.updateSettings(start);
@@ -153,11 +150,11 @@ export const useStore = defineStore('main', {
       console.log('initial', initial);
       this.fileTree = initial;
       this.initialized = true;
-      api.subscriptions.TREE_UPDATE(this.updateTree);
+      await trpcApi.treeUpdate.subscribe(undefined, { onData: this.updateTree });
     },
 
     async initTags() {
-      api.subscriptions.TAGS_UPDATE(this.updateTags);
+      await trpcApi.tagsUpdate.subscribe(undefined, { onData: this.updateTags });
       const start = await trpcApi.getTags.query();
       this.updateTags(start);
     },

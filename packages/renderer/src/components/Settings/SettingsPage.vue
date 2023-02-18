@@ -47,17 +47,14 @@
 
 <script lang="ts" setup>
 import { computed, ref } from 'vue';
-import { useElectron } from '/@/use/electron';
 import PathControllerVue from './PathController.vue';
 import ButtonsSwitch from '/@/components/_UI/ButtonsSwitch.vue';
 import { useStore } from '/@/use/store';
 import { importGoodReadsHTML } from '/@/utils/goodreadsHTMLParser';
 
-import type { ILocalSettings } from '/@main/services/settings';
 import { trpcApi } from '/@/utils/trpc';
 
 const store = useStore();
-const api = useElectron();
 
 const rootPath = computed(() => store.settings?.rootPath || '');
 const changeRootPath = async () => {

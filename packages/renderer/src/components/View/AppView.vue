@@ -70,7 +70,7 @@
 import { useStore } from '/@/use/store';
 import { computed, ref } from 'vue';
 import BookView from '/@/components/BookView/BookView.vue';
-import Editor from '../Editor/MarkdownEditor.vue';
+import Editor from '../Editor/BookEditor.vue';
 import formatHeader from '/@/utils/formatHeader';
 import { getDefaultViewSettings } from '/@/utils/getDefaultViewSettings';
 import HomePage from '../HomePage/HomePage.vue';

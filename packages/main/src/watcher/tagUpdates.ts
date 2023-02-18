@@ -1,9 +1,9 @@
 import { difference as _difference } from 'lodash';
-import {debounce as _debounce} from 'lodash';
-import WebContentsProxy from '../ipc/webContents';
+import { debounce as _debounce } from 'lodash';
 import { OpenedTabs } from './openedTabs';
 import type { IFile, ISavedFile } from '../services/files';
 import type { IWatcherModule } from './watcherCore';
+import { apiEventsEmitter } from '../ipc/api';
 
 export type ITagData = {
   [key: string]: Set<string>;
@@ -72,7 +72,7 @@ const removeTag = (tag: string) => {
   delete tags[tag];
 };
 
-const sendUpdates = _debounce(() => WebContentsProxy.TAGS_UPDATE(getTags()), 250);
+const sendUpdates = _debounce(() => apiEventsEmitter.emit('TAGS_UPDATE', getTags()), 250);
 
 const processAddedFile = (file: ISavedFile) => {
   const tags = file.tags || [];
@@ -106,10 +106,10 @@ const processUpdatedFile = (file: ISavedFile) => {
   OpenedTabs.forEach((item, index) => {
     if (item.type === 'tag') {
       if (added.includes(item.thing)) {
-        WebContentsProxy.FILE_ADD(file, [index]);
+        apiEventsEmitter.emit('FILE_ADD', { file, relevantIndexes: [index] });
       }
       if (removed.includes(item.thing)) {
-        WebContentsProxy.FILE_REMOVE(file.path, [index]);
+        apiEventsEmitter.emit('FILE_REMOVE', { path: file.path, relevantIndexes: [index] });
       }
     }
   });
@@ -153,15 +153,15 @@ export const TagUpdates: IWatcherModule = {
   },
   addFile(file) {
     processAddedFile(file);
-    const relevantIndexex = getRelevantIndexes(file.path);
-    if (relevantIndexex.length) WebContentsProxy.FILE_ADD(file, relevantIndexex);
+    const relevantIndexes = getRelevantIndexes(file.path);
+    if (relevantIndexes.length) apiEventsEmitter.emit('FILE_ADD', { file, relevantIndexes });
   },
   changeFile(file) {
     processUpdatedFile(file);
   },
   unlinkFile(path) {
-    const relevantIndexex = getRelevantIndexes(path);
-    if (relevantIndexex.length) WebContentsProxy.FILE_REMOVE(path, relevantIndexex);
+    const relevantIndexes = getRelevantIndexes(path);
+    if (relevantIndexes.length) apiEventsEmitter.emit('FILE_REMOVE', { path, relevantIndexes });
     processDeletedFile(path);
   },
 };

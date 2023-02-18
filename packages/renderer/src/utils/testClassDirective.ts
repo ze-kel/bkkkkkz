@@ -1,5 +1,4 @@
 import type { App, Directive } from 'vue';
-import { useElectron } from '../use/electron';
 import { trpcApi } from './trpc';
 
 type IBinding = { value: string | string[] };

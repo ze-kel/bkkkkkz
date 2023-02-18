@@ -1,7 +1,6 @@
 import { app, BrowserWindow } from 'electron';
 import { join } from 'node:path';
 import { URL } from 'node:url';
-import WebContentsProxy from './ipc/webContents';
 import { createIPCHandler } from 'electron-trpc/main';
 import { appRouter } from './ipc/api';
 
@@ -50,7 +49,6 @@ async function createWindow() {
       : new URL('../renderer/dist/index.html', 'file://' + __dirname).toString();
 
   /* Register window to WTC for node -> window communitcation */
-  WebContentsProxy.setWindow(browserWindow);
   createIPCHandler({ router: appRouter, windows: [browserWindow] });
 
   await browserWindow.loadURL(pageUrl);

@@ -77,7 +77,6 @@
 
 <script setup lang="ts">
 import { computed, onUpdated, ref, watchEffect } from 'vue';
-import { useElectron } from '/@/use/electron';
 import { openMenu } from '/@/use/contextMenu';
 import { useStore } from '/@/use/store';
 import { cloneDeep as _cloneDeep } from 'lodash';
@@ -90,7 +89,6 @@ import type { ContextMenu } from '/@/use/contextMenu';
 import type { OpenNewOneParams } from '/@/use/store';
 import { trpcApi } from '/@/utils/trpc';
 
-const api = useElectron();
 const store = useStore();
 
 const props = defineProps({

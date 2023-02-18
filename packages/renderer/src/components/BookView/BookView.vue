@@ -76,7 +76,6 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch, watchEffect, nextTick } from 'vue';
 import Fuse from 'fuse.js';
-import { useElectron } from '/@/use/electron';
 import { useStore } from '/@/use/store';
 import { openMenu } from '/@/use/contextMenu';
 
@@ -89,15 +88,13 @@ import { trpcApi } from '/@/utils/trpc';
 
 import BookItem from './BookItem.vue';
 import DragDisplay from '../_UI/DragDisplay.vue';
-import Rating from '../Rating/Rating.vue';
+import Rating from '../Rating/RatingStars.vue';
 import ViewConrols from './ViewConrols.vue';
 
 import type { IFile, IFiles } from '/@main/services/files';
 import type { PropType } from 'vue';
 import type { IOpenedTag, IOpenedPath, IOpenedFile } from '/@main/watcher/openedTabs';
 import type { ContextMenu } from '/@/use/contextMenu';
-
-const api = useElectron();
 
 const store = useStore();
 
@@ -133,35 +130,53 @@ loadContent();
 //
 // Update event handling
 //
-const updateHandlerApi = (file: IFile, indexes: number[]) => {
-  if (!indexes.includes(props.index)) return;
+const updateHandlerApi = ({
+  file,
+  relevantIndexes,
+}: {
+  file: IFile;
+  relevantIndexes: number[];
+}) => {
+  if (!relevantIndexes.includes(props.index)) return;
   if (files.value[file.path]) {
     files.value[file.path] = file;
   }
 };
 
-const addHandlerApi = (file: IFile, indexes: number[]) => {
-  if (!indexes.includes(props.index)) return;
+const addHandlerApi = ({ file, relevantIndexes }: { file: IFile; relevantIndexes: number[] }) => {
+  if (!relevantIndexes.includes(props.index)) return;
   files.value[file.path] = file;
 };
 
-const removeHandlerApi = (path: string, indexes: number[]) => {
-  if (!indexes.includes(props.index)) return;
+const removeHandlerApi = ({
+  path,
+  relevantIndexes,
+}: {
+  path: string;
+  relevantIndexes: number[];
+}) => {
+  if (!relevantIndexes.includes(props.index)) return;
   if (files.value[path]) {
     delete files.value[path];
   }
 };
 
-const toClear: Array<() => void> = [];
+const u = trpcApi.fileUpdate.subscribe(undefined, {
+  onData: updateHandlerApi,
+});
 
-toClear.push(
-  api.subscriptions.FILE_UPDATE(updateHandlerApi),
-  api.subscriptions.FILE_ADD(addHandlerApi),
-  api.subscriptions.FILE_REMOVE(removeHandlerApi),
-);
+const a = trpcApi.fileAdd.subscribe(undefined, {
+  onData: addHandlerApi,
+});
+
+const r = trpcApi.fileRemove.subscribe(undefined, {
+  onData: removeHandlerApi,
+});
 
 onUnmounted(async () => {
-  toClear.forEach((fn) => fn());
+  u.unsubscribe();
+  a.unsubscribe();
+  r.unsubscribe();
 });
 
 //

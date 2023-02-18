@@ -47,20 +47,17 @@
 
 <script lang="ts" setup>
 import { computed, ref } from 'vue';
-import { useElectron } from '/@/use/electron';
 import { useStore } from '/@/use/store';
 
-import BookItem from '/@/components/BookView/BookItem.vue';
 import ChallengeYear from './ChallengeYear.vue';
 
 import getSortFunction from '/@/components/BookView/getSortFunction';
 import { dateReducerAllYears } from '/@/components/BookView/getDateReducer';
 import { cloneDeep as _cloneDeep } from 'lodash';
 
-import type { IFile, IFiles, ISavedFile } from '/@main/services/files';
+import type { IFiles, ISavedFile } from '/@main/services/files';
 import { trpcApi } from '/@/utils/trpc';
 
-const api = useElectron();
 const store = useStore();
 
 const read = ref<IFiles>({});

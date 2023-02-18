@@ -2,8 +2,8 @@ import * as path from 'path';
 import * as fs from 'fs-extra';
 import { dialog } from 'electron';
 import type * as IStore from 'electron-store';
-import WebContentsProxy from '../ipc/webContents';
 import type { IOpened } from '../watcher/openedTabs';
+import { apiEventsEmitter } from '../ipc/api';
 const Store = require('electron-store');
 
 const SETTINGS_PATH = '.bkz';
@@ -148,7 +148,7 @@ const initStore = () => {
 };
 
 const sendUpdatesToClient = () => {
-  WebContentsProxy.SETTINGS_UPDATE(getStore());
+  apiEventsEmitter.emit('SETTINGS_UPDATE', getStore());
 };
 
 const getStore = (): ILocalSettings => {

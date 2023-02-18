@@ -150,8 +150,5 @@ test('Changes made in edtior are saved to disk', async () => {
   const expectedStr = removeLineTerminators(expected.toString());
   const onDiskStr = removeLineTerminators(onDisk.toString());
 
-  console.log('exp', expectedStr);
-  console.log('ondisk', onDiskStr);
-
   expect(expectedStr, 'After editing all changes are saved to disk').toEqual(onDiskStr);
 });

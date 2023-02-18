@@ -2,12 +2,12 @@
   <div v-if="!loading" class="flex flex-col h-full">
     <div class="grid customTopGrid gap-4 px-2">
       <div class="py-2" :draggable="true" @dragstart="startDrag($event)">
-        <Cover :file="file" class="aspect-[6/8] max-h-60" @click.right="coverRightClick" />
+        <Cover :file="openedFile" class="aspect-[6/8] max-h-60" @click.right="coverRightClick" />
       </div>
       <div class="flex-grow flex flex-col justify-between py-2">
         <div>
           <ContentEditable
-            v-model="file.title"
+            v-model="openedFile.title"
             v-test-class="'T-editor-title'"
             spellcheck="false"
             tag="div"
@@ -16,7 +16,7 @@
             :placeholder-classes="'text-neutral-400 hover:text-neutral-600'"
           />
           <ContentEditable
-            v-model="file.author"
+            v-model="openedFile.author"
             v-test-class="'T-editor-author'"
             spellcheck="false"
             tag="div"
@@ -25,7 +25,7 @@
             :placeholder-classes="'text-neutral-400 hover:text-neutral-600'"
           />
           <ContentEditable
-            v-model="file.year"
+            v-model="openedFile.year"
             v-test-class="'T-editor-year'"
             :number="true"
             spellcheck="false"
@@ -39,7 +39,7 @@
         <div class="flex flex-col gap-2 mt-2">
           <div class="flex group">
             <ContentEditable
-              v-model="file.ISBN13"
+              v-model="openedFile.ISBN13"
               v-test-class="'T-editor-isbn'"
               :number="true"
               spellcheck="false"
@@ -65,7 +65,7 @@
           <div class="flex items-center">
             <div class="flex items-center">
               <ContentEditable
-                v-model="file.name"
+                v-model="openedFile.name"
                 v-test-class="'T-editor-filename'"
                 spellcheck="false"
                 tag="div"
@@ -88,21 +88,21 @@
       <div class="border-neutral-200 dark:border-neutral-700 h-full border-l">
         <div class="border-b border-neutral-200 dark:border-neutral-700 p-2">
           <div class="text-neutral-800 dark:text-neutral-100 font-medium">Read dates</div>
-          <ReadDetails v-model="file.read" />
+          <ReadDetails v-model="openedFile.read" />
         </div>
         <div class="border-b border-neutral-200 dark:border-neutral-700 p-2">
           <div class="text-neutral-800 dark:text-neutral-100 font-medium">Rating</div>
-          <Rating v-model="file.myRating" />
+          <Rating v-model="openedFile.myRating" />
         </div>
         <div class="p-2">
           <div class="text-neutral-800 dark:text-neutral-100 font-medium">Tags</div>
-          <Tags v-model="file.tags" class="my-1" />
+          <Tags v-model="openedFile.tags" class="my-1" />
         </div>
       </div>
     </div>
 
     <div class="h-full border-t border-neutral-300 dark:border-neutral-700 p-4">
-      <Milkdown v-model="file.content" />
+      <Milkdown v-model="openedFile.content" />
     </div>
   </div>
   <div ref="forDrag" class="absolute top-[-500px]">
@@ -113,13 +113,12 @@
 <script lang="ts" setup>
 import { ref, onMounted, watchEffect, onUnmounted, watch, nextTick, computed } from 'vue';
 import { useStore } from '/@/use/store';
-import { useElectron } from '/@/use/electron';
 import { openMenu } from '/@/use/contextMenu';
 
 import ContentEditable from '../_UI/ContentEditable.vue';
 import ReadDetails from '../ReadDetails/ReadDetails.vue';
-import Rating from '../Rating/Rating.vue';
-import Milkdown from './Mikdown.vue';
+import Rating from '../Rating/RatingStars.vue';
+import Milkdown from './MdMikdown.vue';
 import Tags from '../Tags/Tags.vue';
 import DragDisplay from '/@/components/_UI/DragDisplay.vue';
 import Cover from '../Cover/BookCover.vue';
@@ -133,8 +132,8 @@ import type { IFile, ISavedFile, IUnsavedFile } from '/@main/services/files';
 import type { IOpenedFile, IOpenedNewFile } from '/@main/watcher/openedTabs';
 import type { ContextMenu } from '/@/use/contextMenu';
 import { trpcApi } from '/@/utils/trpc';
+import type { Unsubscribable } from '@trpc/server/observable';
 
-const api = useElectron();
 const store = useStore();
 
 const props = defineProps({
@@ -148,7 +147,7 @@ const props = defineProps({
   },
 });
 
-const file = ref<ISavedFile | IUnsavedFile>({ unsaved: true, name: '' });
+const openedFile = ref<ISavedFile | IUnsavedFile>({ unsaved: true, name: '' });
 const previousName = ref('');
 const autoSave = ref(false);
 const loading = ref(true);
@@ -158,7 +157,7 @@ watchEffect(async () => {
     loading.value = true;
     const res = await trpcApi.loadFileContent.query(props.opened.thing);
     previousName.value = res.name || '';
-    file.value = res;
+    openedFile.value = res;
 
     nextTick(() => {
       autoSave.value = true;
@@ -171,16 +170,16 @@ watchEffect(async () => {
 });
 
 const manualSave = async () => {
-  if ('unsaved' in file.value) {
+  if ('unsaved' in openedFile.value) {
     const saved = await trpcApi.saveNewFile.mutate({
       basePath: props.opened.thing,
-      file: _cloneDeep(file.value) as IUnsavedFile,
+      file: _cloneDeep(openedFile.value) as IUnsavedFile,
     });
-    file.value = saved;
+    openedFile.value = saved;
     store.openNewOne({ ...props.opened, type: 'file', thing: saved.path }, { index: props.index });
     autoSave.value = true;
   } else {
-    save(file.value);
+    save(openedFile.value);
   }
 };
 
@@ -189,8 +188,8 @@ const save = (file: ISavedFile) => {
 };
 
 const rename = async (newName: string) => {
-  if (!file.value || 'unsaved' in file.value) return;
-  const newPath = await trpcApi.rename.mutate({ srcPath: file.value.path, newName });
+  if (!openedFile.value || 'unsaved' in openedFile.value) return;
+  const newPath = await trpcApi.rename.mutate({ srcPath: openedFile.value.path, newName });
   store.openNewOne({ ...props.opened, thing: newPath }, { index: props.index });
 };
 
@@ -198,7 +197,7 @@ const debouncedSave = _debounce(save, 500);
 const debouncedRename = _debounce(rename, 500);
 
 watch(
-  file,
+  openedFile,
   (newFile, oldFile) => {
     if (!oldFile || !newFile || !autoSave.value || 'unsaved' in newFile || loading.value) return;
 
@@ -216,20 +215,28 @@ watch(
 //
 // Update events handling
 //
-const updateHandlerApi = (newFile: IFile) => {
+const updateHandlerApi = ({ file }: { file: IFile }) => {
+  // TODO: Why are we ignoring indexes here?
   loading.value = true;
 
-  file.value = newFile;
+  openedFile.value = file;
 
   nextTick(() => {
     loading.value = false;
   });
 };
-const toClear: Array<() => void> = [];
+const toClear: Array<Unsubscribable> = [];
 
 const registerHandles = () => {
-  toClear.push(api.subscriptions.FILE_UPDATE(updateHandlerApi));
-  toClear.push(api.subscriptions.FILE_REMOVE(() => store.closeOpened(props.index)));
+  const u = trpcApi.fileUpdate.subscribe(undefined, {
+    onData: updateHandlerApi,
+  });
+  const r = trpcApi.fileRemove.subscribe(undefined, {
+    onData: () => {
+      store.closeOpened(props.index);
+    },
+  });
+  toClear.push(u, r);
 };
 
 onMounted(() => {
@@ -237,7 +244,7 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-  toClear.forEach((fn) => fn());
+  toClear.forEach((u) => u.unsubscribe());
 });
 
 //
@@ -246,17 +253,22 @@ onUnmounted(() => {
 const dragging = ref('');
 const forDrag = ref();
 const startDrag = (devt: DragEvent) => {
-  if (devt.dataTransfer === null || !file.value || 'unsaved' in file.value || !file.value.name) {
+  if (
+    devt.dataTransfer === null ||
+    !openedFile.value ||
+    'unsaved' in openedFile.value ||
+    !openedFile.value.name
+  ) {
     return;
   }
 
-  devt.dataTransfer.setData('itemPath', file.value.path);
+  devt.dataTransfer.setData('itemPath', openedFile.value.path);
   devt.dataTransfer.setDragImage(forDrag.value, 0, 0);
-  dragging.value = file.value.name;
+  dragging.value = openedFile.value.name;
 
   const toUpdateIndexes = store.opened.reduce((acc: number[], opened, index) => {
-    if ('unsaved' in file.value) return [];
-    if (opened.type === 'file' && opened.thing === file.value?.path) {
+    if ('unsaved' in openedFile.value) return [];
+    if (opened.type === 'file' && opened.thing === openedFile.value?.path) {
       acc.push(index);
     }
     return acc;
@@ -270,27 +282,27 @@ const startDrag = (devt: DragEvent) => {
 //
 const mainTitle = computed({
   get() {
-    return file.value.title?.split(':')[0] || '';
+    return openedFile.value.title?.split(':')[0] || '';
   },
   set(val: string) {
-    file.value.title = secondaryTitle.value ? val + ':' + secondaryTitle.value : val;
+    openedFile.value.title = secondaryTitle.value ? val + ':' + secondaryTitle.value : val;
   },
 });
 
 const secondaryTitle = computed({
   get() {
-    const [main, ...rest] = file.value.title?.split(':') || ['', ''];
+    const [main, ...rest] = openedFile.value.title?.split(':') || ['', ''];
     return rest.join(':');
   },
   set(val: string) {
-    file.value.title = val ? mainTitle.value + ':' + val : mainTitle.value;
+    openedFile.value.title = val ? mainTitle.value + ':' + val : mainTitle.value;
   },
 });
 
 const mainTitleRef = ref<HTMLElement | undefined>(undefined);
 
 const removeSecondary = () => {
-  file.value.title = mainTitle.value + secondaryTitle.value;
+  openedFile.value.title = mainTitle.value + secondaryTitle.value;
   nextTick(() => {
     mainTitleRef.value?.focus();
   });
@@ -300,21 +312,21 @@ const removeSecondary = () => {
 /// Cover Right click
 ///
 const removeCover = () => {
-  if ('unsaved' in file.value) return;
-  trpcApi.removeCoverFile.mutate(file.value.path);
+  if ('unsaved' in openedFile.value) return;
+  trpcApi.removeCoverFile.mutate(openedFile.value.path);
 };
 
 const setCover = () => {
-  if ('unsaved' in file.value) return;
-  trpcApi.setCover.mutate(file.value.path);
+  if ('unsaved' in openedFile.value) return;
+  trpcApi.setCover.mutate(openedFile.value.path);
 };
 
 const coverRightClick = (e: MouseEvent) => {
   const menu: ContextMenu = [];
 
-  if ('unsaved' in file.value) return;
+  if ('unsaved' in openedFile.value) return;
 
-  if (file.value.cover) {
+  if (openedFile.value.cover) {
     menu.push(
       {
         handler: setCover,
@@ -340,17 +352,17 @@ const coverRightClick = (e: MouseEvent) => {
 //
 const showISBNConversionError = ref(false);
 const showConvertISBNButton = computed(() => {
-  return !file.value.ISBN13 || String(file.value.ISBN13).length < 13;
+  return !openedFile.value.ISBN13 || String(openedFile.value.ISBN13).length < 13;
 });
 
 const convertISBN = () => {
-  if (!file.value.ISBN13 || String(file.value.ISBN13).length != 10) {
+  if (!openedFile.value.ISBN13 || String(openedFile.value.ISBN13).length != 10) {
     showISBNConversionError.value = true;
     setTimeout(() => {
       showISBNConversionError.value = false;
     }, 3000);
   } else {
-    file.value.ISBN13 = ISBN10to13(file.value.ISBN13);
+    openedFile.value.ISBN13 = ISBN10to13(openedFile.value.ISBN13);
   }
 };
 </script>

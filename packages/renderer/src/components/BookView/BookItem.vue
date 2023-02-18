@@ -48,7 +48,7 @@ import { dateReducerAllYears } from './getDateReducer';
 import { useStore } from '/@/use/store';
 
 import Cover from '../Cover/BookCover.vue';
-import Rating from '../Rating/Rating.vue';
+import Rating from '../Rating/RatingStars.vue';
 
 import type { PropType } from 'vue';
 import type { IFile } from '/@main/services/files';

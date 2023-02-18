@@ -1,19 +1,25 @@
 import { initTRPC } from '@trpc/server';
+import type { IFolderTree, ISavedFile } from '../services/files';
 import FileService, { zSavedFile, zUnsavedFile } from '../services/files';
 import type { ILocalSettings } from '../services/settings';
 import Settings from '../services/settings';
 import { z } from 'zod';
 import { FileUpdates } from '../watcher/fileUpdates';
 import { updateOpened, zOpened } from '../watcher/openedTabs';
+import type { ITags } from '../watcher/tagUpdates';
 import TagsStore from '../watcher/tagUpdates';
 import TheWatcher from '../watcher/watcherCore';
 import { format } from 'date-fns';
 import { dialog } from 'electron';
 import * as path from 'node:path';
 import * as fs from 'fs-extra';
+import { observable } from '@trpc/server/observable';
 import ParseGoodreadsCSV from '../services/goodreadsCsvParser';
+import { EventEmitter } from 'events';
 
 const t = initTRPC.create({ isServer: true });
+
+export const apiEventsEmitter = new EventEmitter();
 
 export const appRouter = t.router({
   getFileTree: t.procedure.query(async () => {
@@ -144,6 +150,81 @@ export const appRouter = t.router({
   isTest: t.procedure.query(() => {
     return process.env['TEST_MODE'];
   }),
+
+  fileUpdate: t.procedure.subscription(() => {
+    return observable<I_FILE_UPDATE>((emit) => {
+      function onThing(data: I_FILE_UPDATE) {
+        emit.next(data);
+      }
+      apiEventsEmitter.on('FILE_UPDATE', onThing);
+      return () => {
+        apiEventsEmitter.off('FILE_UPDATE', onThing);
+      };
+    });
+  }),
+  fileRemove: t.procedure.subscription(() => {
+    return observable<I_FILE_REMOVE>((emit) => {
+      function onThing(data: I_FILE_REMOVE) {
+        emit.next(data);
+      }
+      apiEventsEmitter.on('FILE_REMOVE', onThing);
+      return () => {
+        apiEventsEmitter.off('FILE_REMOVE', onThing);
+      };
+    });
+  }),
+  fileAdd: t.procedure.subscription(() => {
+    return observable<I_FILE_ADD>((emit) => {
+      function onThing(data: I_FILE_ADD) {
+        emit.next(data);
+      }
+      apiEventsEmitter.on('FILE_ADD', onThing);
+      return () => {
+        apiEventsEmitter.off('FILE_ADD', onThing);
+      };
+    });
+  }),
+  treeUpdate: t.procedure.subscription(() => {
+    return observable<I_TREE_UPDATE>((emit) => {
+      function onThing(data: I_TREE_UPDATE) {
+        emit.next(data);
+      }
+      apiEventsEmitter.on('TREE_UPDATE', onThing);
+      return () => {
+        apiEventsEmitter.off('TREE_UPDATE', onThing);
+      };
+    });
+  }),
+  tagsUpdate: t.procedure.subscription(() => {
+    return observable<I_TAGS_UPDATE>((emit) => {
+      function onThing(data: I_TAGS_UPDATE) {
+        emit.next(data);
+      }
+      apiEventsEmitter.on('TAGS_UPDATE', onThing);
+      return () => {
+        apiEventsEmitter.off('TAGS_UPDATE', onThing);
+      };
+    });
+  }),
+  settingsUpdate: t.procedure.subscription(() => {
+    return observable<I_SETTING_UPDATE>((emit) => {
+      function onThing(data: I_SETTING_UPDATE) {
+        emit.next(data);
+      }
+      apiEventsEmitter.on('SETTINGS_UPDATE', onThing);
+      return () => {
+        apiEventsEmitter.off('SETTINGS_UPDATE', onThing);
+      };
+    });
+  }),
 });
+
+type I_FILE_UPDATE = { file: ISavedFile; relevantIndexes: number[] };
+type I_FILE_REMOVE = { path: string; relevantIndexes: number[] };
+
+type I_FILE_ADD = { file: ISavedFile; relevantIndexes: number[] };
+type I_TREE_UPDATE = IFolderTree;
+type I_TAGS_UPDATE = ITags;
+type I_SETTING_UPDATE = ILocalSettings;
 
 export type AppRouter = typeof appRouter;

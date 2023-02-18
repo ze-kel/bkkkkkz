@@ -1,9 +1,9 @@
 import type { IWatcherModule } from './watcherCore';
 import * as path from 'path';
 
-import WebContentsProxy from '../ipc/webContents';
 import { OpenedTabs } from './openedTabs';
 import type { IOpened } from './openedTabs';
+import { apiEventsEmitter } from '../ipc/api';
 
 type IWatcherFileIgnore = {
   [key: string]: Date;
@@ -47,8 +47,8 @@ const getRelevantIndexes = (pathInQuestion: string): number[] => {
 export const FileUpdates: IFileUpdatesModule = {
   ignored: {},
   addFile(file) {
-    const relevantIndexex = getRelevantIndexes(file.path);
-    if (relevantIndexex.length) WebContentsProxy.FILE_ADD(file, relevantIndexex);
+    const relevantIndexes = getRelevantIndexes(file.path);
+    if (relevantIndexes.length) apiEventsEmitter.emit('FILE_ADD', { file, relevantIndexes });
   },
   changeFile(file) {
     const ignoreDate = this.ignored[file.path];
@@ -59,11 +59,11 @@ export const FileUpdates: IFileUpdatesModule = {
       delete this.ignored[file.path];
     }
 
-    const relevantIndexex = getRelevantIndexes(file.path);
-    if (relevantIndexex.length) WebContentsProxy.FILE_UPDATE(file, relevantIndexex);
+    const relevantIndexes = getRelevantIndexes(file.path);
+    if (relevantIndexes.length) apiEventsEmitter.emit('FILE_UPDATE', { file, relevantIndexes });
   },
   unlinkFile(path) {
-    const relevantIndexex = getRelevantIndexes(path);
-    if (relevantIndexex.length) WebContentsProxy.FILE_REMOVE(path, relevantIndexex);
+    const relevantIndexes = getRelevantIndexes(path);
+    if (relevantIndexes.length) apiEventsEmitter.emit('FILE_REMOVE', { path, relevantIndexes });
   },
 };

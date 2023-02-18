@@ -1,5 +1,4 @@
 import { format, parse, isValid } from 'date-fns';
-import { useElectron } from '../use/electron';
 import { useStore } from '../use/store';
 import { trpcApi } from './trpc';
 import type { IBookData, IDateRead } from '/@main/services/books';
@@ -108,7 +107,6 @@ export const importGoodReadsHTML = (event: any) => {
   if (!event.target?.files) {
     return;
   }
-  const api = useElectron();
   const store = useStore();
 
   const fr = new FileReader();

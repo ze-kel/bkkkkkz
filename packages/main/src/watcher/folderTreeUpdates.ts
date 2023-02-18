@@ -1,17 +1,17 @@
 import type { IWatcherModule } from './watcherCore';
 import settings from '../services/settings';
-import WebContentsProxy from '../ipc/webContents';
 import FileService from '../services/files';
+import { apiEventsEmitter } from '../ipc/api';
 
 export const FolderUpdates: IWatcherModule = {
   async addDir() {
     const rootPath = settings.getRootPathSafe();
     const newFiles = await FileService.getFileTree(rootPath);
-    WebContentsProxy.TREE_UPDATE(newFiles);
+    apiEventsEmitter.emit('TREE_UPDATE', newFiles);
   },
   async unlinkDir() {
     const rootPath = settings.getRootPathSafe();
     const newFiles = await FileService.getFileTree(rootPath);
-    WebContentsProxy.TREE_UPDATE(newFiles);
+    apiEventsEmitter.emit('TREE_UPDATE', newFiles);
   },
 };
