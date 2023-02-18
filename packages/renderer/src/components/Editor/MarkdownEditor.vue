@@ -122,10 +122,10 @@ import Rating from '../Rating/Rating.vue';
 import Milkdown from './Mikdown.vue';
 import Tags from '../Tags/Tags.vue';
 import DragDisplay from '/@/components/_UI/DragDisplay.vue';
-import Cover from '/@/components/Cover/Cover.vue';
+import Cover from '../Cover/BookCover.vue';
 
-import _cloneDeep from 'lodash-es/cloneDeep';
-import _debounce from 'lodash-es/debounce';
+import { cloneDeep as _cloneDeep } from 'lodash';
+import { debounce as _debounce } from 'lodash';
 import { ISBN10to13 } from '/@main/helpers/utils';
 
 import type { PropType } from 'vue';

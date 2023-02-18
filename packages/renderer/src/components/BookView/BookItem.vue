@@ -43,11 +43,11 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 
-import _debounce from 'lodash-es/debounce';
+import { debounce as _debounce } from 'lodash';
 import { dateReducerAllYears } from './getDateReducer';
 import { useStore } from '/@/use/store';
 
-import Cover from '../Cover/Cover.vue';
+import Cover from '../Cover/BookCover.vue';
 import Rating from '../Rating/Rating.vue';
 
 import type { PropType } from 'vue';

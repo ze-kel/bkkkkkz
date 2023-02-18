@@ -80,7 +80,7 @@ import { computed, onUpdated, ref, watchEffect } from 'vue';
 import { useElectron } from '/@/use/electron';
 import { openMenu } from '/@/use/contextMenu';
 import { useStore } from '/@/use/store';
-import _cloneDeep from 'lodash-es/cloneDeep';
+import { cloneDeep as _cloneDeep } from 'lodash';
 import { getDefaultViewSettings } from '/@/utils/getDefaultViewSettings';
 
 import type { PropType } from 'vue';

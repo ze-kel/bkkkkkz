@@ -1,101 +1,90 @@
-import { app, BrowserWindow, ipcMain, protocol } from 'electron';
-import { join } from 'path';
-import { URL } from 'url';
-
+import { app, ipcMain, protocol } from 'electron';
+import './security-restrictions';
+import { restoreOrCreateWindow } from '/@/mainWindow';
+import { platform } from 'node:process';
 import initHandles from './ipc/ipcHandles';
-import WebContentsProxy from './ipc/webContents';
 import Files from './services/files';
 
-const isTestMode = process.env['TEST_MODE'] === 'true';
+/**
+ * Prevent electron from running multiple instances.
+ */
 const isSingleInstance = app.requestSingleInstanceLock();
-
-if (!isSingleInstance && !isTestMode) {
+if (!isSingleInstance) {
   app.quit();
   process.exit(0);
 }
+app.on('second-instance', restoreOrCreateWindow);
 
-// Install "Vue.js devtools"
-if (import.meta.env.MODE === 'development') {
+/**
+ * Disable Hardware Acceleration to save more system resources.
+ */
+app.disableHardwareAcceleration();
+
+/**
+ * Shout down background process if all windows was closed
+ */
+app.on('window-all-closed', () => {
+  if (platform !== 'darwin') {
+    app.quit();
+  }
+});
+
+/**
+ * @see https://www.electronjs.org/docs/latest/api/app#event-activate-macos Event: 'activate'.
+ */
+app.on('activate', restoreOrCreateWindow);
+
+/**
+ * Create the application window when the background process is ready.
+ */
+app
+  .whenReady()
+  .then(restoreOrCreateWindow)
+  .catch((e) => console.error('Failed create window:', e));
+
+/**
+ * Install Vue.js or any other extension in development mode only.
+ */
+if (import.meta.env.DEV) {
   app
     .whenReady()
     .then(() => import('electron-devtools-installer'))
-    .then(({ default: installExtension, VUEJS3_DEVTOOLS }) =>
-      installExtension(VUEJS3_DEVTOOLS, {
+    .then((dt) => {
+      //@ts-expect-error no idea why, but only this works
+      dt.default.default(dt.VUEJS3_DEVTOOLS, {
         loadExtensionOptions: {
           allowFileAccess: true,
         },
-      }),
-    )
+      });
+    })
     .catch((e) => console.error('Failed install extension:', e));
 }
 
-let mainWindow: BrowserWindow | null = null;
+/**
+ * Check for app updates, install it in background and notify user that new version was installed.
+ * No reason run this in non-production build.
+ * @see https://www.electron.build/auto-update.html#quick-setup-guide
+ *
+ * Note: It may throw "ENOENT: no such file app-update.yml"
+ * if you compile production app without publishing it to distribution server.
+ * Like `npm run compile` does. It's ok 😅
+ */
+if (import.meta.env.PROD) {
+  app
+    .whenReady()
+    .then(() => import('electron-updater'))
+    .then((module) => {
+      const autoUpdater =
+        module.autoUpdater ||
+        // @ts-expect-error Hotfix for https://github.com/electron-userland/electron-builder/issues/7338
+        (module.default.autoUpdater as (typeof module)['autoUpdater']);
+      return autoUpdater.checkForUpdatesAndNotify();
+    })
+    .catch((e) => console.error('Failed check and install updates:', e));
+}
 
-const createWindow = async () => {
-  mainWindow = new BrowserWindow({
-    show: false, // Use 'ready-to-show' event to show window
-    webPreferences: {
-      nativeWindowOpen: true,
-      preload: join(__dirname, '../../preload/dist/index.cjs'),
-    },
-    width: 1280,
-    height: 720,
-    minWidth: 1000,
-    minHeight: 600,
-    titleBarStyle: 'hidden',
-    trafficLightPosition: { x: 10, y: 8 },
-  });
-
-  /**
-   * If you install `show: true` then it can cause issues when trying to close the window.
-   * Use `show: false` and listener events `ready-to-show` to fix these issues.
-   *
-   * @see https://github.com/electron/electron/issues/25012
-   */
-  mainWindow.on('ready-to-show', () => {
-    mainWindow?.show();
-
-    /* This will open devtool when you open the app. TODO: make it a .env variable
-     */
-    if (import.meta.env.MODE === 'development') {
-      mainWindow?.webContents.openDevTools();
-    }
-  });
-
-  /**
-   * URL for main window.
-   * Vite dev server for development.
-   * `file://../renderer/index.html` for production and test
-   */
-  const pageUrl =
-    import.meta.env.MODE === 'development' && import.meta.env.VITE_DEV_SERVER_URL !== undefined
-      ? import.meta.env.VITE_DEV_SERVER_URL
-      : new URL('../renderer/dist/index.html', 'file://' + __dirname).toString();
-
-  await mainWindow.loadURL(pageUrl);
-};
-
-app.on('second-instance', () => {
-  // Someone tried to run a second instance, we should focus our window.
-  if (mainWindow) {
-    if (mainWindow.isMinimized()) mainWindow.restore();
-    mainWindow.focus();
-  }
-});
-
-app.on('window-all-closed', () => {
-  app.quit();
-});
-
-app
-  .whenReady()
-  .then(createWindow)
-  .catch((e) => console.error('Failed create window:', e));
-
+/* Registering protocol for cover images, and register IPC handles */
 app.whenReady().then(() => {
-  if (!mainWindow) {
-    throw 'No main window, but app is ready, something is really wrong';
-  }
   protocol.registerFileProtocol('covers', async (request, callback) => {
     const coverPath = request.url.replace('covers://', '');
 
@@ -103,17 +92,5 @@ app.whenReady().then(() => {
     return callback(fullPath);
   });
 
-  WebContentsProxy.setWindow(mainWindow);
   initHandles(ipcMain);
 });
-
-// Auto-updates
-if (import.meta.env.PROD) {
-  app
-    .whenReady()
-    .then(() => import('electron-updater'))
-    .then(({ autoUpdater }) => autoUpdater.checkForUpdatesAndNotify())
-    .catch((e) => console.error('Failed check updates:', e));
-}
-
-export default mainWindow;

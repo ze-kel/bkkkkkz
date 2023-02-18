@@ -18,7 +18,7 @@ import { getCurrentInstance, computed } from 'vue';
 import { useElectron } from '/@/use/electron';
 import Tag from './TagFromTree.vue';
 import { useStore } from '/@/use/store';
-import _cloneDeep from 'lodash-es/cloneDeep';
+import { cloneDeep as _cloneDeep } from 'lodash';
 import { getDefaultViewSettings } from '/@/utils/getDefaultViewSettings';
 
 import type { OpenNewOneParams } from '/@/use/store';

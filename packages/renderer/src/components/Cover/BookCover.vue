@@ -23,7 +23,7 @@
 
 <script setup lang="ts">
 import { computed, getCurrentInstance, onMounted, ref, watch } from 'vue';
-import _debounce from 'lodash-es/debounce';
+import { debounce as _debounce } from 'lodash';
 import getRandomNumber from '/@/utils/randomFromString';
 
 import type { PropType } from 'vue';

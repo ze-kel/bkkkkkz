@@ -1,8 +1,8 @@
 import { defineStore, acceptHMRUpdate } from 'pinia';
 import { useElectron } from './electron';
 
-import _clamp from 'lodash-es/clamp';
-import _cloneDeep from 'lodash-es/cloneDeep';
+import { clamp as _clamp } from 'lodash';
+import { cloneDeep as _cloneDeep } from 'lodash';
 
 import type { IFolderTree } from '/@main/services/files';
 import type { ILocalSettings } from '/@main/services/settings';

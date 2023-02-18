@@ -55,7 +55,7 @@ import ChallengeYear from './ChallengeYear.vue';
 
 import getSortFunction from '/@/components/BookView/getSortFunction';
 import { dateReducerAllYears } from '/@/components/BookView/getDateReducer';
-import _cloneDeep from 'lodash-es/cloneDeep';
+import { cloneDeep as _cloneDeep } from 'lodash';
 
 import type { IFile, IFiles, ISavedFile } from '/@main/services/files';
 

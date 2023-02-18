@@ -38,7 +38,7 @@
 import { computed, watch, onMounted, onUnmounted, ref } from 'vue';
 import { useStore } from '/@/use/store';
 
-import _debounce from 'lodash-es/debounce';
+import { debounce as _debounce } from 'lodash';
 
 import IconsMenu from './IconsMenu/IconsMenu.vue';
 import TopBar from './TopBar/TopBar.vue';
@@ -46,7 +46,7 @@ import FileTree from './FileTree/FileTree.vue';
 import Welcome from './WelcomeScreen/Welcome.vue';
 import ContextMenu from './_UI/ContextMenu.vue';
 import TagsTree from './TagsTree/TagsTree.vue';
-import View from './View/View.vue';
+import View from './View/AppView.vue';
 
 const store = useStore();
 

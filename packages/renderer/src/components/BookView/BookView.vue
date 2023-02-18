@@ -80,8 +80,8 @@ import { useElectron } from '/@/use/electron';
 import { useStore } from '/@/use/store';
 import { openMenu } from '/@/use/contextMenu';
 
-import _debounce from 'lodash-es/debounce';
-import _cloneDeep from 'lodash-es/cloneDeep';
+import { debounce as _debounce } from 'lodash';
+import { cloneDeep as _cloneDeep } from 'lodash';
 import getSortFunction from './getSortFunction';
 import { groupItems } from './groupItems';
 import ElObserver from './elementObserver';

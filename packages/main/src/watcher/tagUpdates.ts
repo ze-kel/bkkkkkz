@@ -1,5 +1,5 @@
-import _difference from 'lodash-es/difference';
-import _debounce from 'lodash-es/debounce';
+import { difference as _difference } from 'lodash';
+import {debounce as _debounce} from 'lodash';
 import WebContentsProxy from '../ipc/webContents';
 import { OpenedTabs } from './openedTabs';
 import type { IFile, ISavedFile } from '../services/files';
