@@ -1,11 +1,8 @@
 <template>
-  <div v-if="!loading" class="flex flex-col h-full">
-    <div class="grid customTopGrid gap-4 px-2">
-      <div class="py-2" :draggable="true" @dragstart="startDrag($event)">
-        <Cover :file="openedFile" class="aspect-[6/8] max-h-60" @click.right="coverRightClick" />
-      </div>
-      <div class="flex-grow flex flex-col justify-between py-2">
-        <div>
+  <div v-if="!loading" class="flex w-full flex-col h-full overflow-x-hidden overflow-y-scroll">
+    <div class="max-w-xl mx-auto w-full">
+      <div class="flex gap-8">
+        <div class="w-full flex flex-col justify-between py-2">
           <ContentEditable
             v-model="openedFile.title"
             v-test-class="'T-editor-title'"
@@ -20,56 +17,70 @@
             v-test-class="'T-editor-author'"
             spellcheck="false"
             tag="div"
-            class="text-xl w-fit min-w-[100px] input-default font-regular"
+            class="text-xl w-fit min-w-[100px] input-default dark:text-neutral-100 font-regular"
             placeholder="Author"
             :placeholder-classes="'text-neutral-400 hover:text-neutral-600'"
           />
-          <ContentEditable
-            v-model="openedFile.year"
-            v-test-class="'T-editor-year'"
-            :number="true"
-            spellcheck="false"
-            tag="div"
-            class="text-md mt-1 w-fit min-w-[75px] input-default font-semibold"
-            placeholder="Year"
-            :placeholder-classes="'text-neutral-400 hover:text-neutral-600'"
-          />
-        </div>
 
-        <div class="flex flex-col gap-2 mt-2">
-          <div class="flex group">
-            <ContentEditable
-              v-model="openedFile.ISBN13"
-              v-test-class="'T-editor-isbn'"
-              :number="true"
-              spellcheck="false"
-              tag="div"
-              class="text-xs w-fit min-w-[100px] input-default"
-              placeholder="ISBN13"
-              :placeholder-classes="'text-neutral-400 hover:text-neutral-600'"
-            />
-            <div
-              v-if="showConvertISBNButton"
-              class="text-xs pl-2 cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity"
-              :class="showISBNConversionError && 'text-red-700'"
-              @click="convertISBN"
-            >
-              {{
-                showISBNConversionError
-                  ? 'Please enter a valid 10 digit ISBN'
-                  : 'Convert from ISBN10'
-              }}
+          <div class="justify-between flex w-full items-stretch mt-3">
+            <div class="flex flex-col h-full justify-between">
+              <h4 class="dark:text-neutral-600 text-sm">Year</h4>
+
+              <ContentEditable
+                v-model="openedFile.year"
+                v-test-class="'T-editor-year'"
+                :number="true"
+                spellcheck="false"
+                tag="div"
+                class="text-sm dark:text-neutral-400 w-fit min-w-[75px] input-default font-semibold"
+                placeholder="Year"
+                :placeholder-classes="'text-neutral-400 hover:text-neutral-600'"
+              />
+            </div>
+
+            <div class="flex flex-col justify-between">
+              <h4 class="dark:text-neutral-600 text-sm">Rating</h4>
+              <div
+                class="text-sm dark:text-neutral-400 cursor-pointer font-bold"
+                @click="() => (showRatingPopup = true)"
+              >
+                {{ openedFile.myRating }}
+              </div>
+              <Popup :opened="showRatingPopup" @close="() => (showRatingPopup = false)">
+                <Rating v-model="openedFile.myRating" />
+              </Popup>
+            </div>
+
+            <div class="flex flex-col justify-between">
+              <h4 class="dark:text-neutral-600 text-sm">ISBN</h4>
+              <ContentEditable
+                v-model="openedFile.ISBN13"
+                v-test-class="'T-editor-isbn'"
+                :number="true"
+                spellcheck="false"
+                tag="div"
+                class="text-sm dark:text-neutral-500 w-fit min-w-[100px] input-default"
+                placeholder="ISBN13"
+                :placeholder-classes="'text-neutral-400 hover:text-neutral-600'"
+              />
             </div>
           </div>
 
-          <div class="flex items-center">
+          <div class="text-neutral-800 dark:text-neutral-600 text-sm mt-3">Read dates</div>
+          <ReadDetails v-model="openedFile.read" />
+
+          <div class="text-neutral-800 dark:text-neutral-600 text-sm mt-3">Tags</div>
+          <Tags v-model="openedFile.tags" class="my-1" />
+
+          <div class="flex flex-col mt-3">
+            <div class="text-neutral-800 dark:text-neutral-600 text-sm">Saved as</div>
             <div class="flex items-center">
               <ContentEditable
                 v-model="openedFile.name"
                 v-test-class="'T-editor-filename'"
                 spellcheck="false"
                 tag="div"
-                class="text-xs w-fit min-w-[100px] input-default"
+                class="text-sm w-fit min-w-[100px] input-default dark:text-neutral-500"
                 placeholder="Filename"
                 :placeholder-classes="'text-neutral-400 hover:text-neutral-600'"
               />
@@ -83,28 +94,18 @@
             </div>
           </div>
         </div>
+
+        <div class="flex justify-center py-2" :draggable="true" @dragstart="startDrag($event)">
+          <Cover :file="openedFile" class="h-60" @click.right="coverRightClick" />
+        </div>
       </div>
 
-      <div class="border-neutral-200 dark:border-neutral-700 h-full border-l">
-        <div class="border-b border-neutral-200 dark:border-neutral-700 p-2">
-          <div class="text-neutral-800 dark:text-neutral-100 font-medium">Read dates</div>
-          <ReadDetails v-model="openedFile.read" />
-        </div>
-        <div class="border-b border-neutral-200 dark:border-neutral-700 p-2">
-          <div class="text-neutral-800 dark:text-neutral-100 font-medium">Rating</div>
-          <Rating v-model="openedFile.myRating" />
-        </div>
-        <div class="p-2">
-          <div class="text-neutral-800 dark:text-neutral-100 font-medium">Tags</div>
-          <Tags v-model="openedFile.tags" class="my-1" />
-        </div>
+      <div class="h-full border-t border-neutral-300 dark:border-neutral-800 py-4 min-h-[200px]">
+        <Milkdown v-model="openedFile.content" />
       </div>
-    </div>
-
-    <div class="h-full border-t border-neutral-300 dark:border-neutral-700 p-4">
-      <Milkdown v-model="openedFile.content" />
     </div>
   </div>
+
   <div ref="forDrag" class="absolute top-[-500px]">
     <DragDisplay> {{ dragging }} </DragDisplay>
   </div>
@@ -119,9 +120,10 @@ import ContentEditable from '../_UI/ContentEditable.vue';
 import ReadDetails from '../ReadDetails/ReadDetails.vue';
 import Rating from '../Rating/RatingStars.vue';
 import Milkdown from './MdMikdown.vue';
-import Tags from '../Tags/Tags.vue';
+import Tags from '../Tags/TagsEditor.vue';
 import DragDisplay from '/@/components/_UI/DragDisplay.vue';
 import Cover from '../Cover/BookCover.vue';
+import TextEditable from '../_UI/TextEditable.vue';
 
 import { cloneDeep as _cloneDeep } from 'lodash';
 import { debounce as _debounce } from 'lodash';
@@ -133,6 +135,7 @@ import type { IOpenedFile, IOpenedNewFile } from '/@main/watcher/openedTabs';
 import type { ContextMenu } from '/@/use/contextMenu';
 import { trpcApi } from '/@/utils/trpc';
 import type { Unsubscribable } from '@trpc/server/observable';
+import Popup from '../_UI/Popup.vue';
 
 const store = useStore();
 
@@ -151,6 +154,8 @@ const openedFile = ref<ISavedFile | IUnsavedFile>({ unsaved: true, name: '' });
 const previousName = ref('');
 const autoSave = ref(false);
 const loading = ref(true);
+
+const showRatingPopup = ref(false);
 
 watchEffect(async () => {
   if (props.opened.type === 'file') {
@@ -345,25 +350,6 @@ const coverRightClick = (e: MouseEvent) => {
   }
 
   openMenu(menu, e.x, e.y);
-};
-
-//
-// Isbn Conversion
-//
-const showISBNConversionError = ref(false);
-const showConvertISBNButton = computed(() => {
-  return !openedFile.value.ISBN13 || String(openedFile.value.ISBN13).length < 13;
-});
-
-const convertISBN = () => {
-  if (!openedFile.value.ISBN13 || String(openedFile.value.ISBN13).length != 10) {
-    showISBNConversionError.value = true;
-    setTimeout(() => {
-      showISBNConversionError.value = false;
-    }, 3000);
-  } else {
-    openedFile.value.ISBN13 = ISBN10to13(openedFile.value.ISBN13);
-  }
 };
 </script>
 

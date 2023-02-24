@@ -8,13 +8,12 @@
       :is-dark="isDarkMode"
       :input-debounce="100"
       :locale="store.settings?.dateLocale"
-      color="indigo"
     >
       <template #default="{ inputValue, inputEvents }">
         <input
           v-test-class="'T-editor-date-from'"
           :value="inputValue"
-          class="w-full input-default"
+          class="w-full input-default dark:text-neutral-400"
           placeholder="Started"
           v-on="inputEvents"
         />
@@ -29,7 +28,7 @@
       viewBox="0 0 24 24"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      class="fill-neutral-800"
+      class="fill-neutral-700"
     >
       <path d="M18.17 13L15.59 15.59L17 17L22 12L17 7L15.59 8.41L18.17 11H2V13H18.17Z" />
     </svg>
@@ -43,14 +42,13 @@
       :popover="popoverConfig"
       :is-dark="isDarkMode"
       :locale="store.settings?.dateLocale"
-      color="indigo"
     >
       <template #default="{ inputValue, inputEvents }">
         <input
           v-test-class="'T-editor-date-to'"
           :value="inputValue"
           placeholder="Finished"
-          class="w-full input-default"
+          class="w-full input-default dark:text-neutral-400"
           v-on="inputEvents"
         />
       </template>

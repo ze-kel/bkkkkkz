@@ -6,8 +6,7 @@
 
     <div
       v-else
-      class="p-3 rounded h-full text-neutral-50 dark:text-neutral-900 flex flex-col shadow-l shadow-neutral-200"
-      :class="colorClass"
+      class="p-3 rounded h-full text-neutral-50 dark:text-neutral-400 border-neutral-300 border dark:border-neutral-700 flex flex-col shadow-l shadow-neutral-200"
     >
       <div class="title leading-tight shrink h-1/2 overflow-hidden align-middle text-xl">
         {{ mainTitle }}
@@ -50,19 +49,6 @@ watch(
 );
 
 const mainTitle = computed(() => (props.file.title ? props.file.title.split(':')[0] : 'Unknown'));
-const baseColors = [
-  'bg-orange-500 dark:bg-orange-700',
-  'bg-lime-500 dark:bg-lime-700',
-  'bg-emerald-400 dark:bg-emerald-700',
-  'bg-sky-600 dark:bg-sky-600',
-  'bg-indigo-600 dark:bg-indigo-700',
-  'bg-purple-600 dark:bg-indigo-700',
-  'bg-rose-600 dark:bg-rose-700',
-];
-
-const randomColorIndex = getRandomNumber(props.file.title || 'notitle', 0, baseColors.length);
-
-const colorClass = baseColors[randomColorIndex];
 </script>
 
 <style scoped></style>

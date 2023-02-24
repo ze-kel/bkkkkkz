@@ -10,7 +10,7 @@
         />
         <div v-test-class="'T-editor-date-remove'" @click="removeDate(index)">
           <svg
-            class="fill-neutral-200 hover:fill-neutral-700 cursor-pointer"
+            class="fill-neutral-200 dark:fill-neutral-600 dark:hover:fill-neutral-300 transition-colors cursor-pointer"
             width="24"
             height="24"
             viewBox="0 0 24 24"
@@ -26,10 +26,10 @@
     </div>
     <div
       v-test-class="'T-editor-date-add'"
-      class="basic-button text-center my-1"
+      class="dark:text-neutral-600 dark:hover:text-neutral-200 cursor-pointer transition-colors w-fit text-sm font-light"
       @click="addNewDate"
     >
-      Log new
+      Log new read date
     </div>
   </div>
 </template>

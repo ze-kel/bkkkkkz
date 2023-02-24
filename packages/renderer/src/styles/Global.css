@@ -31,15 +31,15 @@ input::-webkit-inner-spin-button {
   }
 
   .input-default {
-    @apply transition-colors px-1 border-b border-transparent
+    @apply transition-colors border-b border-transparent
      bg-neutral-50 text-neutral-900  focus:bg-neutral-900 focus:text-neutral-50  hover:border-neutral-600 
-     dark:bg-neutral-900 dark:text-neutral-50  dark:focus:bg-neutral-50 dark:focus:text-neutral-900 dark:hover:border-neutral-300;
+     dark:bg-neutral-900 dark:text-neutral-50  dark:focus:bg-neutral-800 dark:focus:text-neutral-50 dark:hover:border-neutral-700;
   }
 
   .basic-button {
-    @apply px-3 py-1 rounded-sm transition-colors cursor-pointer border
+    @apply px-3 py-1 rounded-sm transition-colors cursor-pointer 
     bg-neutral-50 border-neutral-900 text-neutral-900  hover:bg-neutral-900 hover:text-neutral-50 fill-neutral-900 hover:fill-neutral-50
-    dark:bg-neutral-900 dark:border-neutral-50 dark:text-neutral-50 dark:hover:bg-neutral-50 dark:hover:text-neutral-900 dark:fill-neutral-50 dark:hover:fill-neutral-900;
+    dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-50 dark:hover:bg-neutral-700  dark:fill-neutral-50 dark:hover:fill-neutral-900;
   }
 
   .basic-button-inverted {
