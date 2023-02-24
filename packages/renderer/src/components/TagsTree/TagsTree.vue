@@ -1,48 +1,46 @@
 <template>
-  <div>
+  <div v-if="!isLoading && !isError">
     <div class="font-semibold px-2 py-0.5">Tags</div>
-    <Tag
-      v-for="tag in store.tags"
-      :key="tag"
-      v-test-class="['T-tag-tree-item', openedTag === tag && 'T-opened-tag']"
-      :is-opened="openedTag === tag"
-      :tag="tag"
-      @click.exact="select(tag, false)"
-      @click.alt="select(tag, true)"
-    />
+    <Tag v-for="tag in dataSorted" :key="tag" :tag="tag" />
   </div>
 </template>
 
 <script lang="ts" setup>
-import { getCurrentInstance, computed } from 'vue';
 import Tag from './TagFromTree.vue';
-import { useStore } from '/@/use/store';
 import { cloneDeep as _cloneDeep } from 'lodash';
-import { getDefaultViewSettings } from '/@/utils/getDefaultViewSettings';
+import type { ITags } from '/@main/watcher/tagUpdates';
+import { useQueryClient, useQuery } from '@tanstack/vue-query';
+import type { Unsubscribable } from 'type-fest';
+import { computed, onMounted, onUnmounted } from 'vue';
+import { trpcApi } from '/@/utils/trpc';
 
-import type { OpenNewOneParams } from '/@/use/store';
+const queryClient = useQueryClient();
 
-const store = useStore();
-
-const openedTag = computed(() => {
-  if (!store.openedItem || store.openedItem.type !== 'tag') return null;
-  return store.openedItem.thing;
+const { isLoading, isError, data, error } = useQuery({
+  queryFn: async () => {
+    return await trpcApi.getTags.query();
+  },
+  queryKey: ['tagsTree'],
 });
 
-const select = (tag: string, newTab: boolean, doNotFocus = false) => {
-  const params: OpenNewOneParams = { doNotFocus };
-  if (!newTab) params.index = 'current';
-
-  store.openNewOne(
-    {
-      type: 'tag',
-      thing: tag,
-      scrollPosition: 0,
-      settings: getDefaultViewSettings(),
-    },
-    params,
-  );
+const setData = (data: ITags) => {
+  queryClient.setQueryData(['tagsTree'], data);
 };
+
+const dataSorted = computed(() =>
+  data.value ? [...data.value].sort((a, b) => a.localeCompare(b)) : undefined,
+);
+
+const toUnsub: Unsubscribable[] = [];
+
+onMounted(async () => {
+  const s1 = trpcApi.tagsUpdate.subscribe(undefined, { onData: setData });
+  toUnsub.push(s1);
+});
+
+onUnmounted(async () => {
+  toUnsub.forEach((s) => s.unsubscribe());
+});
 </script>
 
 <style scoped></style>

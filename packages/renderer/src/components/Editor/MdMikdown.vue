@@ -15,14 +15,7 @@
 <script lang="ts" setup>
 import { getCurrentInstance, watch, ref, onMounted } from 'vue';
 import { Slice } from 'prosemirror-model';
-import {
-  defaultValueCtx,
-  Editor,
-  rootCtx,
-  themeFactory,
-  editorViewCtx,
-  parserCtx,
-} from '@milkdown/core';
+import { defaultValueCtx, Editor, rootCtx, editorViewCtx, parserCtx } from '@milkdown/core';
 import { commonmark } from '@milkdown/preset-commonmark';
 import { listener, listenerCtx } from '@milkdown/plugin-listener';
 
@@ -42,13 +35,6 @@ let contentCache = '';
 const emit = defineEmits<{
   (e: 'update:modelValue', thing: string): void;
 }>();
-
-const myTheme = themeFactory((emotion) => ({
-  font: {},
-  size: {},
-  color: {},
-  slots: () => ({}),
-}));
 
 const chagesListener = (ctx: Ctx, markdown: string, prevMarkdown: string | null) => {
   contentCache = markdown;
@@ -71,7 +57,6 @@ const makeEditor = (element: HTMLElement) => {
       ctx.get(listenerCtx).focus(focusWatcher);
       ctx.get(listenerCtx).blur(focusWatcher);
     })
-    .use(myTheme)
     .use(commonmark.headless())
     .use(listener);
 };

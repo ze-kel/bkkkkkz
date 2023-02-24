@@ -74,7 +74,16 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, watch, watchEffect, nextTick } from 'vue';
+import {
+  computed,
+  onMounted,
+  onUnmounted,
+  ref,
+  watch,
+  watchEffect,
+  nextTick,
+  onBeforeMount,
+} from 'vue';
 import Fuse from 'fuse.js';
 import { useStore } from '/@/use/store';
 import { openMenu } from '/@/use/contextMenu';
@@ -95,11 +104,9 @@ import type { IFile, IFiles } from '/@main/services/files';
 import type { PropType } from 'vue';
 import type { IOpenedTag, IOpenedPath, IOpenedFile } from '/@main/watcher/openedTabs';
 import type { ContextMenu } from '/@/use/contextMenu';
+import { useQueryClient, useQuery } from '@tanstack/vue-query';
 
 const store = useStore();
-
-const files = ref<IFiles>({});
-const forDrag = ref();
 
 const props = defineProps({
   opened: {
@@ -112,20 +119,24 @@ const props = defineProps({
   },
 });
 
-const loadContent = async () => {
-  if (props.opened.type === 'folder') {
-    files.value = await trpcApi.loadFilesFromFolder.query({
-      path: props.opened.thing,
-      recursive: props.opened.recursive,
-    });
-  }
-  if (props.opened.type === 'tag') {
-    files.value = await trpcApi.loadFilesFromTag.query(props.opened.thing);
-  }
-  nextTick(setScrollPositionFromSaved);
-};
+const forDrag = ref();
 
-loadContent();
+const queryClient = useQueryClient();
+
+const { isLoading, isError, data, error } = useQuery({
+  queryFn: async () => {
+    if (props.opened.type === 'folder') {
+      return await trpcApi.loadFilesFromFolder.query({
+        path: props.opened.thing,
+        recursive: props.opened.recursive,
+      });
+    }
+    if (props.opened.type === 'tag') {
+      return await trpcApi.loadFilesFromTag.query(props.opened.thing);
+    }
+  },
+  queryKey: ['bookView', props.opened.type, props.opened.thing],
+});
 
 //
 // Update event handling
@@ -138,14 +149,28 @@ const updateHandlerApi = ({
   relevantIndexes: number[];
 }) => {
   if (!relevantIndexes.includes(props.index)) return;
-  if (files.value[file.path]) {
-    files.value[file.path] = file;
-  }
+  queryClient.setQueryData(
+    ['bookView', props.opened.type, props.opened.thing],
+    (data: IFiles | undefined) => {
+      if (!data) return data;
+      if (data[file.path]) {
+        data[file.path] = file;
+      }
+      return data;
+    },
+  );
 };
 
 const addHandlerApi = ({ file, relevantIndexes }: { file: IFile; relevantIndexes: number[] }) => {
   if (!relevantIndexes.includes(props.index)) return;
-  files.value[file.path] = file;
+  queryClient.setQueryData(
+    ['bookView', props.opened.type, props.opened.thing],
+    (data: IFiles | undefined) => {
+      if (!data) return data;
+      data[file.path] = file;
+      return data;
+    },
+  );
 };
 
 const removeHandlerApi = ({
@@ -156,9 +181,14 @@ const removeHandlerApi = ({
   relevantIndexes: number[];
 }) => {
   if (!relevantIndexes.includes(props.index)) return;
-  if (files.value[path]) {
-    delete files.value[path];
-  }
+  queryClient.setQueryData(
+    ['bookView', props.opened.type, props.opened.thing],
+    (data: IFiles | undefined) => {
+      if (!data) return data;
+      delete data[path];
+      return data;
+    },
+  );
 };
 
 const u = trpcApi.fileUpdate.subscribe(undefined, {
@@ -183,7 +213,7 @@ onUnmounted(async () => {
 // Search
 //
 const filesArray = computed<IFile[]>(() => {
-  return Object.values(files.value);
+  return data.value ? Object.values(data.value) : [];
 });
 
 const collectionIndex = ref(-1);
@@ -274,7 +304,7 @@ const scrollRoot = ref<HTMLElement>();
 
 let elementObserver = ref<ElObserver>();
 
-onMounted(() => {
+onBeforeMount(() => {
   if (!scrollRoot.value) return;
   elementObserver.value = new ElObserver(scrollRoot.value);
 });
@@ -291,6 +321,7 @@ const setScrollPositionFromSaved = () => {
   if (!scrollRoot.value) return;
   scrollRoot.value.scrollTop = props.opened.scrollPosition;
 };
+nextTick(setScrollPositionFromSaved);
 
 const saveScrollPos = () => {
   if (!scrollRoot.value) return;

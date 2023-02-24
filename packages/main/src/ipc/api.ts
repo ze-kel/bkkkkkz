@@ -217,6 +217,14 @@ export const appRouter = t.router({
       };
     });
   }),
+  clearAllEvents: t.procedure.mutation(() => {
+    apiEventsEmitter.removeAllListeners('FILE_UPDATE');
+    apiEventsEmitter.removeAllListeners('FILE_REMOVE');
+    apiEventsEmitter.removeAllListeners('FILE_ADD');
+    apiEventsEmitter.removeAllListeners('TREE_UPDATE');
+    apiEventsEmitter.removeAllListeners('TAGS_UPDATE');
+    apiEventsEmitter.removeAllListeners('SETTINGS_UPDATE');
+  }),
 });
 
 type I_FILE_UPDATE = { file: ISavedFile; relevantIndexes: number[] };

@@ -4,17 +4,13 @@ import { clamp as _clamp } from 'lodash';
 import { cloneDeep as _cloneDeep } from 'lodash';
 import { trpcApi } from '../utils/trpc';
 
-import type { IFolderTree } from '/@main/services/files';
 import type { ILocalSettings } from '/@main/services/settings';
 import type { IOpened } from '/@main/watcher/openedTabs';
-import type { ITags } from '/@main/watcher/tagUpdates';
 
 export type StateType = {
   initialized: boolean;
   initialSetup: boolean;
   settings: ILocalSettings | null;
-  fileTree: IFolderTree | null;
-  tagsInternal: ITags | null;
   opened: IOpened[];
   activeOpenedIndex: number;
 };
@@ -30,8 +26,6 @@ export const useStore = defineStore('main', {
       initialized: false,
       initialSetup: false,
       settings: null,
-      fileTree: null,
-      tagsInternal: null,
       opened: [],
       activeOpenedIndex: -1,
     };
@@ -39,12 +33,6 @@ export const useStore = defineStore('main', {
   actions: {
     updateSettings(val: ILocalSettings) {
       this.settings = val;
-    },
-    updateTree(val: IFolderTree) {
-      this.fileTree = val;
-    },
-    updateTags(val: ITags) {
-      this.tagsInternal = val;
     },
     async newRootPath() {
       const allGood = await trpcApi.newRootPath.mutate();
@@ -126,8 +114,7 @@ export const useStore = defineStore('main', {
 
           const start = await trpcApi.getSettings.query();
           this.updateSettings(start);
-          await this.initFileTree();
-          await this.initTags();
+          this.initialized = true;
 
           this.initialSetup = false;
 
@@ -143,20 +130,6 @@ export const useStore = defineStore('main', {
         this.initialSetup = true;
         this.initialized = false;
       }
-    },
-
-    async initFileTree() {
-      const initial = await trpcApi.getFileTree.query();
-      console.log('initial', initial);
-      this.fileTree = initial;
-      this.initialized = true;
-      await trpcApi.treeUpdate.subscribe(undefined, { onData: this.updateTree });
-    },
-
-    async initTags() {
-      await trpcApi.tagsUpdate.subscribe(undefined, { onData: this.updateTags });
-      const start = await trpcApi.getTags.query();
-      this.updateTags(start);
     },
 
     async saveSettings() {
@@ -177,10 +150,6 @@ export const useStore = defineStore('main', {
       return opened.settings;
     },
 
-    tags(state) {
-      if (!state.tagsInternal) return [];
-      return state.tagsInternal.sort((a, b) => a.localeCompare(b));
-    },
   },
 });
 
