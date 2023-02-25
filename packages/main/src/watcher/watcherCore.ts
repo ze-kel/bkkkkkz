@@ -10,6 +10,7 @@ import { TagUpdates } from './tagUpdates';
 
 import type { FSWatcher } from 'chokidar';
 import type { ISavedFile } from '../services/files';
+import { getRootPath } from '../services/rootPath';
 
 export type IWatcherFunction = (path: string) => void | Promise<void>;
 export type IWatcherFunctionFFile = (file: ISavedFile) => void | Promise<void>;
@@ -28,23 +29,26 @@ export interface IWatcherModule {
 type IWatcher = {
   watcher: FSWatcher | null;
   modules: IWatcherModule[];
-  init: (path: string) => Promise<void>;
+  init: () => Promise<boolean>;
   destroy: () => Promise<void>;
 };
 
 const TheWatcher: IWatcher = {
   watcher: null,
   modules: [FileUpdates, FolderUpdates, TagUpdates],
-  init: async function (initPath) {
+  init: async function () {
     if (this.watcher) {
       await this.destroy();
     }
 
-    if (!fs.lstatSync(initPath).isDirectory()) {
+    const rootPath = getRootPath();
+    if (!rootPath) return false;
+
+    if (!fs.lstatSync(rootPath).isDirectory()) {
       throw 'File path passed to watcher init';
     }
 
-    this.watcher = chokidar.watch(initPath, {
+    this.watcher = chokidar.watch(rootPath, {
       ignored: (pathStr: string) => {
         return DOTFILE_REGEX.test(pathStr) || DOTDIR_REGEX.test(pathStr);
       },
@@ -55,7 +59,7 @@ const TheWatcher: IWatcher = {
       throw 'Watcher was not created for some reason';
     }
 
-    const initialFiles = await FileService.loadFilesFromFolder(initPath, true);
+    const initialFiles = await FileService.loadFilesFromFolder(rootPath, true);
     this.modules.forEach(async (module) => {
       if (module.initialFiles) await module.initialFiles(Object.values(initialFiles));
     });
@@ -101,6 +105,8 @@ const TheWatcher: IWatcher = {
       .on('addDir', addDir)
       .on('unlinkDir', unlinkDir)
       .on('change', change);
+
+    return true;
   },
   destroy: async function () {
     if (this.watcher) {

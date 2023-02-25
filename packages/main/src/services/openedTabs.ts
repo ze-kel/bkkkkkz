@@ -1,4 +1,7 @@
+import * as path from 'path';
+import * as fs from 'fs-extra';
 import { z } from 'zod';
+import { getRootPath } from './rootPath';
 export const zSortByOption = z.enum([
   'Title',
   'Author',
@@ -70,7 +73,6 @@ export type IOpenedNewFile = z.infer<typeof zOpenedNewFile>;
 
 export const zOpenedInnerPage = z.object({
   type: z.literal('innerPage'),
-  // Path to be saved at
   thing: z.enum(['home', 'settings']),
   scrollPosition: z.number(),
 });
@@ -87,8 +89,45 @@ export const zOpened = z.discriminatedUnion('type', [
 
 export type IOpened = z.infer<typeof zOpened>;
 
-export let OpenedTabs: IOpened[] = [];
+export const ZOpenedTabs = z.object({
+  tabs: z.array(zOpened),
+  active: z.number().optional(),
+});
 
-export const updateOpened = (arr: IOpened[]) => {
-  OpenedTabs = arr;
+export type IOpenedTabs = z.infer<typeof ZOpenedTabs>;
+
+const JSON_NAME = 'openedTabs.json';
+
+export const getOpenedTabs = () => {
+  const rootPath = getRootPath();
+
+  if (!rootPath) {
+    throw new Error('Trying to read settings without root path present');
+  }
+
+  const targetFolder = path.join(rootPath, '/.internal/');
+  const targetFile = path.join(targetFolder, JSON_NAME);
+  fs.ensureDirSync(targetFolder);
+
+  const f = fs.existsSync(targetFile)
+    ? JSON.parse(fs.readFileSync(targetFile).toString())
+    : { tabs: [] };
+
+  const parsed = ZOpenedTabs.parse(f);
+  return parsed;
+};
+
+export const setOpenedTabs = (tabs: IOpenedTabs) => {
+  const rootPath = getRootPath();
+
+  if (!rootPath) {
+    throw new Error('Trying to write settings without root path present');
+  }
+
+  const targetFolder = path.join(rootPath, '/.internal/');
+  const targetFile = path.join(targetFolder, JSON_NAME);
+  fs.ensureDirSync(targetFolder);
+
+  fs.writeFileSync(targetFile, JSON.stringify(tabs));
+  return;
 };

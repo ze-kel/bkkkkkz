@@ -1,6 +1,6 @@
 import { difference as _difference } from 'lodash';
 import { debounce as _debounce } from 'lodash';
-import { OpenedTabs } from './openedTabs';
+import { getOpenedTabs } from '../services/openedTabs';
 import type { IFile, ISavedFile } from '../services/files';
 import type { IWatcherModule } from './watcherCore';
 import { apiEventsEmitter } from '../ipc/api';
@@ -103,7 +103,10 @@ const processUpdatedFile = (file: ISavedFile) => {
   files[file.path] = tags;
   sendUpdates();
 
-  OpenedTabs.forEach((item, index) => {
+  const tabs = getOpenedTabs().tabs;
+  if (!tabs) return;
+
+  tabs.forEach((item, index) => {
     if (item.type === 'tag') {
       if (added.includes(item.thing)) {
         apiEventsEmitter.emit('FILE_ADD', { file, relevantIndexes: [index] });
@@ -137,7 +140,10 @@ const hasTag = (tag: string, path: string): boolean => {
 const getRelevantIndexes = (pathInQuestion: string): number[] => {
   const relevantTo: number[] = [];
 
-  OpenedTabs.forEach((openedEntry, index) => {
+  const tabs = getOpenedTabs().tabs;
+  if (!tabs) return relevantTo;
+
+  tabs.forEach((openedEntry, index) => {
     if (openedEntry.type === 'tag') {
       if (hasTag(openedEntry.thing, pathInQuestion)) {
         relevantTo.push(index);

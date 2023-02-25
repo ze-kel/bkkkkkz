@@ -7,11 +7,12 @@
 </template>
 
 <script lang="ts" setup>
-import { useStore } from '/@/use/store';
-const store = useStore();
+import { useRootPath } from '/@/use/rootPath';
+
+const { changeRootPath } = useRootPath();
 
 const clickHandler = () => {
-  store.newRootPath();
+  changeRootPath();
 };
 </script>
 

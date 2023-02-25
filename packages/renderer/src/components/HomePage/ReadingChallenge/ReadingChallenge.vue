@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div v-if="data">
     <div class="text-2xl font-semibold">Reading Challenge</div>
     <div class="mt-2">
       <ChallengeYear
@@ -22,13 +22,13 @@
           @change="(books: number) => changeBooks(year.year, books)"
         />
       </div>
-
-      <div class="my-1 flex">
-        <input v-model="yearInput" class="input-default" placeholder="Year" type="number" />
-        <input v-model="booksInput" class="input-default ml-2" placeholder="Books" type="number" />
-        <button class="basic-button ml-2" @click="addYear">Add Year</button>
-      </div>
     </template>
+
+    <div v-if="expanded || !allYearsThatHaveChallengeButTheCurrent.length" class="my-1 flex">
+      <input v-model="yearInput" class="input-default" placeholder="Year" type="number" />
+      <input v-model="booksInput" class="input-default ml-2" placeholder="Books" type="number" />
+      <button class="basic-button ml-2" @click="addYear">Add Year</button>
+    </div>
 
     <div
       v-if="allYearsThatHaveChallengeButTheCurrent.length"
@@ -47,23 +47,49 @@
 
 <script lang="ts" setup>
 import { computed, ref } from 'vue';
-import { useStore } from '/@/use/store';
 
 import ChallengeYear from './ChallengeYear.vue';
 
 import getSortFunction from '/@/components/BookView/getSortFunction';
 import { dateReducerAllYears } from '/@/components/BookView/getDateReducer';
-import { cloneDeep as _cloneDeep } from 'lodash';
+import { cloneDeep, cloneDeep as _cloneDeep, findIndex } from 'lodash';
 
 import type { IFiles, ISavedFile } from '/@main/services/files';
 import { trpcApi } from '/@/utils/trpc';
+import { useStore } from '/@/use/store';
+import { useSettings } from '/@/use/settings';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query';
+import type { IReadChallengeData } from '/@main/services/readChalenge';
 
 const store = useStore();
-
+const { settings } = useSettings();
 const read = ref<IFiles>({});
 
+const qc = useQueryClient();
+
+const { data } = useQuery({
+  async queryFn() {
+    return await trpcApi.getReadChallenge.query();
+  },
+  queryKey: ['readChallenge'],
+});
+
+const mutation = useMutation({
+  async mutationFn(d: IReadChallengeData) {
+    console.log('mutation');
+    await trpcApi.saveReadChallenge.mutate(d);
+  },
+  async onMutate(d) {
+    qc.setQueryData(['readChallenge'], d);
+  },
+});
+
 const load = async () => {
-  read.value = await trpcApi.loadFilesFromTag.query('_i_read');
+  try {
+    read.value = await trpcApi.loadFilesFromTag.query('_i_read');
+  } catch (e) {
+    console.log('');
+  }
 };
 
 const currentYear = computed(() => {
@@ -72,6 +98,7 @@ const currentYear = computed(() => {
 });
 
 const sortedByYear = computed(() => {
+  if (!data.value || !settings.value) return {};
   // Cannot reuse grouping from BookView because we need to have book in all year groups, not in first\last one
 
   const array = Object.values(read.value);
@@ -80,7 +107,7 @@ const sortedByYear = computed(() => {
 
   array.forEach((book) => {
     if (!book.read) return;
-    const dates = book.read?.reduce(dateReducerAllYears, []);
+    const dates = book.read?.reduce(dateReducerAllYears(settings.value.dateFormat), []);
 
     dates.forEach((date) => {
       if (!sorted[date]) sorted[date] = [];
@@ -91,7 +118,7 @@ const sortedByYear = computed(() => {
   //@ts-expect-error Typescript is wrong here, this is correct and safe.
   const allYears = Object.keys(sorted) as Array<keyof typeof sorted>;
 
-  const sortFunction = getSortFunction('First Read');
+  const sortFunction = getSortFunction('First Read', settings.value.dateFormat);
 
   allYears.forEach((key: number) => {
     sorted[key].sort((a, b) => sortFunction(a, b, 1));
@@ -101,16 +128,14 @@ const sortedByYear = computed(() => {
 });
 
 const currentYearChallenge = computed(() => {
-  return store.settings?.readChallenges[currentYear.value]?.books;
+  return data.value?.find((v) => v.year === currentYear.value)?.books;
 });
 
 const allYearsThatHaveChallengeButTheCurrent = computed(() => {
-  const years = _cloneDeep(store.settings?.readChallenges) || {};
+  const years = _cloneDeep(data.value) || [];
 
-  delete years[currentYear.value];
-  console.log('years after deletion', years);
-
-  return Object.values(years).sort((a, b) => b.year - a.year);
+  years.sort((a, b) => b.year - a.year);
+  return years.filter((v) => v.year !== currentYear.value);
 });
 
 // Show Hide
@@ -124,30 +149,38 @@ const yearInput = ref<number>();
 const booksInput = ref<number>();
 
 const addYear = () => {
-  if (!store.settings) throw 'No settings object';
   if (!yearInput.value || !booksInput.value) return;
-  store.settings.readChallenges[yearInput.value] = {
-    books: booksInput.value,
-    year: yearInput.value,
-  };
+
+  if (!data.value) return;
+
+  mutation.mutate([
+    ...data.value,
+    {
+      books: booksInput.value,
+      year: yearInput.value,
+    },
+  ]);
   yearInput.value = undefined;
   booksInput.value = undefined;
 };
 
 // Interaction
 const deleteYear = (year: number) => {
-  if (!store.settings) throw 'No settings object';
-  delete store.settings.readChallenges[year];
+  if (!data.value) return;
+  const newData = data.value.filter((v) => v.year !== year);
+  mutation.mutate(newData);
 };
 
 const changeBooks = (year: number, books: number) => {
-  console.log('changing', books);
-  if (!store.settings) throw 'No settings object';
-  store.settings.readChallenges[year] = { year, books };
-};
-
-const log = (books: number) => {
-  console.log(books);
+  const newData = cloneDeep(data.value);
+  if (!newData) return;
+  const i = newData.findIndex((v) => v.year === year);
+  if (i > 0) {
+    newData[i] = { year, books };
+  } else {
+    newData.push({ year, books });
+  }
+  mutation.mutate(newData);
 };
 
 load();

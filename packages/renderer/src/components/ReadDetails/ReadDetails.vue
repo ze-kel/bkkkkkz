@@ -3,9 +3,9 @@
     <div class="grid customGrid gap-y-1 gap-x-2">
       <template v-for="(date, index) in modelValue" :key="index">
         <DatePair
-          v-if="store.settings"
+          v-if="settings"
           :model-value="date"
-          :date-format="store.settings.dateFormat"
+          :date-format="settings.dateFormat"
           @update:model-value="(val) => updateValue(index, val)"
         />
         <div v-test-class="'T-editor-date-remove'" @click="removeDate(index)">
@@ -35,14 +35,13 @@
 </template>
 
 <script lang="ts" setup>
-import { getCurrentInstance } from 'vue';
 import type { PropType } from 'vue';
 import type { IDateRead } from '/@main/services/books';
 import DatePair from './DatePair.vue';
 import { format } from 'date-fns';
-import { useStore } from '/@/use/store';
+import { useSettings } from '/@/use/settings';
 
-const store = useStore();
+const { settings } = useSettings();
 
 const props = defineProps({
   modelValue: {
@@ -63,12 +62,12 @@ const updateValue = (index: number, newDates: IDateRead) => {
 };
 
 const addNewDate = () => {
-  if (!store.settings) {
-    throw 'TRYING TO OPEN READ DETAILS BEFORE SETTINGS ARE PRESENT';
+  if (!settings.value) {
+    throw new Error('TRYING TO OPEN READ DETAILS BEFORE SETTINGS ARE PRESENT');
   }
   const newValue = [
     ...props.modelValue,
-    { started: format(new Date(), store.settings.dateFormat) },
+    { started: format(new Date(), settings.value.dateFormat) },
   ];
   emit('update:modelValue', newValue);
 };

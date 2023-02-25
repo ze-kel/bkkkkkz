@@ -2,13 +2,14 @@ import * as path from 'path';
 import * as fs from 'fs-extra';
 
 import { makeBookFile, makeEncodedBook } from './books';
-import Settings from './settings';
+import { getSettings } from './settings';
 import TagsStore from '../watcher/tagUpdates';
 
 import { DOTFILE_REGEX, FILENAME_REGEX } from '../helpers/utils';
 import { dialog } from 'electron';
 import { zBookData } from './books';
 import { z } from 'zod';
+import { getRootPathSafe } from './rootPath';
 
 export type IFolderTree = {
   type: 'folder';
@@ -180,16 +181,14 @@ const rename = async (srcPath: string, newName: string) => {
 };
 
 const remove = async (delPath: string): Promise<void> => {
-  const root = Settings.getRootPathSafe();
-  const localSettings = Settings.getStore();
+  const root = getRootPathSafe();
   if (!root) return;
-  const targetPath = path.join(root, localSettings.trashPath, path.basename(delPath));
-  await fs.move(delPath, targetPath);
+  await fs.remove(delPath);
 };
 
 const locateCover = (filename: string) => {
-  const root = Settings.getRootPathSafe();
-  const localSettings = Settings.getStore();
+  const root = getRootPathSafe();
+  const localSettings = getSettings();
   return path.join(root, localSettings.coversPath, filename);
 };
 
@@ -203,8 +202,8 @@ const removeCover = async (filePath: string): Promise<void> => {
 };
 
 const setCover = async (filePath: string) => {
-  const localSettings = Settings.getStore();
-  const root = Settings.getRootPathSafe();
+  const localSettings = getSettings();
+  const root = getRootPathSafe();
 
   const book = await getFileContent(filePath);
   const file = await dialog.showOpenDialog({

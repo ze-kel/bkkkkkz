@@ -72,7 +72,6 @@ const editableChallenge = computed({
   get: () => props.challenge,
   set: (val: number | undefined) => {
     if (!val) return;
-    console.log('setter', val);
     emit('change', val);
   },
 });

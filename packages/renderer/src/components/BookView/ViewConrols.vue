@@ -15,7 +15,7 @@
       </button>
     </div>
 
-    <div v-if="store.settings" class="flex w-fit">
+    <div class="flex w-fit">
       <div
         class="group p-1 mr-2"
         :class="store.currentViewSettings.grouped ? 'basic-button-inverted' : 'basic-button'"
@@ -68,8 +68,7 @@ import { onUnmounted } from 'vue';
 import { useStore } from '/@/use/store';
 
 import ButtonsSwitch from '../_UI/ButtonsSwitch.vue';
-
-import type { ISortByOption } from '/@main/watcher/openedTabs';
+import type { ISortByOption } from '/@main/services/openedTabs';
 
 const store = useStore();
 
@@ -98,10 +97,6 @@ const flipGrouped = () => {
   if (!store.currentViewSettings) return;
   store.currentViewSettings.grouped = !store.currentViewSettings.grouped;
 };
-
-onUnmounted(() => {
-  store.saveSettings();
-});
 
 const addBook = () => {
   if (!store.openedItem) return;

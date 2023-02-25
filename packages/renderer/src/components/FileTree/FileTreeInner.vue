@@ -78,16 +78,15 @@
 <script setup lang="ts">
 import { computed, onUpdated, ref, watchEffect } from 'vue';
 import { openMenu } from '/@/use/contextMenu';
-import { useStore } from '/@/use/store';
 import { cloneDeep as _cloneDeep } from 'lodash';
 import { getDefaultViewSettings } from '/@/utils/getDefaultViewSettings';
 
 import type { PropType } from 'vue';
 import type { IFolderTree } from '/@main/services/files';
-import type { IOpenedPath, IViewSettings } from '/@main/watcher/openedTabs';
 import type { ContextMenu } from '/@/use/contextMenu';
-import type { OpenNewOneParams } from '/@/use/store';
 import { trpcApi } from '/@/utils/trpc';
+import type { OpenNewOneParams } from '/@/use/store';
+import { useStore } from '/@/use/store';
 
 const store = useStore();
 
@@ -144,7 +143,11 @@ const startDrag = (devt: DragEvent, path: string) => {
 
   devt.dataTransfer.setData('itemPath', path);
 
-  const toUpdateIndexes = store.opened.reduce((acc: number[], opened, index) => {
+  if (!store.opened.tabs) {
+    return;
+  }
+
+  const toUpdateIndexes = store.opened.tabs.reduce((acc: number[], opened, index) => {
     if (opened.type === 'folder' && opened.thing === path) {
       acc.push(index);
     }
@@ -172,7 +175,8 @@ const onDrop = async (e: DragEvent, targetPath: string) => {
     });
 
     indexes.forEach((index) => {
-      const before = store.opened[index];
+      if (!store.opened.tabs) return;
+      const before = store.opened.tabs[index];
       if (before.type === 'file' || before.type === 'folder') {
         store.openNewOne({ ...before, thing: newPath }, { index });
       }
@@ -234,7 +238,9 @@ const saveName = async () => {
       pathToFolder: props.content.path,
     });
 
-    store.opened.forEach((item, index) => {
+    if (!store.opened.tabs) return;
+
+    store.opened.tabs.forEach((item, index) => {
       if (item.type === 'folder' && item.thing === oldPath) {
         store.openNewOne({ ...item, thing: newPath }, { index });
       }

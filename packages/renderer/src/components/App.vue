@@ -6,102 +6,55 @@
   >
     <TopBar />
     <ContextMenu />
-    <Welcome v-if="store.initialSetup" />
-    <div
-      class="h-full max-h-full flex overflow-hidden bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-50"
-    >
-      <div class="flex-auto px-2 box-border" :style="{ width: `${fileTreeSize}px` }">
-        <IconsMenu />
 
-        <div class="overflow-y-auto overflow-x-hidden">
-          <FileTree />
-
-          <hr class="hr-default my-3" />
-          <TagsTree />
-        </div>
-      </div>
-
-      <div
-        ref="resizeHandle"
-        class="w-1 hover:bg-indigo-500 cursor-col-resize transition-colors"
-        :class="isResizing && 'bg-indigo-700'"
-      ></div>
-      <div class="bg-neutral-50 dark:bg-neutral-900 flex w-full max-h-full overflow-hidden">
-        <View />
-      </div>
-    </div>
+    <ViewCore v-if="hasRootPath" />
+    <Welcome v-else />
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, watch, onMounted, onUnmounted, ref, onBeforeMount } from 'vue';
-import { useStore } from '/@/use/store';
 
 import { debounce as _debounce } from 'lodash';
 
-import IconsMenu from './IconsMenu/IconsMenu.vue';
 import TopBar from './TopBar/TopBar.vue';
-import FileTree from './FileTree/FileTree.vue';
-import Welcome from './WelcomeScreen/Welcome.vue';
+import Welcome from './WelcomeScreen/WelcomeScreen.vue';
 import ContextMenu from './_UI/ContextMenu.vue';
-import TagsTree from './TagsTree/TagsTree.vue';
-import View from './View/AppView.vue';
+import ViewCore from './ViewCore/ViewCore.vue';
 import { trpcApi } from '../utils/trpc';
+import { useRootPath } from '../use/rootPath';
+import { useSettings } from '../use/settings';
+import { useStore } from '../use/store';
 
 const store = useStore();
 
-const fileTreeSize = ref<number>(200);
-
-const resizeHandle = ref<Element | null>(null);
 const rootElement = ref<Element | null>(null);
 
-const isResizing = ref<boolean>(false);
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const changeFileTreeSize = (ev: any) => {
-  const newVal = ev.clientX;
-  if (newVal < 500 && newVal > 150) {
-    fileTreeSize.value = ev.clientX;
-  }
-};
+const { rootPath } = useRootPath();
+
+const hasRootPath = computed(() => {
+  return typeof rootPath.value === 'string';
+});
+
+onBeforeMount(() => {
+  store.fetchOpened();
+});
 
 onMounted(async () => {
   window.addEventListener('beforeunload', () => {
     trpcApi.clearAllEvents.mutate();
   });
-
-  await store.initCore();
-
-  // Not sure, perhaps there is a better way to watch for changes?
-  watch(
-    () => store.settings,
-    () => {
-      store.saveSettings();
-    },
-    { deep: true },
-  );
-
-  resizeHandle.value?.addEventListener('mousedown', () => {
-    isResizing.value = true;
-    rootElement.value?.addEventListener('mousemove', changeFileTreeSize);
-    rootElement.value?.addEventListener('mouseup', () => {
-      isResizing.value = false;
-      rootElement.value?.removeEventListener('mousemove', changeFileTreeSize);
-    });
-  });
-});
-
-onUnmounted(() => {
-  document.removeEventListener('keydown', globalShortcuts);
 });
 
 //
 // Global shortcuts
 //
+
 const globalShortcuts = (e: KeyboardEvent) => {
   if (e.key === 'w' && (e.ctrlKey || e.metaKey)) {
     e.preventDefault();
-    if (store.activeOpenedIndex >= 0) {
-      store.closeOpened(store.activeOpenedIndex);
+    if (typeof store.opened.active === 'number') {
+      store.closeOpened(store.opened.active);
     }
   }
 };
@@ -117,9 +70,12 @@ onUnmounted(() => {
 //
 // Dark mode class
 //
+
+const { settings } = useSettings();
+
 const darkModeClass = computed(() => {
-  if (!store.settings || store.settings.darkMode === -1) return '';
-  if (store.settings.darkMode === 0) {
+  if (!settings.value || settings.value.darkMode === -1) return '';
+  if (settings.value.darkMode === 0) {
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : '';
   }
   return 'dark';

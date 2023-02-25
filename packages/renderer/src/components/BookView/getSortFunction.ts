@@ -1,11 +1,11 @@
 import { getDateReducerSingle } from './getDateReducer';
 import type { ISavedFile } from '/@main/services/files';
-import type { ISortByOption, ISortDirection } from '/@main/watcher/openedTabs';
+import type { ISortByOption, ISortDirection } from '../../../../main/src/services/openedTabs';
 
 type ISortFuction = (a: ISavedFile, b: ISavedFile, direction: ISortDirection) => number;
 
-const getSortByReadFunc = (last: boolean): ISortFuction => {
-  const dateReducer = getDateReducerSingle(last);
+const getSortByReadFunc = (last: boolean, format: string): ISortFuction => {
+  const dateReducer = getDateReducerSingle(last, format);
 
   return (a, b, dir) => {
     const at = a.read?.reduce(dateReducer, null) || null;
@@ -25,7 +25,7 @@ const getSortByReadFunc = (last: boolean): ISortFuction => {
   };
 };
 
-const getSortFunction = (type: ISortByOption): ISortFuction => {
+const getSortFunction = (type: ISortByOption, format: string): ISortFuction => {
   switch (type) {
     case 'Title': {
       return (a, b, dir) => {
@@ -53,10 +53,10 @@ const getSortFunction = (type: ISortByOption): ISortFuction => {
       };
     }
     case 'Last Read': {
-      return getSortByReadFunc(true);
+      return getSortByReadFunc(true, format);
     }
     case 'First Read': {
-      return getSortByReadFunc(false);
+      return getSortByReadFunc(false, format);
     }
     case 'Rating': {
       return (a, b, dir) => {

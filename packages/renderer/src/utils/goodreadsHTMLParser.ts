@@ -1,5 +1,6 @@
 import { format, parse, isValid } from 'date-fns';
-import { useStore } from '../use/store';
+import { useRootPath } from '../use/rootPath';
+import { useSettings } from '../use/settings';
 import { trpcApi } from './trpc';
 import type { IBookData, IDateRead } from '/@main/services/books';
 import type { IUnsavedFile } from '/@main/services/files';
@@ -30,11 +31,7 @@ const parseDate = (stringToParse: string, possibleFormats: string[]): Date | und
   }
 };
 
-const getDates = (rootElement: Element): IDateRead[] => {
-  const store = useStore();
-  if (!store.settings) throw 'No date format found';
-  const dateFormat = store.settings.dateFormat;
-
+const getDates = (rootElement: Element, dateFormat: string): IDateRead[] => {
   // Date started and date finished are separate in a table, each date is marked with a class
   // like date_started_amzn1grreading_sessionv141zd03da758c4d922gx543baa13a0a0 to identify pairs
   const hashes = new Set();
@@ -85,7 +82,7 @@ const getYear = (rootElement: Element) => {
   if (date) return date.getFullYear();
 };
 
-const parseBook = (rootElement: Element): IUnsavedFile => {
+const parseBook = (rootElement: Element, dateFormat: string): IUnsavedFile => {
   const book: IUnsavedFile = { unsaved: true };
 
   book.title = grabSimpleValue(rootElement, 'title');
@@ -99,7 +96,7 @@ const parseBook = (rootElement: Element): IUnsavedFile => {
     .getElementsByClassName('field rating')[0]
     .getElementsByClassName('star on').length;
 
-  book.read = getDates(rootElement);
+  book.read = getDates(rootElement, dateFormat);
   return book;
 };
 
@@ -107,7 +104,9 @@ export const importGoodReadsHTML = (event: any) => {
   if (!event.target?.files) {
     return;
   }
-  const store = useStore();
+
+  const { settings } = useSettings();
+  const { rootPath } = useRootPath();
 
   const fr = new FileReader();
   const parser = new DOMParser();
@@ -120,14 +119,14 @@ export const importGoodReadsHTML = (event: any) => {
 
       const result: IUnsavedFile[] = [];
 
+      if (!settings.value || !rootPath.value) return;
+
       for (const book of books) {
-        result.push(parseBook(book));
+        result.push(parseBook(book, settings.value?.dateFormat));
       }
 
-      if (!store.settings) throw 'No settings';
-
       const path = await trpcApi.createFolder.mutate({
-        pathToFolder: store.settings.rootPath,
+        pathToFolder: rootPath.value,
         name: `Goodreads Import ${format(new Date(), 'MM-dd HH-mm-ss')}`,
       });
 

@@ -1,20 +1,20 @@
 <template>
-  <div v-if="store.opened.length && store.settings" class="w-full h-full flex flex-col">
+  <div v-if="store.opened.tabs?.length" class="w-full h-full flex flex-col">
     <div class="flex bg-neutral-100 dark:bg-neutral-800 h-[32px]">
       <div
-        v-for="(item, index) in store.opened"
+        v-for="(item, index) in store.opened.tabs"
         :key="index"
-        v-test-class="['T-view-tab', index === store.activeOpenedIndex && 'T-view-tab-opened']"
+        v-test-class="['T-view-tab', index === store.opened.active && 'T-view-tab-opened']"
         class="px-2 py-1 max-w-[200px] flex items-center transition-colors border-transparent"
         :class="
-          index === store.activeOpenedIndex
+          index === store.opened.active
             ? 'bg-neutral-50 dark:bg-neutral-900 text-neutral-900 dark:text-neutral-50'
             : 'hover:bg-neutral-200 dark:hover:bg-neutral-700 cursor-pointer'
         "
         @click="store.setOpenedIndex(index)"
       >
-        <div v-test-class="'T-label'" class="truncate">
-          {{ formatHeader(item, store.settings.rootPath) }}
+        <div v-if="rootPath" v-test-class="'T-label'" class="truncate">
+          {{ formatHeader(item, rootPath) }}
         </div>
 
         <div
@@ -26,7 +26,7 @@
             height="16"
             viewBox="0 0 24 24"
             :class="[
-              index === store.activeOpenedIndex ? 'fill-neutral-500' : 'fill-neutral-300',
+              index === store.opened.active ? 'fill-neutral-500' : 'fill-neutral-300',
               'hover:fill-white',
               'transition-colors',
             ]"
@@ -48,39 +48,39 @@
       ></div>
     </div>
     <div
-      v-if="opened && store.activeOpenedIndex !== null"
-      :key="opened.thing + store.activeOpenedIndex"
+      v-if="store.openedItem && typeof store.opened.active === 'number'"
+      :key="store.openedItem.thing + store.opened.active"
       class="w-full h-[calc(100%_-_32px)]"
     >
-      <template v-if="opened.type === 'innerPage'">
-        <HomePage v-if="opened.thing === 'home'" />
+      <template v-if="store.openedItem.type === 'innerPage'">
+        <HomePage v-if="store.openedItem.thing === 'home'" />
       </template>
       <template v-else>
         <Editor
-          v-if="opened.type === 'file' || opened.type === 'newFile'"
-          :opened="opened"
-          :index="store.activeOpenedIndex" />
-        <BookView v-else :opened="opened" :index="store.activeOpenedIndex"
+          v-if="store.openedItem.type === 'file' || store.openedItem.type === 'newFile'"
+          :opened="store.openedItem"
+          :index="store.opened.active" />
+        <BookView v-else :opened="store.openedItem" :index="store.opened.active"
       /></template>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { useStore } from '/@/use/store';
 import { computed, ref } from 'vue';
 import BookView from '/@/components/BookView/BookView.vue';
 import Editor from '../Editor/BookEditor.vue';
 import formatHeader from '/@/utils/formatHeader';
 import { getDefaultViewSettings } from '/@/utils/getDefaultViewSettings';
 import HomePage from '../HomePage/HomePage.vue';
+import { useSettings } from '/@/use/settings';
+import { useRootPath } from '/@/use/rootPath';
+import { useStore } from '/@/use/store';
+
+const { settings } = useSettings();
+const { rootPath } = useRootPath();
 
 const store = useStore();
-
-const opened = computed(() => {
-  if (store.activeOpenedIndex < 0) return null;
-  return store.opened[store.activeOpenedIndex];
-});
 
 //
 // Drag & Drop

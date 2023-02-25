@@ -85,7 +85,6 @@ import {
   onBeforeMount,
 } from 'vue';
 import Fuse from 'fuse.js';
-import { useStore } from '/@/use/store';
 import { openMenu } from '/@/use/contextMenu';
 
 import { debounce as _debounce } from 'lodash';
@@ -102,10 +101,13 @@ import ViewConrols from './ViewConrols.vue';
 
 import type { IFile, IFiles } from '/@main/services/files';
 import type { PropType } from 'vue';
-import type { IOpenedTag, IOpenedPath, IOpenedFile } from '/@main/watcher/openedTabs';
 import type { ContextMenu } from '/@/use/contextMenu';
 import { useQueryClient, useQuery } from '@tanstack/vue-query';
+import type { IOpenedPath, IOpenedTag } from '/@main/services/openedTabs';
+import { useSettings } from '/@/use/settings';
+import { useStore } from '/@/use/store';
 
+const { settings } = useSettings();
 const store = useStore();
 
 const props = defineProps({
@@ -152,9 +154,9 @@ const updateHandlerApi = ({
   queryClient.setQueryData(
     ['bookView', props.opened.type, props.opened.thing],
     (data: IFiles | undefined) => {
-      if (!data) return data;
-      if (data[file.path]) {
-        data[file.path] = file;
+      const newData = { ...data };
+      if (newData[file.path]) {
+        newData[file.path] = file;
       }
       return data;
     },
@@ -166,9 +168,9 @@ const addHandlerApi = ({ file, relevantIndexes }: { file: IFile; relevantIndexes
   queryClient.setQueryData(
     ['bookView', props.opened.type, props.opened.thing],
     (data: IFiles | undefined) => {
-      if (!data) return data;
-      data[file.path] = file;
-      return data;
+      const newData = { ...data };
+      newData[file.path] = file;
+      return newData;
     },
   );
 };
@@ -184,8 +186,8 @@ const removeHandlerApi = ({
   queryClient.setQueryData(
     ['bookView', props.opened.type, props.opened.thing],
     (data: IFiles | undefined) => {
-      if (!data) return data;
-      delete data[path];
+      const newData = { ...data };
+      delete newData[path];
       return data;
     },
   );
@@ -204,9 +206,9 @@ const r = trpcApi.fileRemove.subscribe(undefined, {
 });
 
 onUnmounted(async () => {
-  u.unsubscribe();
-  a.unsubscribe();
-  r.unsubscribe();
+  await u.unsubscribe();
+  await a.unsubscribe();
+  await r.unsubscribe();
 });
 
 //
@@ -248,7 +250,8 @@ const filteredFiles = computed(() => {
 // Sort
 //
 const sortedFiles = computed(() => {
-  const sortFunction = getSortFunction(props.opened.settings.sortBy);
+  if (!settings.value) return [];
+  const sortFunction = getSortFunction(props.opened.settings.sortBy, settings.value.dateFormat);
 
   return [...filteredFiles.value].sort((a, b) => {
     return sortFunction(a, b, props.opened.settings.sortDirection);
@@ -259,7 +262,12 @@ const sortedFiles = computed(() => {
 // Grouping
 //
 const groupedFiles = computed(() => {
-  return groupItems(sortedFiles.value, props.opened.settings.sortBy);
+  if (!settings.value) return;
+  console.log('make grouped', {
+    sortby: props.opened.settings.sortBy,
+    dateFormat: settings.value.dateFormat,
+  });
+  return groupItems(sortedFiles.value, props.opened.settings.sortBy, settings.value.dateFormat);
 });
 
 //
@@ -277,7 +285,8 @@ const startDrag = (devt: DragEvent, file: IFile) => {
   devt.dataTransfer.setDragImage(forDrag.value, 0, 0);
   dragging.value = file.name;
 
-  const toUpdateIndexes = store.opened.reduce((acc: number[], opened, index) => {
+  if (!store.opened.tabs) return;
+  const toUpdateIndexes = store.opened.tabs.reduce((acc: number[], opened, index) => {
     if (opened.type === 'file' && opened.thing === file.path) {
       acc.push(index);
     }

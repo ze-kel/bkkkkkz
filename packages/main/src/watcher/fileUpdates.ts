@@ -1,8 +1,8 @@
 import type { IWatcherModule } from './watcherCore';
 import * as path from 'path';
 
-import { OpenedTabs } from './openedTabs';
-import type { IOpened } from './openedTabs';
+import { getOpenedTabs } from '../services/openedTabs';
+import type { IOpened } from '../services/openedTabs';
 import { apiEventsEmitter } from '../ipc/api';
 
 type IWatcherFileIgnore = {
@@ -33,7 +33,10 @@ const isRelevant = (loaded: IOpened, pathInQuestion: string): boolean => {
 const getRelevantIndexes = (pathInQuestion: string): number[] => {
   const relevantTo: number[] = [];
 
-  OpenedTabs.forEach((openedEntry, index) => {
+  const tabs = getOpenedTabs().tabs;
+  if (!tabs) return relevantTo;
+
+  tabs.forEach((openedEntry, index) => {
     if (isRelevant(openedEntry, pathInQuestion)) {
       relevantTo.push(index);
     }
@@ -48,6 +51,7 @@ export const FileUpdates: IFileUpdatesModule = {
   ignored: {},
   addFile(file) {
     const relevantIndexes = getRelevantIndexes(file.path);
+    console.log('relevant', relevantIndexes);
     if (relevantIndexes.length) apiEventsEmitter.emit('FILE_ADD', { file, relevantIndexes });
   },
   changeFile(file) {
@@ -60,6 +64,7 @@ export const FileUpdates: IFileUpdatesModule = {
     }
 
     const relevantIndexes = getRelevantIndexes(file.path);
+    console;
     if (relevantIndexes.length) apiEventsEmitter.emit('FILE_UPDATE', { file, relevantIndexes });
   },
   unlinkFile(path) {

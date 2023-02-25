@@ -1,5 +1,5 @@
 <template>
-  <div v-if="store.settings" class="w-full">
+  <div v-if="settings" class="w-full">
     <PathControllerVue title="Root Path" :path="rootPath" @change="changeRootPath" />
 
     <hr class="hr-default my-2" />
@@ -7,7 +7,7 @@
     <div class="">
       <h2 class="font-semibold mb-1">Theme</h2>
       <ButtonsSwitch
-        v-model="store.settings.darkMode"
+        v-model="darkMode"
         :options="[
           { label: 'Light', key: -1 },
           { label: 'System', key: 0 },
@@ -30,17 +30,6 @@
           </p>
         </div>
       </div>
-
-      <h2 class="font-semibold mb-1">Import Goodreads .csv</h2>
-
-      <button class="basic-button" @click="importGoodreadsCsv">Select</button>
-      <div class="text-xs max-w-xs my-1">
-        <p class="text-xs">You can export csv at https://www.goodreads.com/dsar/user</p>
-        <p class="my-1">
-          Due to GoodReads export limitation only one read date will be imported and only containing
-          finish date.
-        </p>
-      </div>
     </div>
   </div>
 </template>
@@ -49,19 +38,25 @@
 import { computed, ref } from 'vue';
 import PathControllerVue from './PathController.vue';
 import ButtonsSwitch from '/@/components/_UI/ButtonsSwitch.vue';
-import { useStore } from '/@/use/store';
+import { useRootPathSafe } from '/@/use/rootPath';
+import { useSettings } from '/@/use/settings';
 import { importGoodReadsHTML } from '/@/utils/goodreadsHTMLParser';
 
 import { trpcApi } from '/@/utils/trpc';
 
-const store = useStore();
+const { rootPath, changeRootPath } = useRootPathSafe();
+const { settings, changeSettings } = useSettings();
 
-const rootPath = computed(() => store.settings?.rootPath || '');
-const changeRootPath = async () => {
-  const result = await trpcApi.newRootPath.mutate();
-};
+const darkMode = computed({
+  get: () => {
+    return settings.value?.darkMode || 0;
+  },
+  set: (val) => {
+    if (!settings.value) return;
 
-const importGoodreadsCsv = () => trpcApi.parseGoodreadsCsv.mutate();
+    changeSettings({ ...settings.value, darkMode: val });
+  },
+});
 
 const importHTMLButton = ref<HTMLElement>();
 

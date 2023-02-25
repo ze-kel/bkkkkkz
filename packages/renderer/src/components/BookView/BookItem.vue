@@ -45,19 +45,21 @@ import { computed, onMounted, ref } from 'vue';
 
 import { debounce as _debounce } from 'lodash';
 import { dateReducerAllYears } from './getDateReducer';
-import { useStore } from '/@/use/store';
 
 import Cover from '../Cover/BookCover.vue';
 import Rating from '../Rating/RatingStars.vue';
 
 import type { PropType } from 'vue';
 import type { IFile } from '/@main/services/files';
-import type { IOpenedFile, IViewSettings, IViewStyle } from '/@main/watcher/openedTabs';
 import type ElObserver from './elementObserver';
+import type { IViewStyle } from '/@main/services/openedTabs';
+import { useSettings } from '/@/use/settings';
 import type { OpenNewOneParams } from '/@/use/store';
+import { useStore } from '/@/use/store';
 
 export type IBookStyle = 'CARDS' | 'LINES';
 
+const { settings } = useSettings();
 const store = useStore();
 
 const props = defineProps({
@@ -103,7 +105,11 @@ const onlyMainTitle = computed(() => props.currentFile.title?.split(':')[0]);
 const stringifiedDates = computed(() => {
   if (!props.currentFile.read) return '';
 
-  return props.currentFile.read.reduce(dateReducerAllYears, []).join(', ');
+  if (!settings.value) return '';
+
+  return props.currentFile.read
+    .reduce(dateReducerAllYears(settings.value.dateFormat), [])
+    .join(', ');
 });
 </script>
 

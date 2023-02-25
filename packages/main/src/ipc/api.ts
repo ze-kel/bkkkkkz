@@ -1,21 +1,16 @@
 import { initTRPC } from '@trpc/server';
 import type { IFolderTree, ISavedFile } from '../services/files';
 import FileService, { zSavedFile, zUnsavedFile } from '../services/files';
-import type { ILocalSettings } from '../services/settings';
-import Settings from '../services/settings';
 import { z } from 'zod';
 import { FileUpdates } from '../watcher/fileUpdates';
-import { updateOpened, zOpened } from '../watcher/openedTabs';
+import { getOpenedTabs, setOpenedTabs, ZOpenedTabs } from '../services/openedTabs';
 import type { ITags } from '../watcher/tagUpdates';
 import TagsStore from '../watcher/tagUpdates';
-import TheWatcher from '../watcher/watcherCore';
-import { format } from 'date-fns';
-import { dialog } from 'electron';
-import * as path from 'node:path';
-import * as fs from 'fs-extra';
 import { observable } from '@trpc/server/observable';
-import ParseGoodreadsCSV from '../services/goodreadsCsvParser';
 import { EventEmitter } from 'events';
+import { getRootPath, setRootPath } from '../services/rootPath';
+import { getSettings, saveSettings, zSettings } from '../services/settings';
+import { getReadChallenge, saveReadChallenge, zReadChallenge } from '../services/readChalenge';
 
 const t = initTRPC.create({ isServer: true });
 
@@ -23,7 +18,7 @@ export const apiEventsEmitter = new EventEmitter();
 
 export const appRouter = t.router({
   getFileTree: t.procedure.query(async () => {
-    const rootPath = Settings.getRootPath();
+    const rootPath = getRootPath();
     if (!rootPath) throw new Error('No Root Path');
     const files = await FileService.getFileTree(rootPath);
     return files;
@@ -50,13 +45,13 @@ export const appRouter = t.router({
     return await FileService.saveFileContent(input);
   }),
 
-  syncOpened: t.procedure
-    .input(z.object({ opened: z.array(zOpened), index: z.number() }))
-    .mutation(async ({ input }) => {
-      const { opened, index } = input;
-      updateOpened(opened);
-      Settings.saveLastOpened(opened, index);
-    }),
+  getOpenedTabs: t.procedure.query(async () => {
+    return await getOpenedTabs();
+  }),
+
+  setOpenedTabs: t.procedure.input(ZOpenedTabs).mutation(async ({ input }) => {
+    return await setOpenedTabs(input);
+  }),
 
   move: t.procedure
     .input(z.object({ moveItemPath: z.string(), toFolderPath: z.string() }))
@@ -104,47 +99,29 @@ export const appRouter = t.router({
       return await FileService.saveNewFiles(input.basePath, input.files);
     }),
 
-  init: t.procedure.query(async () => {
-    const rootPath = Settings.getRootPath();
-    if (rootPath) {
-      await TheWatcher.init(rootPath);
-      return true;
-    } else {
-      return false;
-    }
+  getRootPath: t.procedure.query(() => {
+    return getRootPath();
   }),
-  newRootPath: t.procedure.mutation(async () => {
-    return await Settings.setRootPath();
+
+  setRootPath: t.procedure.mutation(async () => {
+    return await setRootPath();
   }),
 
   getSettings: t.procedure.query(async () => {
-    return await Settings.getStore();
+    return await getSettings();
   }),
 
-  saveSettings: t.procedure.input(z.any()).mutation(async ({ input }) => {
-    // should type probably
-    return await Settings.saveStore(input as ILocalSettings);
+  saveSettings: t.procedure.input(zSettings).mutation(async ({ input }) => {
+    return await saveSettings(input);
   }),
 
-  parseGoodreadsCsv: t.procedure.mutation(async () => {
-    const file = await dialog.showOpenDialog({
-      properties: ['openFile'],
-      filters: [{ name: 'Goodreads CSV', extensions: ['csv'] }],
-    });
+  getReadChallenge: t.procedure.query(async () => {
+    return await getReadChallenge();
+  }),
 
-    if (file.canceled) return;
-    const rootPath = Settings.getRootPath();
-    if (!rootPath) return;
-
-    const parsingResult = await ParseGoodreadsCSV(file.filePaths[0]);
-
-    const saveTo = path.join(rootPath, `GoodReads Import ${format(new Date(), 'MM-dd HH-mm')}`);
-
-    fs.ensureDirSync(saveTo);
-
-    parsingResult.forEach(async (book) => {
-      await FileService.saveNewFile(saveTo, book);
-    });
+  saveReadChallenge: t.procedure.input(zReadChallenge).mutation(async ({ input }) => {
+    console.log('trpc', input);
+    return await saveReadChallenge(input);
   }),
 
   isTest: t.procedure.query(() => {
@@ -206,17 +183,6 @@ export const appRouter = t.router({
       };
     });
   }),
-  settingsUpdate: t.procedure.subscription(() => {
-    return observable<I_SETTING_UPDATE>((emit) => {
-      function onThing(data: I_SETTING_UPDATE) {
-        emit.next(data);
-      }
-      apiEventsEmitter.on('SETTINGS_UPDATE', onThing);
-      return () => {
-        apiEventsEmitter.off('SETTINGS_UPDATE', onThing);
-      };
-    });
-  }),
   clearAllEvents: t.procedure.mutation(() => {
     apiEventsEmitter.removeAllListeners('FILE_UPDATE');
     apiEventsEmitter.removeAllListeners('FILE_REMOVE');
@@ -233,6 +199,5 @@ type I_FILE_REMOVE = { path: string; relevantIndexes: number[] };
 type I_FILE_ADD = { file: ISavedFile; relevantIndexes: number[] };
 type I_TREE_UPDATE = IFolderTree;
 type I_TAGS_UPDATE = ITags;
-type I_SETTING_UPDATE = ILocalSettings;
 
 export type AppRouter = typeof appRouter;

@@ -3,14 +3,12 @@
 </template>
 
 <script lang="ts" setup>
-import { useStore } from '/@/use/store';
 import FileTreeInner from './FileTreeInner.vue';
 import { useQuery, useQueryClient } from '@tanstack/vue-query';
 import { trpcApi } from '/@/utils/trpc';
 import type { IFolderTree } from '/@main/services/files';
 import { onMounted, onUnmounted } from 'vue';
 import type { Unsubscribable } from '@trpc/server/observable';
-import { sq } from 'date-fns/locale';
 
 const queryClient = useQueryClient();
 

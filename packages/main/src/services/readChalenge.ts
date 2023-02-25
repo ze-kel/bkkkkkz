@@ -4,19 +4,18 @@ import { getRootPath } from './rootPath';
 
 import { z } from 'zod';
 
-export const zSettings = z.object({
-  recursiveFolders: z.boolean().default(false),
-  dateFormat: z.string().default('yyyy-MM-dd'),
-  dateLocale: z.string().default('en-GB'),
-  coversPath: z.string().default('.covers'),
-  darkMode: z.number().min(-1).max(1).default(0),
-});
+export const zReadChallenge = z.array(
+  z.object({
+    year: z.number().min(1),
+    books: z.number().min(1),
+  }),
+);
 
-export type ISettings = z.infer<typeof zSettings>;
+export type IReadChallengeData = z.infer<typeof zReadChallenge>;
 
-const JSON_NAME = 'settings.json';
+const JSON_NAME = 'readChallenge.json';
 
-export const getSettings = () => {
+export const getReadChallenge = () => {
   const rootPath = getRootPath();
 
   if (!rootPath) {
@@ -28,14 +27,15 @@ export const getSettings = () => {
 
   fs.ensureDirSync(targetFolder);
 
-  const f = fs.existsSync(targetFile) ? JSON.parse(fs.readFileSync(targetFile).toString()) : {};
+  const f = fs.existsSync(targetFile) ? JSON.parse(fs.readFileSync(targetFile).toString()) : [];
 
-  const parsed = zSettings.parse(f);
+  const parsed = zReadChallenge.parse(f);
   return parsed;
 };
 
-export const saveSettings = (settings: ISettings) => {
+export const saveReadChallenge = (settings: IReadChallengeData) => {
   const rootPath = getRootPath();
+  console.log('saving', settings);
 
   if (!rootPath) {
     throw new Error('Trying to write settings without root path present');

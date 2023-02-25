@@ -1,5 +1,5 @@
 <template>
-  <div class="w-full">
+  <div v-if="settings" class="w-full">
     <v-date-picker
       v-model="dateStart"
       :model-config="modelConfig"
@@ -7,7 +7,7 @@
       :popover="popoverConfig"
       :is-dark="isDarkMode"
       :input-debounce="100"
-      :locale="store.settings?.dateLocale"
+      :locale="settings.dateLocale"
     >
       <template #default="{ inputValue, inputEvents }">
         <input
@@ -34,14 +34,14 @@
     </svg>
   </div>
 
-  <div class="w-full">
+  <div v-if="settings" class="w-full">
     <v-date-picker
       v-model="dateEnd"
       :model-config="modelConfig"
       :min-date="dates.start"
       :popover="popoverConfig"
       :is-dark="isDarkMode"
-      :locale="store.settings?.dateLocale"
+      :locale="settings.dateLocale"
     >
       <template #default="{ inputValue, inputEvents }">
         <input
@@ -58,12 +58,12 @@
 
 <script lang="ts" setup>
 import { computed } from 'vue';
-import { useStore } from '/@/use/store';
 
 import type { PropType } from 'vue';
 import type { IDateRead } from '/@main/services/books';
+import { useSettings } from '/@/use/settings';
 
-const store = useStore();
+const { settings } = useSettings();
 
 const props = defineProps({
   modelValue: {
@@ -117,8 +117,8 @@ const dateEnd = computed({
 });
 
 const isDarkMode = computed(() => {
-  if (!store.settings || store.settings.darkMode === -1) return false;
-  if (store.settings.darkMode === 0) {
+  if (!settings.value || settings.value.darkMode === -1) return false;
+  if (settings.value.darkMode === 0) {
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? true : false;
   }
   return true;

@@ -26,7 +26,7 @@ const props = defineProps({
 });
 
 const isOpened = computed(
-  () => store.openedItem && store.openedItem.type !== 'tag' && store.openedItem.thing === props.tag,
+  () => store.openedItem && store.openedItem.type === 'tag' && store.openedItem.thing === props.tag,
 );
 
 const select = (tag: string, newTab: boolean, doNotFocus = false) => {

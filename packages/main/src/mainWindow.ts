@@ -3,6 +3,7 @@ import { join } from 'node:path';
 import { URL } from 'node:url';
 import { createIPCHandler } from 'electron-trpc/main';
 import { appRouter } from './ipc/api';
+import TheWatcher from './watcher/watcherCore';
 
 async function createWindow() {
   const browserWindow = new BrowserWindow({
@@ -16,7 +17,7 @@ async function createWindow() {
     },
     width: 1280,
     height: 720,
-    minWidth: 1000,
+    minWidth: 800,
     minHeight: 600,
     titleBarStyle: 'hidden',
     trafficLightPosition: { x: 10, y: 8 },
@@ -48,8 +49,8 @@ async function createWindow() {
       ? import.meta.env.VITE_DEV_SERVER_URL
       : new URL('../renderer/dist/index.html', 'file://' + __dirname).toString();
 
-  /* Register window to WTC for node -> window communitcation */
   createIPCHandler({ router: appRouter, windows: [browserWindow] });
+  await TheWatcher.init();
 
   await browserWindow.loadURL(pageUrl);
 

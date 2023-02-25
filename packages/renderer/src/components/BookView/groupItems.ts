@@ -1,5 +1,5 @@
 import { getDateReducerSingle } from './getDateReducer';
-import type { ISortByOption } from '/@main/watcher/openedTabs';
+import type { ISortByOption } from '../../../../main/src/services/openedTabs';
 import type { ISavedFile } from '/@main/services/files';
 
 export type IBookGroup = {
@@ -7,7 +7,7 @@ export type IBookGroup = {
   content: ISavedFile[];
 };
 
-const getGroupLabel = (book: ISavedFile, propety: ISortByOption): string => {
+const getGroupLabel = (book: ISavedFile, propety: ISortByOption, format: string): string => {
   switch (propety) {
     case 'Title': {
       return book.title ? book.title[0] : 'Unknown Author';
@@ -19,11 +19,11 @@ const getGroupLabel = (book: ISavedFile, propety: ISortByOption): string => {
       return book.year ? String(book.year) : 'Unknown Year';
     }
     case 'First Read': {
-      const date = book.read?.reduce(getDateReducerSingle(false), null)?.getFullYear();
+      const date = book.read?.reduce(getDateReducerSingle(false, format), null)?.getFullYear();
       return date ? String(date) : 'Never';
     }
     case 'Last Read': {
-      const date = book.read?.reduce(getDateReducerSingle(true), null)?.getFullYear();
+      const date = book.read?.reduce(getDateReducerSingle(true, format), null)?.getFullYear();
       return date ? String(date) : 'Never';
     }
     case 'Filename': {
@@ -35,13 +35,13 @@ const getGroupLabel = (book: ISavedFile, propety: ISortByOption): string => {
   }
 };
 
-export const groupItems = (sortedItems: ISavedFile[], sortingBy: ISortByOption) => {
+export const groupItems = (sortedItems: ISavedFile[], sortingBy: ISortByOption, format: string) => {
   const grouped: IBookGroup[] = [];
 
   let lastLabel: string | null = null;
 
   sortedItems.forEach((book, index) => {
-    const bookLabel = getGroupLabel(book, sortingBy);
+    const bookLabel = getGroupLabel(book, sortingBy, format);
     if (bookLabel !== lastLabel) {
       grouped.push({ label: bookLabel, content: [book] });
     } else {

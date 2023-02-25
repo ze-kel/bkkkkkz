@@ -40,15 +40,9 @@
 
             <div class="flex flex-col justify-between">
               <h4 class="dark:text-neutral-600 text-sm">Rating</h4>
-              <div
-                class="text-sm dark:text-neutral-400 cursor-pointer font-bold"
-                @click="() => (showRatingPopup = true)"
-              >
-                {{ openedFile.myRating }}
-              </div>
-              <Popup :opened="showRatingPopup" @close="() => (showRatingPopup = false)">
+              <div class="text-sm dark:text-neutral-400 cursor-pointer font-bold">
                 <Rating v-model="openedFile.myRating" />
-              </Popup>
+              </div>
             </div>
 
             <div class="flex flex-col justify-between">
@@ -113,7 +107,6 @@
 
 <script lang="ts" setup>
 import { ref, onMounted, watchEffect, onUnmounted, watch, nextTick, computed } from 'vue';
-import { useStore } from '/@/use/store';
 import { openMenu } from '/@/use/contextMenu';
 
 import ContentEditable from '../_UI/ContentEditable.vue';
@@ -131,11 +124,11 @@ import { ISBN10to13 } from '/@main/helpers/utils';
 
 import type { PropType } from 'vue';
 import type { IFile, ISavedFile, IUnsavedFile } from '/@main/services/files';
-import type { IOpenedFile, IOpenedNewFile } from '/@main/watcher/openedTabs';
 import type { ContextMenu } from '/@/use/contextMenu';
 import { trpcApi } from '/@/utils/trpc';
 import type { Unsubscribable } from '@trpc/server/observable';
-import Popup from '../_UI/Popup.vue';
+import type { IOpenedFile, IOpenedNewFile } from '/@main/services/openedTabs';
+import { useStore } from '/@/use/store';
 
 const store = useStore();
 
@@ -154,8 +147,6 @@ const openedFile = ref<ISavedFile | IUnsavedFile>({ unsaved: true, name: '' });
 const previousName = ref('');
 const autoSave = ref(false);
 const loading = ref(true);
-
-const showRatingPopup = ref(false);
 
 watchEffect(async () => {
   if (props.opened.type === 'file') {
@@ -271,7 +262,8 @@ const startDrag = (devt: DragEvent) => {
   devt.dataTransfer.setDragImage(forDrag.value, 0, 0);
   dragging.value = openedFile.value.name;
 
-  const toUpdateIndexes = store.opened.reduce((acc: number[], opened, index) => {
+  if (!store.opened.tabs) return;
+  const toUpdateIndexes = store.opened.tabs.reduce((acc: number[], opened, index) => {
     if ('unsaved' in openedFile.value) return [];
     if (opened.type === 'file' && opened.thing === openedFile.value?.path) {
       acc.push(index);
