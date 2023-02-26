@@ -1,9 +1,9 @@
 <template>
-  <div v-if="store.currentViewSettings" class="px-2 flex gap-2 items-center justify-between">
-    <div class="flex gap-2 w-3/12 py-2">
+  <div v-if="store.currentViewSettings" class="flex items-center justify-between gap-2 px-2">
+    <div class="flex w-3/12 gap-2 py-2">
       <input
         v-model="store.currentViewSettings.searchQuery"
-        class="border border-neutral-900 dark:border-neutral-50 rounded-sm px-2 py-1"
+        class="rounded-sm bg-transparent px-2 py-1 outline-none"
         placeholder="Search Books"
       />
       <button
@@ -17,7 +17,7 @@
 
     <div class="flex w-fit">
       <div
-        class="group p-1 mr-2"
+        class="group mr-2 p-1"
         :class="store.currentViewSettings.grouped ? '' : ''"
         @click="flipGrouped"
       >
@@ -41,7 +41,7 @@
       </select>
 
       <div
-        class="group p-1 aspect-square h-full flex items-center justify-center ml-2"
+        class="group ml-2 flex aspect-square h-full items-center justify-center p-1"
         @click="flipSortDirection"
       >
         <ArrowDown

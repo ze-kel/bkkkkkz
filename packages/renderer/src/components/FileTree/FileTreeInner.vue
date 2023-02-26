@@ -2,8 +2,7 @@
   <div
     ref="treeEl"
     v-test-class="['T-file-tree-item', isOpened && 'T-opened-folder']"
-    class="pr-2 py-0.5 border flex items-center"
-    :class="[nodeClasses, extraClasses, !foldable ? 'pl-2' : '']"
+    :class="nodeClasses({ canDropHere, opened: isOpened })"
     :draggable="!isRoot"
     @dragstart="startDrag($event, content.path)"
     @drop="onDrop($event, content.path)"
@@ -17,26 +16,27 @@
   >
     <div
       v-if="foldable"
+      class="cursor-pointer"
       @click="
         () => {
           isFolded = !isFolded;
         }
       "
     >
-      <ChevronDown
+      <ChevronDownIcon
         icon="angle-down"
         :class="[
-          'w-4 h-4 mr-1',
+          'mr-1 h-3 w-3',
           isFolded && '-rotate-90',
           isOpened
-            ? 'stroke-neutral-100 dark:stroke-neutral-100'
-            : 'stroke-neutral-300 dark:stroke-neutral-600',
+            ? 'stroke-neutral-800 dark:stroke-neutral-300'
+            : 'stroke-neutral-700 dark:stroke-neutral-400',
         ]"
-        class="pointer-events-none"
+        class="cursor-poiner pointer-events-none"
       />
     </div>
     <template v-if="isRoot">
-      <span v-test-class="'T-label'" class="pointer-events-none font-bold"> All Books </span>
+      <span v-test-class="'T-label'" class="pointer-events-none"> All Books </span>
     </template>
     <template v-else>
       <span v-if="!isRenaming" v-test-class="'T-label'" class="pointer-events-none truncate">
@@ -46,7 +46,7 @@
         v-else
         ref="inputName"
         v-model="newName"
-        :class="[nodeClasses, extraClasses, !isOpened && 'bg-transparent', 'border-neutral-500']"
+        :class="['w-full bg-transparent outline-none', 'border-neutral-500']"
         @blur="saveName"
         @keyup.enter="removeFocus"
       />
@@ -59,12 +59,15 @@
       :content="item"
       :depth="depth + 10"
     />
-    <div v-if="isCreating" class="px-2 py-0.5 border mt-[1px]" :class="[nodeClasses]">
+    <div
+      v-if="isCreating"
+      class="mt-[1px] px-2 py-0.5"
+      :class="nodeClasses({ opened: true, canDropHere: false })"
+    >
       <input
         ref="inputName"
         v-model="newName"
-        :class="nodeClasses"
-        class="bg-transparent"
+        class="w-full border-none bg-transparent outline-none"
         @blur="saveFolder"
         @keyup.enter="removeFocus"
       />
@@ -73,10 +76,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onUpdated, ref, watchEffect } from 'vue';
+import { computed, onUpdated, ref, watchEffect, nextTick } from 'vue';
 import { openMenu } from '/@/use/contextMenu';
 import { cloneDeep as _cloneDeep } from 'lodash';
 import { getDefaultViewSettings } from '/@/utils/getDefaultViewSettings';
+import ChevronDownIcon from '@heroicons/vue/24/outline/ChevronDownIcon';
 
 import type { PropType } from 'vue';
 import type { IFolderTree } from '/@main/services/files';
@@ -84,6 +88,7 @@ import type { ContextMenu } from '/@/use/contextMenu';
 import { trpcApi } from '/@/utils/trpc';
 import type { OpenNewOneParams } from '/@/use/store';
 import { useStore } from '/@/use/store';
+import { cva } from 'class-variance-authority';
 
 const store = useStore();
 
@@ -230,9 +235,9 @@ const saveName = async () => {
   if (newName.value && newName.value !== props.content.name) {
     const oldPath = props.content.path;
 
-    const newPath = await trpcApi.createFolder.mutate({
-      name: newName.value,
-      pathToFolder: props.content.path,
+    const newPath = await trpcApi.rename.mutate({
+      newName: newName.value,
+      srcPath: props.content.path,
     });
 
     if (!store.opened.tabs) return;
@@ -303,36 +308,45 @@ const openContextMenu = (e: MouseEvent) => {
 ///
 /// Styling
 ///
-const nodeClasses = [
-  'text-m',
-  'whitespace-nowrap',
-  'overflow-hidden',
-  'rounded',
-  'cursor-pointer',
-  'font-medium',
-  'flex',
-  'items-center',
-  'outline-0',
-  'transition-colors',
-];
-
-const extraClasses = computed(() => {
-  const base = [];
-
-  if (isOpened.value) {
-    base.push('bg-indigo-600', 'text-neutral-50', 'hover:bg-indigo-800');
-  } else {
-    base.push('hover:text-neutral-600 dark:hover:text-neutral-400');
-  }
-
-  if (canDropHere.value) {
-    base.push('border-indigo-700', 'my-0');
-  } else {
-    base.push('border-transparent');
-  }
-
-  return base;
-});
+const nodeClasses = cva(
+  [
+    `p-1 mt-0.5 flex items-center text-m whitespace-nowrap overflow-hidden
+    rounded text-sm font-medium outline-0 transition-colors`,
+  ],
+  {
+    variants: {
+      opened: {
+        true: ' text-neutral-800 dark:text-neutral-300',
+        false: 'cursor-pointer text-neutral-700 dark:text-neutral-400 ',
+      },
+      canDropHere: {
+        true: '',
+      },
+    },
+    compoundVariants: [
+      {
+        opened: true,
+        canDropHere: false,
+        class: 'bg-neutral-300 dark:bg-neutral-600',
+      },
+      {
+        opened: false,
+        canDropHere: false,
+        class: 'hover:bg-neutral-200 dark:hover:bg-neutral-700',
+      },
+      {
+        opened: true,
+        canDropHere: true,
+        class: 'bg-neutral-200 dark:bg-neutral-500',
+      },
+      {
+        opened: false,
+        canDropHere: true,
+        class: 'bg-neutral-200 dark:bg-neutral-500',
+      },
+    ],
+  },
+);
 </script>
 
 <style lang="postcss"></style>

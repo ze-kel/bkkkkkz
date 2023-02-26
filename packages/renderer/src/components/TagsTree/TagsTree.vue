@@ -1,6 +1,5 @@
 <template>
   <div v-if="!isLoading && !isError">
-    <div class="font-semibold px-2 py-0.5">Tags</div>
     <Tag v-for="tag in dataSorted" :key="tag" :tag="tag" />
   </div>
 </template>

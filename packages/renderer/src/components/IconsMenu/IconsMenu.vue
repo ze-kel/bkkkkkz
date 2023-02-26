@@ -2,18 +2,36 @@
   <Popup :opened="settingsOpened" @close="flipSettings">
     <Settings />
   </Popup>
-  <div class="flex justify-start items-center py-2 gap-1">
-    <div class="icon bg-transparent dark:bg-transparent aspect-square p-1" @click="openHome">
-      <HomeIcon class="w-6" />
+  <div class="flex items-center justify-start gap-1 py-2">
+    <div
+      class="rounded p-1 transition-colors"
+      :class="[
+        homeOpened
+          ? 'bg-neutral-300  dark:bg-neutral-600 '
+          : 'cursor-pointer  hover:bg-neutral-200 hover:stroke-neutral-700 dark:hover:bg-neutral-700',
+      ]"
+      @click="openHome"
+    >
+      <HomeIcon
+        class="w-6"
+        :class="
+          homeOpened
+            ? 'stroke-neutral-800 dark:stroke-neutral-300'
+            : 'stroke-neutral-700 dark:stroke-neutral-400'
+        "
+      />
     </div>
-    <div class="icon bg-transparent dark:bg-transparent aspect-square p-1" @click="flipSettings">
-      <CogIcon class="w-6" />
+    <div
+      class="cursor-pointer rounded p-1 hover:bg-neutral-200 hover:stroke-neutral-700 dark:hover:bg-neutral-700"
+      @click="flipSettings"
+    >
+      <CogIcon class="w-6 stroke-neutral-700 dark:stroke-neutral-400" />
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import Popup from '../_UI/Popup.vue';
 import Settings from '../Settings/SettingsPage.vue';
 import { useStore } from '/@/use/store';
@@ -31,6 +49,12 @@ const flipSettings = () => {
 const openHome = () => {
   store.openNewOne({ type: 'innerPage', thing: 'home', scrollPosition: 0 });
 };
+
+const homeOpened = computed(() => {
+  return (
+    store.openedItem && store.openedItem.type === 'innerPage' && store.openedItem.thing === 'home'
+  );
+});
 </script>
 
 <style scoped></style>

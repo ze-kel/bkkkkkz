@@ -1,8 +1,7 @@
 <template>
   <div
     v-test-class="['T-tag-tree-item', isOpened && 'T-opened-tag']"
-    class="px-2 py-0.5 border"
-    :class="nodeClasses"
+    :class="nodeClasses({ opened: isOpened, canDropHere: false })"
     @click.exact="select(tag, false)"
     @click.alt="select(tag, true)"
   >
@@ -11,6 +10,7 @@
 </template>
 
 <script lang="ts" setup>
+import { cva } from 'class-variance-authority';
 import { computed } from 'vue';
 import type { OpenNewOneParams } from '/@/use/store';
 import { useStore } from '/@/use/store';
@@ -44,26 +44,43 @@ const select = (tag: string, newTab: boolean, doNotFocus = false) => {
   );
 };
 
-const nodeClasses = computed(() => {
-  const base = [
-    'text-m',
-    'whitespace-nowrap',
-    'overflow-hidden',
-    'rounded',
-    'cursor-pointer',
-    'font-medium',
-    'flex',
-    'items-center',
-    'outline-0',
-    'transition-colors',
-    'border-transparent',
-  ];
-  if (isOpened.value) {
-    base.push('bg-indigo-600', 'text-neutral-50', 'hover:bg-indigo-800');
-  } else {
-    base.push('hover:text-neutral-600 dark:hover:text-neutral-400');
-  }
-
-  return base;
-});
+const nodeClasses = cva(
+  [
+    `p-1 mt-0.5 flex items-center text-m whitespace-nowrap overflow-hidden
+    rounded text-sm font-medium outline-0 transition-colors`,
+  ],
+  {
+    variants: {
+      opened: {
+        true: ' text-neutral-800 dark:text-neutral-300',
+        false: 'cursor-pointer text-neutral-700 dark:text-neutral-400',
+      },
+      canDropHere: {
+        true: '',
+      },
+    },
+    compoundVariants: [
+      {
+        opened: true,
+        canDropHere: false,
+        class: 'bg-neutral-300 dark:bg-neutral-600',
+      },
+      {
+        opened: false,
+        canDropHere: false,
+        class: 'hover:bg-neutral-200 dark:hover:bg-neutral-700',
+      },
+      {
+        opened: true,
+        canDropHere: true,
+        class: 'bg-neutral-200 dark:bg-neutral-500',
+      },
+      {
+        opened: false,
+        canDropHere: true,
+        class: 'bg-neutral-200 dark:bg-neutral-500',
+      },
+    ],
+  },
+);
 </script>
