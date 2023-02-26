@@ -1,6 +1,6 @@
 <template>
-  <div class="rounded w-full overflow-hidden">
-    <div class="grid customGrid gap-y-1 gap-x-2 items-center">
+  <div class="w-full rounded">
+    <div class="flex flex-col gap-2">
       <template v-for="(date, index) in modelValue" :key="index">
         <DatePair
           v-if="settings"
@@ -10,14 +10,14 @@
         />
         <div v-test-class="'T-editor-date-remove'" @click="removeDate(index)">
           <CrossIcon
-            class="w-4 h-4 stroke-neutral-200 dark:stroke-neutral-600 dark:hover:stroke-neutral-300 transition-colors cursor-pointer"
+            class="h-4 w-4 cursor-pointer stroke-neutral-200 transition-colors dark:stroke-neutral-600 dark:hover:stroke-neutral-300"
           />
         </div>
       </template>
     </div>
     <div
       v-test-class="'T-editor-date-add'"
-      class="dark:text-neutral-600 dark:hover:text-neutral-200 cursor-pointer transition-colors w-fit text-sm font-light"
+      class="w-fit cursor-pointer text-sm font-light transition-colors dark:text-neutral-600 dark:hover:text-neutral-200"
       @click="addNewDate"
     >
       Log new read date

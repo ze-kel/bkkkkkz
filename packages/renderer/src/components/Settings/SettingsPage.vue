@@ -2,10 +2,10 @@
   <div v-if="settings" class="w-full">
     <PathControllerVue title="Root Path" :path="rootPath" @change="changeRootPath" />
 
-    <hr class="bg-neutral-200 dark:bg-neutral-700 h-[1px] border-0 w-full my-2" />
+    <hr class="my-2 h-[1px] w-full border-0 bg-neutral-200 dark:bg-neutral-700" />
 
     <div class="">
-      <h2 class="font-semibold mb-1">Theme</h2>
+      <h2 class="mb-1 font-semibold">Theme</h2>
       <ButtonsSwitch
         v-model="darkMode"
         :options="[
@@ -14,16 +14,16 @@
           { label: 'Dark', key: 1 },
         ]"
       >
-        <template #option="{ label }">{{ label }}</template>
+        <template #option="{ option }">{{ option.key }}</template>
       </ButtonsSwitch>
     </div>
 
     <div class="my-2">
       <div>
-        <h2 class="font-semibold mb-1">Import Goodreads .html</h2>
+        <h2 class="mb-1 font-semibold">Import Goodreads .html</h2>
         <input ref="importHTMLButton" type="file" class="hidden" @change="importGoodReadsHTML" />
         <button class="" @click="importHTML">Select</button>
-        <div class="text-xs max-w-xs my-1">
+        <div class="my-1 max-w-xs text-xs">
           <p class="text-xs">
             Go to Goodreads -> My Books -> Print. Select maximum amount of books per page on the
             bottom and save .html

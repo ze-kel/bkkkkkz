@@ -1,18 +1,18 @@
 <template>
-  <div class="flex w-fit rounded-sm border-neutral-900 dark:border-neutral-50 border">
+  <div class="flex w-fit overflow-hidden rounded border border-neutral-200 dark:border-neutral-700">
     <div
       v-for="option in options"
       :key="option.key"
-      class="transition-colors px-2 py-1"
+      class="px-2 py-1 transition-colors"
       :class="[
         modelValue === option.key
-          ? 'bg-neutral-900 dark:bg-neutral-50   dark:text-neutral-900  text-neutral-50 fill-neutral-50 dark:fill-neutral-900'
-          : 'cursor-pointer hover:bg-neutral-300 dark:hover:bg-neutral-600  fill-neutral-900 dark:fill-neutral-50',
+          ? 'bg-neutral-300 hover:bg-neutral-200 dark:bg-neutral-700 dark:hover:bg-neutral-800'
+          : 'cursor-pointer hover:bg-neutral-200 dark:hover:bg-neutral-800',
         optionClasses,
       ]"
       @click="emitKey(option)"
     >
-      <slot name="option" v-bind="option"></slot>
+      <slot name="option" v-bind="{ option, active: modelValue === option.key }"></slot>
     </div>
   </div>
 </template>

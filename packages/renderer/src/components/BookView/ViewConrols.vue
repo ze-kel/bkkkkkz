@@ -3,49 +3,72 @@
     <div class="flex w-3/12 gap-2 py-2">
       <input
         v-model="store.currentViewSettings.searchQuery"
-        class="rounded-sm bg-transparent px-2 py-1 outline-none"
+        class="rounded-sm border border-neutral-100 bg-transparent px-2 py-1 outline-none transition-colors focus:border-neutral-300 dark:border-neutral-800"
         placeholder="Search Books"
       />
-      <button
-        v-if="store.openedItem?.type === 'folder'"
-        class="h-full w-fit whitespace-nowrap"
-        @click="addBook"
-      >
-        Add book
-      </button>
     </div>
 
     <div class="flex w-fit">
       <div
-        class="group mr-2 p-1"
-        :class="store.currentViewSettings.grouped ? '' : ''"
+        class="group mr-2 cursor-pointer rounded p-1 transition-colors"
+        :class="
+          store.currentViewSettings.grouped
+            ? 'bg-neutral-300 hover:bg-neutral-200 dark:bg-neutral-700 dark:hover:bg-neutral-800'
+            : 'hover:bg-neutral-200 dark:hover:bg-neutral-800'
+        "
         @click="flipGrouped"
       >
-        <ReactangleStackIcon class="w-6" />
+        <ReactangleStackIcon
+          class="w-6 transition-colors"
+          :class="
+            store.currentViewSettings.grouped
+              ? 'stroke-neutral-700 dark:stroke-neutral-400'
+              : 'stroke-neutral-500 dark:stroke-neutral-600'
+          "
+        />
       </div>
 
       <ButtonsSwitch
         v-model="store.currentViewSettings.viewStyle"
         class="mr-2"
         :options="[{ key: 'Covers' }, { key: 'Lines' }]"
-        :option-classes="['px-1']"
+        :option-classes="['px-1 flex items-center justify-center']"
       >
-        <template #option="{ key }">
-          <SquaresIcon v-if="key === 'Covers'" class="w-6" />
-          <TableIcon v-if="key === 'Lines'" class="w-6" />
+        <template #option="{ option, active }">
+          <SquaresIcon
+            v-if="option.key === 'Covers'"
+            class="w-6"
+            :class="
+              active
+                ? 'stroke-neutral-700 dark:stroke-neutral-400'
+                : 'stroke-neutral-500 dark:stroke-neutral-600'
+            "
+          />
+          <TableIcon
+            v-if="option.key === 'Lines'"
+            class="w-6"
+            :class="
+              active
+                ? 'stroke-neutral-700 dark:stroke-neutral-400'
+                : 'stroke-neutral-500 dark:stroke-neutral-600'
+            "
+          />
         </template>
       </ButtonsSwitch>
 
-      <select v-model="store.currentViewSettings.sortBy" class="">
+      <select
+        v-model="store.currentViewSettings.sortBy"
+        class="rounded border border-neutral-200 bg-transparent px-1 focus:outline-none dark:border-neutral-700 dark:text-neutral-500"
+      >
         <option v-for="item in canSortby" :key="item">{{ item }}</option>
       </select>
 
       <div
-        class="group ml-2 flex aspect-square h-full items-center justify-center p-1"
+        class="group ml-2 flex aspect-square h-full cursor-pointer items-center justify-center p-1"
         @click="flipSortDirection"
       >
         <ArrowDown
-          class="w-6"
+          class="w-6 stroke-neutral-700 transition-transform"
           :class="[store.currentViewSettings.sortDirection < 0 && 'rotate-180']"
         />
       </div>
@@ -89,10 +112,5 @@ const flipSortDirection = () => {
 const flipGrouped = () => {
   if (!store.currentViewSettings) return;
   store.currentViewSettings.grouped = !store.currentViewSettings.grouped;
-};
-
-const addBook = () => {
-  if (!store.openedItem) return;
-  store.openNewOne({ type: 'newFile', thing: store.openedItem.thing, scrollPosition: 0 });
 };
 </script>

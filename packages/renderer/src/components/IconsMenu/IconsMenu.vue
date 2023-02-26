@@ -27,6 +27,12 @@
     >
       <CogIcon class="w-6 stroke-neutral-700 dark:stroke-neutral-400" />
     </div>
+    <div
+      class="cursor-pointer rounded p-1 hover:bg-neutral-200 hover:stroke-neutral-700 dark:hover:bg-neutral-700"
+      @click="addBook"
+    >
+      <PlusIcon class="w-6 stroke-neutral-700 dark:stroke-neutral-400" />
+    </div>
   </div>
 </template>
 
@@ -38,8 +44,11 @@ import { useStore } from '/@/use/store';
 
 import HomeIcon from '@heroicons/vue/24/outline/HomeIcon';
 import CogIcon from '@heroicons/vue/24/outline/Cog8ToothIcon';
+import PlusIcon from '@heroicons/vue/24/outline/PlusIcon';
+import { useRootPath } from '/@/use/rootPath';
 
 const store = useStore();
+const { rootPath } = useRootPath();
 
 const settingsOpened = ref(false);
 const flipSettings = () => {
@@ -55,6 +64,15 @@ const homeOpened = computed(() => {
     store.openedItem && store.openedItem.type === 'innerPage' && store.openedItem.thing === 'home'
   );
 });
+
+const addBook = () => {
+  if (!rootPath.value) return;
+  if (!store.openedItem || store.openedItem.thing !== 'folder') {
+    store.openNewOne({ type: 'newFile', thing: rootPath.value, scrollPosition: 0 });
+  } else {
+    store.openNewOne({ type: 'newFile', thing: store.openedItem.thing, scrollPosition: 0 });
+  }
+};
 </script>
 
 <style scoped></style>

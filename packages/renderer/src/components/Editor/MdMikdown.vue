@@ -1,5 +1,5 @@
 <template>
-  <div class="w-full h-full relative">
+  <div class="relative h-full w-full">
     <transition name="fade">
       <div
         v-if="!hasFocus && (!modelValue || modelValue === '\n' || modelValue === '\n\n')"

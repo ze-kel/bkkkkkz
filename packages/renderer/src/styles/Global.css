@@ -20,3 +20,11 @@ input::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
+
+input {
+  outline: none;
+}
+
+.editor {
+  outline: none;
+}

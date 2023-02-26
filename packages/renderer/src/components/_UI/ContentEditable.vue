@@ -2,6 +2,7 @@
   <component
     :is="tag"
     ref="element"
+    class="outline-none focus:outline-none"
     :class="placeholder && placeholderClasses"
     :contenteditable="contenteditable"
     @input="inputHandler"
