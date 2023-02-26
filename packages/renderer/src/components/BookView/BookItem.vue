@@ -35,7 +35,7 @@
           <Rating :model-value="currentFile.myRating" disabled />
         </div>
       </div>
-      <hr class="my-1 hr-default" />
+      <hr class="my-1 bg-neutral-200 dark:bg-neutral-700 h-[1px] border-0 w-full" />
     </template>
   </div>
 </template>

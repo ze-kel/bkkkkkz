@@ -21,20 +21,14 @@
           class="hover:bg-neutral-800 rounded flex items-center h-4 ml-1 transition-colors cursor-pointer"
           @click="store.closeOpened(index)"
         >
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
+          <CrossIcon
+            class="w-4"
             :class="[
-              index === store.opened.active ? 'fill-neutral-500' : 'fill-neutral-300',
-              'hover:fill-white',
+              index === store.opened.active ? 'stroke-neutral-500' : 'stroke-neutral-300',
+              'hover:stroke-white',
               'transition-colors',
             ]"
-          >
-            <path
-              d="M17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41L17.59 5Z"
-            />
-          </svg>
+          />
         </div>
       </div>
 
@@ -76,6 +70,7 @@ import HomePage from '../HomePage/HomePage.vue';
 import { useSettings } from '/@/use/settings';
 import { useRootPath } from '/@/use/rootPath';
 import { useStore } from '/@/use/store';
+import CrossIcon from '@heroicons/vue/24/outline/XMarkIcon';
 
 const { settings } = useSettings();
 const { rootPath } = useRootPath();

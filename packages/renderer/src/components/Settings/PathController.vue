@@ -3,7 +3,7 @@
     <h2 class="font-semibold mb-1">{{ title }}</h2>
     <div class="">
       <div class="currentPath mb-0.5 font-mono">{{ path ? path : 'Not Set' }}</div>
-      <button class="basic-button" @click="emit('change')">
+      <button class="" @click="emit('change')">
         {{ path ? 'Change' : 'Set' }}
       </button>
     </div>

@@ -126,7 +126,7 @@ const forDrag = ref();
 const queryClient = useQueryClient();
 
 const { isLoading, isError, data, error } = useQuery({
-  queryFn: async () => {
+  async queryFn() {
     if (props.opened.type === 'folder') {
       return await trpcApi.loadFilesFromFolder.query({
         path: props.opened.thing,
@@ -188,7 +188,7 @@ const removeHandlerApi = ({
     (data: IFiles | undefined) => {
       const newData = { ...data };
       delete newData[path];
-      return data;
+      return newData;
     },
   );
 };

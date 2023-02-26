@@ -1,6 +1,6 @@
 <template>
   <div class="rounded w-full overflow-hidden">
-    <div class="grid customGrid gap-y-1 gap-x-2">
+    <div class="grid customGrid gap-y-1 gap-x-2 items-center">
       <template v-for="(date, index) in modelValue" :key="index">
         <DatePair
           v-if="settings"
@@ -9,18 +9,9 @@
           @update:model-value="(val) => updateValue(index, val)"
         />
         <div v-test-class="'T-editor-date-remove'" @click="removeDate(index)">
-          <svg
-            class="fill-neutral-200 dark:fill-neutral-600 dark:hover:fill-neutral-300 transition-colors cursor-pointer"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M15.59 7L12 10.59L8.41 7L7 8.41L10.59 12L7 15.59L8.41 17L12 13.41L15.59 17L17 15.59L13.41 12L17 8.41L15.59 7Z"
-            />
-          </svg>
+          <CrossIcon
+            class="w-4 h-4 stroke-neutral-200 dark:stroke-neutral-600 dark:hover:stroke-neutral-300 transition-colors cursor-pointer"
+          />
         </div>
       </template>
     </div>
@@ -40,6 +31,7 @@ import type { IDateRead } from '/@main/services/books';
 import DatePair from './DatePair.vue';
 import { format } from 'date-fns';
 import { useSettings } from '/@/use/settings';
+import CrossIcon from '@heroicons/vue/24/outline/XMarkIcon';
 
 const { settings } = useSettings();
 

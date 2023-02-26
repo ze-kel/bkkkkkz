@@ -2,7 +2,7 @@
   <div v-if="settings" class="w-full">
     <PathControllerVue title="Root Path" :path="rootPath" @change="changeRootPath" />
 
-    <hr class="hr-default my-2" />
+    <hr class="bg-neutral-200 dark:bg-neutral-700 h-[1px] border-0 w-full my-2" />
 
     <div class="">
       <h2 class="font-semibold mb-1">Theme</h2>
@@ -22,7 +22,7 @@
       <div>
         <h2 class="font-semibold mb-1">Import Goodreads .html</h2>
         <input ref="importHTMLButton" type="file" class="hidden" @change="importGoodReadsHTML" />
-        <button class="basic-button" @click="importHTML">Select</button>
+        <button class="" @click="importHTML">Select</button>
         <div class="text-xs max-w-xs my-1">
           <p class="text-xs">
             Go to Goodreads -> My Books -> Print. Select maximum amount of books per page on the

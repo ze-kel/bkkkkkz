@@ -1,7 +1,7 @@
 <template>
   <div class="flex items-center">
     <div class="text-2xl font-semibold">Currently Reading</div>
-    <button class="ml-3 basic-button" @click="flipCRShowFull">
+    <button class="ml-3" @click="flipCRShowFull">
       {{
         currentlyReadingCollapsed ? `Show All (+${currentlyReadingArray.length - 4})` : 'Collapse'
       }}

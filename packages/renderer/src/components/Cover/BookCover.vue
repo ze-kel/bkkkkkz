@@ -6,12 +6,12 @@
 
     <div
       v-else
-      class="p-3 rounded h-full text-neutral-50 dark:text-neutral-400 border-neutral-300 border dark:border-neutral-700 flex flex-col shadow-l shadow-neutral-200"
+      class="p-3 rounded h-full text-neutral-700 dark:text-neutral-400 border-neutral-300 border dark:border-neutral-700 flex flex-col shadow-l shadow-neutral-200"
     >
       <div class="title leading-tight shrink h-1/2 overflow-hidden align-middle text-xl">
         {{ mainTitle }}
       </div>
-      <hr class="hr-default bg-neutral-50 dark:bg-neutral-900 my-2" />
+      <hr class="h-[1px] border-0 w-full bg-neutral-50 dark:bg-neutral-900 my-2" />
       <div class="author flex-grow font-semibold text-md">{{ file.author || 'Unknown' }}</div>
       <div v-if="file.year">
         {{ file.year }}

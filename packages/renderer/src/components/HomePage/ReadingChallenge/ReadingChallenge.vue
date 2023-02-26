@@ -13,7 +13,7 @@
 
     <template v-if="expanded">
       <div v-for="year in allYearsThatHaveChallengeButTheCurrent" :key="year.year">
-        <hr class="hr-default" />
+        <hr class="bg-neutral-200 dark:bg-neutral-700 h-[1px] border-0 w-full" />
         <ChallengeYear
           :books-for-that-year="sortedByYear[year.year] || []"
           :year="year.year"
@@ -25,9 +25,9 @@
     </template>
 
     <div v-if="expanded || !allYearsThatHaveChallengeButTheCurrent.length" class="my-1 flex">
-      <input v-model="yearInput" class="input-default" placeholder="Year" type="number" />
-      <input v-model="booksInput" class="input-default ml-2" placeholder="Books" type="number" />
-      <button class="basic-button ml-2" @click="addYear">Add Year</button>
+      <input v-model="yearInput" class="" placeholder="Year" type="number" />
+      <input v-model="booksInput" class="ml-2" placeholder="Books" type="number" />
+      <button class="ml-2" @click="addYear">Add Year</button>
     </div>
 
     <div
@@ -35,10 +35,8 @@
       class="mt-3 mb-2 w-full text-center flex justify-center cursor-pointer fill-neutral-900 dark:fill-neutral-50"
       @click="flipExpanded"
     >
-      <svg width="24" height="24" viewBox="0 0 24 24">
-        <path v-if="expanded" d="M13 5.83L15.59 8.41L17 7L12 2L7 7L8.41 8.41L11 5.83V22H13V5.83Z" />
-        <path v-else d="M16 18H13V2L11 2V18H8L12 22L16 18Z" />
-      </svg>
+      <ChevronDown class="w-6 mr-2" :class="[expanded && 'rotate-180']" />
+
       <template v-if="!expanded">Show All Years</template>
       <template v-else>Show Only Current Year</template>
     </div>
@@ -53,6 +51,7 @@ import ChallengeYear from './ChallengeYear.vue';
 import getSortFunction from '/@/components/BookView/getSortFunction';
 import { dateReducerAllYears } from '/@/components/BookView/getDateReducer';
 import { cloneDeep, cloneDeep as _cloneDeep, findIndex } from 'lodash';
+import ChevronDown from '@heroicons/vue/24/outline/ChevronDownIcon';
 
 import type { IFiles, ISavedFile } from '/@main/services/files';
 import { trpcApi } from '/@/utils/trpc';
@@ -153,8 +152,10 @@ const addYear = () => {
 
   if (!data.value) return;
 
+  const newData = cloneDeep(data.value);
+
   mutation.mutate([
-    ...data.value,
+    ...newData,
     {
       books: booksInput.value,
       year: yearInput.value,

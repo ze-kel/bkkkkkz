@@ -13,7 +13,7 @@
         <input
           v-test-class="'T-editor-date-from'"
           :value="inputValue"
-          class="w-full input-default dark:text-neutral-400"
+          class="w-full dark:text-neutral-400"
           placeholder="Started"
           v-on="inputEvents"
         />
@@ -22,16 +22,7 @@
   </div>
 
   <div>
-    <svg
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      class="fill-neutral-700"
-    >
-      <path d="M18.17 13L15.59 15.59L17 17L22 12L17 7L15.59 8.41L18.17 11H2V13H18.17Z" />
-    </svg>
+    <MiddleIcon class="w-6 stroke-neutral-700" />
   </div>
 
   <div v-if="settings" class="w-full">
@@ -48,7 +39,7 @@
           v-test-class="'T-editor-date-to'"
           :value="inputValue"
           placeholder="Finished"
-          class="w-full input-default dark:text-neutral-400"
+          class="w-full dark:text-neutral-400"
           v-on="inputEvents"
         />
       </template>
@@ -62,6 +53,7 @@ import { computed } from 'vue';
 import type { PropType } from 'vue';
 import type { IDateRead } from '/@main/services/books';
 import { useSettings } from '/@/use/settings';
+import MiddleIcon from '@heroicons/vue/24/outline/EllipsisHorizontalIcon';
 
 const { settings } = useSettings();
 

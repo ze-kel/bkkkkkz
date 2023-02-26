@@ -2,7 +2,7 @@
   <div class="flex flex-col items-center justify-center p-10 h-full">
     <div class="text-4xl">Welcome!</div>
     <div class="mt-2">Please select your root directory</div>
-    <button class="basic-button mt-2" @click="clickHandler">Select</button>
+    <button class="mt-2" @click="clickHandler">Select</button>
   </div>
 </template>
 

@@ -8,7 +8,7 @@
       <div class="overflow-y-auto overflow-x-hidden">
         <FileTree />
 
-        <hr class="hr-default my-3" />
+        <hr class="bg-neutral-200 dark:bg-neutral-700 h-[1px] border-0 w-full my-3" />
         <TagsTree />
       </div>
     </div>

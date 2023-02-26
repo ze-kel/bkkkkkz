@@ -1,8 +1,9 @@
 <template>
   <div
+    ref="treeEl"
     v-test-class="['T-file-tree-item', isOpened && 'T-opened-folder']"
-    class="mt-[1px] px-2 py-0.5 border"
-    :class="[nodeClasses, extraClasses]"
+    class="pr-2 py-0.5 border flex items-center"
+    :class="[nodeClasses, extraClasses, !foldable ? 'pl-2' : '']"
     :draggable="!isRoot"
     @dragstart="startDrag($event, content.path)"
     @drop="onDrop($event, content.path)"
@@ -22,21 +23,17 @@
         }
       "
     >
-      <svg
+      <ChevronDown
         icon="angle-down"
         :class="[
+          'w-4 h-4 mr-1',
           isFolded && '-rotate-90',
           isOpened
-            ? 'fill-neutral-100 dark:fill-neutral-100'
-            : 'fill-neutral-300 dark:fill-neutral-600',
+            ? 'stroke-neutral-100 dark:stroke-neutral-100'
+            : 'stroke-neutral-300 dark:stroke-neutral-600',
         ]"
         class="pointer-events-none"
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-      >
-        <path d="M12 14.5L17 9.5H7L12 14.5Z" />
-      </svg>
+      />
     </div>
     <template v-if="isRoot">
       <span v-test-class="'T-label'" class="pointer-events-none font-bold"> All Books </span>

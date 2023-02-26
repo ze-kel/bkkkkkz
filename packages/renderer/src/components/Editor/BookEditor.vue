@@ -8,7 +8,7 @@
             v-test-class="'T-editor-title'"
             spellcheck="false"
             tag="div"
-            class="text-2xl w-fit min-w-[100px] input-default"
+            class="text-2xl w-fit min-w-[100px]"
             placeholder="Title"
             :placeholder-classes="'text-neutral-400 hover:text-neutral-600'"
           />
@@ -17,7 +17,7 @@
             v-test-class="'T-editor-author'"
             spellcheck="false"
             tag="div"
-            class="text-xl w-fit min-w-[100px] input-default dark:text-neutral-100 font-regular"
+            class="text-xl w-fit min-w-[100px] dark:text-neutral-100 font-regular"
             placeholder="Author"
             :placeholder-classes="'text-neutral-400 hover:text-neutral-600'"
           />
@@ -32,7 +32,7 @@
                 :number="true"
                 spellcheck="false"
                 tag="div"
-                class="text-sm dark:text-neutral-400 w-fit min-w-[75px] input-default font-semibold"
+                class="text-sm dark:text-neutral-400 w-fit min-w-[75px] font-semibold"
                 placeholder="Year"
                 :placeholder-classes="'text-neutral-400 hover:text-neutral-600'"
               />
@@ -53,7 +53,7 @@
                 :number="true"
                 spellcheck="false"
                 tag="div"
-                class="text-sm dark:text-neutral-500 w-fit min-w-[100px] input-default"
+                class="text-sm dark:text-neutral-500 w-fit min-w-[100px]"
                 placeholder="ISBN13"
                 :placeholder-classes="'text-neutral-400 hover:text-neutral-600'"
               />
@@ -74,15 +74,11 @@
                 v-test-class="'T-editor-filename'"
                 spellcheck="false"
                 tag="div"
-                class="text-sm w-fit min-w-[100px] input-default dark:text-neutral-500"
+                class="text-sm w-fit min-w-[100px] dark:text-neutral-500"
                 placeholder="Filename"
                 :placeholder-classes="'text-neutral-400 hover:text-neutral-600'"
               />
-              <button
-                v-if="!autoSave"
-                class="basic-button h-full py-0 text-xs ml-3"
-                @click="manualSave"
-              >
+              <button v-if="!autoSave" class="h-full py-0 text-xs ml-3" @click="manualSave">
                 Save
               </button>
             </div>

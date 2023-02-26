@@ -17,15 +17,8 @@
       class="border-neutral-800 border w-fit pl-1 pr-2 rounded text-neutral-200 cursor-pointer flex items-center group"
       @click="createNewTag"
     >
-      <svg
-        width="20"
-        height="20"
-        viewBox="0 0 24 24"
-        xmlns="http://www.w3.org/2000/svg"
-        class="fill-neutral-200 group-hover:fill-neutral-400 transition-colors"
-      >
-        <path d="M13 13V19H11V13H5V11H11V5H13V11H19V13H13Z" />
-      </svg>
+      <PlusIcon class="w-4 fill-neutral-200 group-hover:fill-neutral-400 transition-colors" />
+
       tag
     </div>
   </div>
@@ -35,6 +28,7 @@
 import { getCurrentInstance, computed, nextTick, ref } from 'vue';
 import type { PropType, Ref } from 'vue';
 import ContentEditable from '/@/components/_UI/ContentEditable.vue';
+import PlusIcon from '@heroicons/vue/24/outline/PlusSmallIcon';
 
 const props = defineProps({
   modelValue: {

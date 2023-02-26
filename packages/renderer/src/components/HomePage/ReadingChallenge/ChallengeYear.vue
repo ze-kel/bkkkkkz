@@ -30,11 +30,9 @@
         class="hover:bg-neutral-800 rounded flex items-center h-4 ml-1 transition-colors cursor-pointer"
         @click="emit('delete')"
       >
-        <svg width="16" height="16" viewBox="0 0 24 24" class="'transition-colors hover:fill-white">
-          <path
-            d="M17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41L17.59 5Z"
-          />
-        </svg>
+        <CrossIcon
+          class="w-4 h-4 stroke-neutral-200 dark:stroke-neutral-600 dark:hover:stroke-neutral-300 transition-colors cursor-pointer"
+        />
       </div>
     </div>
   </div>
@@ -44,6 +42,7 @@
 import { computed, ref } from 'vue';
 
 import ContentEditable from '/@/components/_UI/ContentEditable.vue';
+import CrossIcon from '@heroicons/vue/24/outline/XMarkIcon';
 
 import type { PropType } from 'vue';
 import type { ISavedFile } from '/@main/services/files';
