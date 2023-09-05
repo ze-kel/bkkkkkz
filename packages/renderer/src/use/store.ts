@@ -5,9 +5,16 @@ import { cloneDeep as _cloneDeep } from 'lodash';
 import { trpcApi } from '../utils/trpc';
 
 import type { IOpened, IOpenedTabs } from '/@main/services/openedTabs';
+import type { IFolderTree } from '/@main/services/files';
+import type { ISettings } from '/@main/services/settings';
+import type { ITags } from '/@main/watcher/tagUpdates';
 
 export type StateType = {
+  rootPath: string | null;
   opened: IOpenedTabs;
+  folderTree: IFolderTree | null;
+  settings: ISettings | null;
+  tagsTree: ITags;
 };
 
 export type OpenNewOneParams = {
@@ -18,6 +25,10 @@ export type OpenNewOneParams = {
 export const useStore = defineStore('main', {
   state: (): StateType => {
     return {
+      rootPath: null,
+      tagsTree: [],
+      settings: null,
+      folderTree: null,
       opened: { tabs: [], active: undefined },
     };
   },
@@ -74,6 +85,15 @@ export const useStore = defineStore('main', {
     async fetchOpened() {
       this.opened = await trpcApi.getOpenedTabs.query();
     },
+    async fetchSetting() {
+      this.settings = await trpcApi.getSettings.query();
+    },
+    async fetchTags() {
+      this.tagsTree = await trpcApi.getTags.query();
+    },
+    async fetchRootPath() {
+      this.rootPath = await trpcApi.getRootPath.query();
+    },
 
     setOpenedIndex(index: number) {
       if (!this.opened.tabs.length) return;
@@ -82,6 +102,19 @@ export const useStore = defineStore('main', {
 
     saveScrollPosition(index: number, value: number) {
       this.opened.tabs[index].scrollPosition = value;
+    },
+
+    //
+    // Updates
+    //
+    updateFolderTree(data: IFolderTree) {
+      this.folderTree = data;
+    },
+    updateSettings(data: ISettings) {
+      this.settings = data;
+    },
+    updateTags(data: ITags) {
+      this.tagsTree = data;
     },
   },
   getters: {

@@ -1,32 +1,22 @@
 <template>
-  <FileTreeInner v-if="data" :content="data" />
+  <FileTreeInner v-if="store.folderTree" :content="store.folderTree" />
 </template>
 
 <script lang="ts" setup>
 import FileTreeInner from './FileTreeInner.vue';
-import { useQuery, useQueryClient } from '@tanstack/vue-query';
 import { trpcApi } from '/@/utils/trpc';
-import type { IFolderTree } from '/@main/services/files';
 import { onMounted, onUnmounted } from 'vue';
 import type { Unsubscribable } from '@trpc/server/observable';
+import { useStore } from '/@/use/store';
 
-const queryClient = useQueryClient();
-
-const { isLoading, isError, data, error } = useQuery({
-  queryFn: async () => {
-    return await trpcApi.getFileTree.query();
-  },
-  queryKey: ['fileTree'],
-});
-
-const setData = (data: IFolderTree) => {
-  queryClient.setQueryData(['fileTree'], data);
-};
+const store = useStore();
 
 const toUnsub: Unsubscribable[] = [];
 
 onMounted(async () => {
-  const s1 = trpcApi.treeUpdate.subscribe(undefined, { onData: setData });
+  const tree = await trpcApi.getFileTree.query();
+  store.updateFolderTree(tree);
+  const s1 = trpcApi.treeUpdate.subscribe(undefined, { onData: store.updateFolderTree });
   toUnsub.push(s1);
 });
 

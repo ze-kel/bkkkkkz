@@ -24,7 +24,6 @@
       "
     >
       <ChevronDownIcon
-        icon="angle-down"
         :class="[
           'mr-1 h-3 w-3',
           isFolded && '-rotate-90',

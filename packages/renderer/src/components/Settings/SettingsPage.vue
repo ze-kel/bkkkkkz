@@ -1,6 +1,11 @@
 <template>
-  <div v-if="settings" class="w-full">
-    <PathControllerVue title="Root Path" :path="rootPath" @change="changeRootPath" />
+  <div v-if="store.settings" class="w-full">
+    <PathControllerVue
+      v-if="store.rootPath"
+      title="Root Path"
+      :path="store.rootPath"
+      @change="trpcApi.setRootPath.mutate"
+    />
 
     <hr class="my-2 h-[1px] w-full border-0 bg-neutral-200 dark:bg-neutral-700" />
 
@@ -38,23 +43,21 @@
 import { computed, ref } from 'vue';
 import PathControllerVue from './PathController.vue';
 import ButtonsSwitch from '/@/components/_UI/ButtonsSwitch.vue';
-import { useRootPathSafe } from '/@/use/rootPath';
-import { useSettings } from '/@/use/settings';
 import { importGoodReadsHTML } from '/@/utils/goodreadsHTMLParser';
 
+import { useStore } from '/@/use/store';
 import { trpcApi } from '/@/utils/trpc';
 
-const { rootPath, changeRootPath } = useRootPathSafe();
-const { settings, changeSettings } = useSettings();
+const store = useStore();
 
 const darkMode = computed({
   get: () => {
-    return settings.value?.darkMode || 0;
+    return store.settings?.darkMode || 0;
   },
   set: (val) => {
-    if (!settings.value) return;
+    if (!store.settings) return;
 
-    changeSettings({ ...settings.value, darkMode: val });
+    store.updateSettings({ ...store.settings, darkMode: val });
   },
 });
 

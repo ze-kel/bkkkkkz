@@ -1,5 +1,5 @@
 <template>
-  <div v-if="!isLoading && !isError">
+  <div>
     <Tag v-for="tag in dataSorted" :key="tag" :tag="tag" />
   </div>
 </template>
@@ -8,32 +8,25 @@
 import Tag from './TagFromTree.vue';
 import { cloneDeep as _cloneDeep } from 'lodash';
 import type { ITags } from '/@main/watcher/tagUpdates';
-import { useQueryClient, useQuery } from '@tanstack/vue-query';
 import type { Unsubscribable } from 'type-fest';
-import { computed, onMounted, onUnmounted } from 'vue';
+import { computed, onBeforeMount, onMounted, onUnmounted } from 'vue';
 import { trpcApi } from '/@/utils/trpc';
+import { useStore } from '/@/use/store';
 
-const queryClient = useQueryClient();
-
-const { isLoading, isError, data, error } = useQuery({
-  queryFn: async () => {
-    return await trpcApi.getTags.query();
-  },
-  queryKey: ['tagsTree'],
-});
-
-const setData = (data: ITags) => {
-  queryClient.setQueryData(['tagsTree'], data);
-};
+const store = useStore();
 
 const dataSorted = computed(() =>
-  data.value ? [...data.value].sort((a, b) => a.localeCompare(b)) : undefined,
+  store.tagsTree ? [...store.tagsTree].sort((a, b) => a.localeCompare(b)) : undefined,
 );
 
 const toUnsub: Unsubscribable[] = [];
 
+onBeforeMount(async () => {
+  await store.fetchTags();
+});
+
 onMounted(async () => {
-  const s1 = trpcApi.tagsUpdate.subscribe(undefined, { onData: setData });
+  const s1 = trpcApi.tagsUpdate.subscribe(undefined, { onData: store.updateTags });
   toUnsub.push(s1);
 });
 

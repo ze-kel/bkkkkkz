@@ -12,12 +12,12 @@
       <Cover v-if="inViewport || !observer" :file="currentFile" class="transition-transform" />
       <div
         v-else
-        class="aspect-[6/8] min-w-[150px] bg-neutral-300 dark:bg-neutral-600 rounded"
+        class="aspect-[6/8] min-w-[150px] rounded bg-neutral-300 dark:bg-neutral-600"
       ></div>
     </template>
     <template v-if="viewStyle === 'Lines'">
       <div
-        class="grid grid-cols-5 gap-5 cursor-pointer pl-1 transition-colors rounded-sm hover:bg-neutral-100 hover:dark:bg-neutral-800 py-1"
+        class="grid cursor-pointer grid-cols-5 gap-5 rounded-sm py-1 pl-1 transition-colors hover:bg-neutral-100 hover:dark:bg-neutral-800"
       >
         <div class="truncate">
           {{ onlyMainTitle }}
@@ -35,7 +35,7 @@
           <Rating :model-value="currentFile.myRating" disabled />
         </div>
       </div>
-      <hr class="my-1 bg-neutral-200 dark:bg-neutral-700 h-[1px] border-0 w-full" />
+      <hr class="my-1 h-[1px] w-full border-0 bg-neutral-200 dark:bg-neutral-700" />
     </template>
   </div>
 </template>
@@ -53,13 +53,11 @@ import type { PropType } from 'vue';
 import type { IFile } from '/@main/services/files';
 import type ElObserver from './elementObserver';
 import type { IViewStyle } from '/@main/services/openedTabs';
-import { useSettings } from '/@/use/settings';
 import type { OpenNewOneParams } from '/@/use/store';
 import { useStore } from '/@/use/store';
 
 export type IBookStyle = 'CARDS' | 'LINES';
 
-const { settings } = useSettings();
 const store = useStore();
 
 const props = defineProps({
@@ -105,11 +103,9 @@ const onlyMainTitle = computed(() => props.currentFile.title?.split(':')[0]);
 const stringifiedDates = computed(() => {
   if (!props.currentFile.read) return '';
 
-  if (!settings.value) return '';
+  if (!store.settings) return '';
 
-  return props.currentFile.read
-    .reduce(dateReducerAllYears(settings.value.dateFormat), [])
-    .join(', ');
+  return props.currentFile.read.reduce(dateReducerAllYears(store.settings.dateFormat), []).join(', ');
 });
 </script>
 

@@ -1,26 +1,26 @@
 <template>
-  <div class="h-full w-full flex flex-col">
+  <div class="flex h-full w-full flex-col">
     <ViewConrols class="border-b border-neutral-300 dark:border-neutral-600" />
 
     <div
       v-if="opened.settings.viewStyle === 'Lines'"
-      class="grid grid-cols-5 gap-5 px-3 font-semibold border-b border-neutral-300 dark:border-neutral-600"
+      class="grid grid-cols-5 gap-5 border-b border-neutral-300 px-3 font-semibold dark:border-neutral-600"
     >
-      <div class="border-r border-neutral-300 dark:border-neutral-600 py-1">Title</div>
-      <div class="border-r border-neutral-300 dark:border-neutral-600 py-1">Author</div>
-      <div class="border-r border-neutral-300 dark:border-neutral-600 py-1">Year</div>
-      <div class="border-r border-neutral-300 dark:border-neutral-600 py-1">Read</div>
+      <div class="border-r border-neutral-300 py-1 dark:border-neutral-600">Title</div>
+      <div class="border-r border-neutral-300 py-1 dark:border-neutral-600">Author</div>
+      <div class="border-r border-neutral-300 py-1 dark:border-neutral-600">Year</div>
+      <div class="border-r border-neutral-300 py-1 dark:border-neutral-600">Read</div>
       <div class="py-1">Rating</div>
     </div>
 
     <div
       ref="scrollRoot"
-      class="w-full h-full box-border overflow-y-scroll overflow-x-hidden px-2 items-start py-2"
+      class="box-border h-full w-full items-start overflow-x-hidden overflow-y-scroll px-2 py-2"
     >
       <div v-if="opened.settings.grouped">
         <div v-for="group in groupedFiles" :key="group.label" class="mt-4 first:mt-0">
           <div
-            class="text-4xl font-mono inline-block pl-1 pr-3 font-medium text-neutral-800 dark:text-neutral-100 mb-1"
+            class="mb-1 inline-block pl-1 pr-3 font-mono text-4xl font-medium text-neutral-800 dark:text-neutral-100"
           >
             <Rating
               v-if="opened.settings.sortBy === 'Rating' && !Number.isNaN(Number(group.label))"
@@ -85,6 +85,7 @@ import {
   onBeforeMount,
 } from 'vue';
 import Fuse from 'fuse.js';
+import { useStore } from '/@/use/store';
 import { openMenu } from '/@/use/contextMenu';
 
 import { debounce as _debounce } from 'lodash';
@@ -102,13 +103,12 @@ import ViewConrols from './ViewConrols.vue';
 import type { IFile, IFiles } from '/@main/services/files';
 import type { PropType } from 'vue';
 import type { ContextMenu } from '/@/use/contextMenu';
-import { useQueryClient, useQuery } from '@tanstack/vue-query';
 import type { IOpenedPath, IOpenedTag } from '/@main/services/openedTabs';
-import { useSettings } from '/@/use/settings';
-import { useStore } from '/@/use/store';
 
-const { settings } = useSettings();
 const store = useStore();
+
+const files = ref<IFiles>({});
+const forDrag = ref();
 
 const props = defineProps({
   opened: {
@@ -121,24 +121,20 @@ const props = defineProps({
   },
 });
 
-const forDrag = ref();
+const loadContent = async () => {
+  if (props.opened.type === 'folder') {
+    files.value = await trpcApi.loadFilesFromFolder.query({
+      path: props.opened.thing,
+      recursive: props.opened.recursive,
+    });
+  }
+  if (props.opened.type === 'tag') {
+    files.value = await trpcApi.loadFilesFromTag.query(props.opened.thing);
+  }
+  nextTick(setScrollPositionFromSaved);
+};
 
-const queryClient = useQueryClient();
-
-const { isLoading, isError, data, error } = useQuery({
-  async queryFn() {
-    if (props.opened.type === 'folder') {
-      return await trpcApi.loadFilesFromFolder.query({
-        path: props.opened.thing,
-        recursive: props.opened.recursive,
-      });
-    }
-    if (props.opened.type === 'tag') {
-      return await trpcApi.loadFilesFromTag.query(props.opened.thing);
-    }
-  },
-  queryKey: ['bookView', props.opened.type, props.opened.thing],
-});
+loadContent();
 
 //
 // Update event handling
@@ -151,28 +147,14 @@ const updateHandlerApi = ({
   relevantIndexes: number[];
 }) => {
   if (!relevantIndexes.includes(props.index)) return;
-  queryClient.setQueryData(
-    ['bookView', props.opened.type, props.opened.thing],
-    (data: IFiles | undefined) => {
-      const newData = { ...data };
-      if (newData[file.path]) {
-        newData[file.path] = file;
-      }
-      return data;
-    },
-  );
+  if (files.value[file.path]) {
+    files.value[file.path] = file;
+  }
 };
 
 const addHandlerApi = ({ file, relevantIndexes }: { file: IFile; relevantIndexes: number[] }) => {
   if (!relevantIndexes.includes(props.index)) return;
-  queryClient.setQueryData(
-    ['bookView', props.opened.type, props.opened.thing],
-    (data: IFiles | undefined) => {
-      const newData = { ...data };
-      newData[file.path] = file;
-      return newData;
-    },
-  );
+  files.value[file.path] = file;
 };
 
 const removeHandlerApi = ({
@@ -183,14 +165,9 @@ const removeHandlerApi = ({
   relevantIndexes: number[];
 }) => {
   if (!relevantIndexes.includes(props.index)) return;
-  queryClient.setQueryData(
-    ['bookView', props.opened.type, props.opened.thing],
-    (data: IFiles | undefined) => {
-      const newData = { ...data };
-      delete newData[path];
-      return newData;
-    },
-  );
+  if (files.value[path]) {
+    delete files.value[path];
+  }
 };
 
 const u = trpcApi.fileUpdate.subscribe(undefined, {
@@ -206,16 +183,16 @@ const r = trpcApi.fileRemove.subscribe(undefined, {
 });
 
 onUnmounted(async () => {
-  await u.unsubscribe();
-  await a.unsubscribe();
-  await r.unsubscribe();
+  u.unsubscribe();
+  a.unsubscribe();
+  r.unsubscribe();
 });
 
 //
 // Search
 //
 const filesArray = computed<IFile[]>(() => {
-  return data.value ? Object.values(data.value) : [];
+  return Object.values(files.value);
 });
 
 const collectionIndex = ref(-1);
@@ -250,8 +227,8 @@ const filteredFiles = computed(() => {
 // Sort
 //
 const sortedFiles = computed(() => {
-  if (!settings.value) return [];
-  const sortFunction = getSortFunction(props.opened.settings.sortBy, settings.value.dateFormat);
+  if (!store.settings) return [];
+  const sortFunction = getSortFunction(props.opened.settings.sortBy, store.settings?.dateFormat);
 
   return [...filteredFiles.value].sort((a, b) => {
     return sortFunction(a, b, props.opened.settings.sortDirection);
@@ -262,12 +239,8 @@ const sortedFiles = computed(() => {
 // Grouping
 //
 const groupedFiles = computed(() => {
-  if (!settings.value) return;
-  console.log('make grouped', {
-    sortby: props.opened.settings.sortBy,
-    dateFormat: settings.value.dateFormat,
-  });
-  return groupItems(sortedFiles.value, props.opened.settings.sortBy, settings.value.dateFormat);
+  if (!store.settings) return [];
+  return groupItems(sortedFiles.value, props.opened.settings.sortBy, store.settings?.dateFormat);
 });
 
 //
@@ -330,7 +303,6 @@ const setScrollPositionFromSaved = () => {
   if (!scrollRoot.value) return;
   scrollRoot.value.scrollTop = props.opened.scrollPosition;
 };
-nextTick(setScrollPositionFromSaved);
 
 const saveScrollPos = () => {
   if (!scrollRoot.value) return;

@@ -1,7 +1,7 @@
 <template>
   <div
     ref="rootElement"
-    class="bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-50 h-screen flex flex-col"
+    class="flex h-screen flex-col bg-neutral-100 text-neutral-900 dark:bg-neutral-800 dark:text-neutral-50"
     :class="darkModeClass"
   >
     <TopBar />
@@ -22,21 +22,19 @@ import Welcome from './WelcomeScreen/WelcomeScreen.vue';
 import ContextMenu from './_UI/ContextMenu.vue';
 import ViewCore from './ViewCore/ViewCore.vue';
 import { trpcApi } from '../utils/trpc';
-import { useRootPath } from '../use/rootPath';
-import { useSettings } from '../use/settings';
 import { useStore } from '../use/store';
 
 const store = useStore();
 
 const rootElement = ref<Element | null>(null);
 
-const { rootPath } = useRootPath();
-
 const hasRootPath = computed(() => {
-  return typeof rootPath.value === 'string';
+  return typeof store.rootPath === 'string';
 });
 
 onBeforeMount(() => {
+  store.fetchRootPath();
+  store.fetchSetting();
   store.fetchOpened();
 });
 
@@ -71,11 +69,9 @@ onUnmounted(() => {
 // Dark mode class
 //
 
-const { settings } = useSettings();
-
 const darkModeClass = computed(() => {
-  if (!settings.value || settings.value.darkMode === -1) return '';
-  if (settings.value.darkMode === 0) {
+  if (!store.settings || store.settings.darkMode === -1) return '';
+  if (store.settings.darkMode === 0) {
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : '';
   }
   return 'dark';

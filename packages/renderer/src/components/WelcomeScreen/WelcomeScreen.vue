@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col items-center justify-center p-10 h-full">
+  <div class="flex h-full flex-col items-center justify-center p-10">
     <div class="text-4xl">Welcome!</div>
     <div class="mt-2">Please select your root directory</div>
     <button class="mt-2" @click="clickHandler">Select</button>
@@ -7,12 +7,10 @@
 </template>
 
 <script lang="ts" setup>
-import { useRootPath } from '/@/use/rootPath';
-
-const { changeRootPath } = useRootPath();
+import { trpcApi } from '/@/utils/trpc';
 
 const clickHandler = () => {
-  changeRootPath();
+  trpcApi.setRootPath.mutate();
 };
 </script>
 

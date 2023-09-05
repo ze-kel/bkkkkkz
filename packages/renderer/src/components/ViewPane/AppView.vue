@@ -13,8 +13,8 @@
         "
         @click="store.setOpenedIndex(index)"
       >
-        <div v-if="rootPath" v-test-class="'T-label'" class="truncate">
-          {{ formatHeader(item, rootPath) }}
+        <div v-if="store.rootPath" v-test-class="'T-label'" class="truncate">
+          {{ formatHeader(item, store.rootPath) }}
         </div>
 
         <div
@@ -67,13 +67,8 @@ import Editor from '../Editor/BookEditor.vue';
 import formatHeader from '/@/utils/formatHeader';
 import { getDefaultViewSettings } from '/@/utils/getDefaultViewSettings';
 import HomePage from '../HomePage/HomePage.vue';
-import { useSettings } from '/@/use/settings';
-import { useRootPath } from '/@/use/rootPath';
 import { useStore } from '/@/use/store';
 import CrossIcon from '@heroicons/vue/24/outline/XMarkIcon';
-
-const { settings } = useSettings();
-const { rootPath } = useRootPath();
 
 const store = useStore();
 

@@ -13,7 +13,7 @@
 
     <template v-if="expanded">
       <div v-for="year in allYearsThatHaveChallengeButTheCurrent" :key="year.year">
-        <hr class="bg-neutral-200 dark:bg-neutral-700 h-[1px] border-0 w-full" />
+        <hr class="h-[1px] w-full border-0 bg-neutral-200 dark:bg-neutral-700" />
         <ChallengeYear
           :books-for-that-year="sortedByYear[year.year] || []"
           :year="year.year"
@@ -32,10 +32,10 @@
 
     <div
       v-if="allYearsThatHaveChallengeButTheCurrent.length"
-      class="mt-3 mb-2 w-full text-center flex justify-center cursor-pointer fill-neutral-900 dark:fill-neutral-50"
+      class="mt-3 mb-2 flex w-full cursor-pointer justify-center fill-neutral-900 text-center dark:fill-neutral-50"
       @click="flipExpanded"
     >
-      <ChevronDown class="w-6 mr-2" :class="[expanded && 'rotate-180']" />
+      <ChevronDown class="mr-2 w-6" :class="[expanded && 'rotate-180']" />
 
       <template v-if="!expanded">Show All Years</template>
       <template v-else>Show Only Current Year</template>
@@ -44,7 +44,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, ref } from 'vue';
+import { computed, onBeforeMount, ref } from 'vue';
 
 import ChallengeYear from './ChallengeYear.vue';
 
@@ -56,32 +56,21 @@ import ChevronDown from '@heroicons/vue/24/outline/ChevronDownIcon';
 import type { IFiles, ISavedFile } from '/@main/services/files';
 import { trpcApi } from '/@/utils/trpc';
 import { useStore } from '/@/use/store';
-import { useSettings } from '/@/use/settings';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query';
 import type { IReadChallengeData } from '/@main/services/readChalenge';
 
 const store = useStore();
-const { settings } = useSettings();
 const read = ref<IFiles>({});
 
-const qc = useQueryClient();
+const data = ref<IReadChallengeData>();
 
-const { data } = useQuery({
-  async queryFn() {
-    return await trpcApi.getReadChallenge.query();
-  },
-  queryKey: ['readChallenge'],
+onBeforeMount(async () => {
+  data.value = await trpcApi.getReadChallenge.query();
 });
 
-const mutation = useMutation({
-  async mutationFn(d: IReadChallengeData) {
-    console.log('mutation');
-    await trpcApi.saveReadChallenge.mutate(d);
-  },
-  async onMutate(d) {
-    qc.setQueryData(['readChallenge'], d);
-  },
-});
+const update = async (update: IReadChallengeData) => {
+  await trpcApi.saveReadChallenge.mutate(update);
+  data.value = update;
+};
 
 const load = async () => {
   try {
@@ -97,7 +86,7 @@ const currentYear = computed(() => {
 });
 
 const sortedByYear = computed(() => {
-  if (!data.value || !settings.value) return {};
+  if (!data.value || !store.settings) return {};
   // Cannot reuse grouping from BookView because we need to have book in all year groups, not in first\last one
 
   const array = Object.values(read.value);
@@ -105,8 +94,8 @@ const sortedByYear = computed(() => {
   const sorted: Record<number, ISavedFile[]> = {};
 
   array.forEach((book) => {
-    if (!book.read) return;
-    const dates = book.read?.reduce(dateReducerAllYears(settings.value.dateFormat), []);
+    if (!book.read || !store.settings) return;
+    const dates = book.read?.reduce(dateReducerAllYears(store.settings.dateFormat), []);
 
     dates.forEach((date) => {
       if (!sorted[date]) sorted[date] = [];
@@ -117,7 +106,7 @@ const sortedByYear = computed(() => {
   //@ts-expect-error Typescript is wrong here, this is correct and safe.
   const allYears = Object.keys(sorted) as Array<keyof typeof sorted>;
 
-  const sortFunction = getSortFunction('First Read', settings.value.dateFormat);
+  const sortFunction = getSortFunction('First Read', store.settings.dateFormat);
 
   allYears.forEach((key: number) => {
     sorted[key].sort((a, b) => sortFunction(a, b, 1));
@@ -154,7 +143,7 @@ const addYear = () => {
 
   const newData = cloneDeep(data.value);
 
-  mutation.mutate([
+  update([
     ...newData,
     {
       books: booksInput.value,
@@ -169,7 +158,7 @@ const addYear = () => {
 const deleteYear = (year: number) => {
   if (!data.value) return;
   const newData = data.value.filter((v) => v.year !== year);
-  mutation.mutate(newData);
+  update(newData);
 };
 
 const changeBooks = (year: number, books: number) => {
@@ -181,7 +170,7 @@ const changeBooks = (year: number, books: number) => {
   } else {
     newData.push({ year, books });
   }
-  mutation.mutate(newData);
+  update(newData);
 };
 
 load();

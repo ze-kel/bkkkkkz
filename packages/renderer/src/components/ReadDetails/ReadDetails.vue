@@ -3,9 +3,9 @@
     <div class="flex flex-col gap-2">
       <template v-for="(date, index) in modelValue" :key="index">
         <DatePair
-          v-if="settings"
+          v-if="store.settings"
           :model-value="date"
-          :date-format="settings.dateFormat"
+          :date-format="store.settings.dateFormat"
           @update:model-value="(val) => updateValue(index, val)"
         />
         <div v-test-class="'T-editor-date-remove'" @click="removeDate(index)">
@@ -30,10 +30,10 @@ import type { PropType } from 'vue';
 import type { IDateRead } from '/@main/services/books';
 import DatePair from './DatePair.vue';
 import { format } from 'date-fns';
-import { useSettings } from '/@/use/settings';
 import CrossIcon from '@heroicons/vue/24/outline/XMarkIcon';
+import { useStore } from '/@/use/store';
 
-const { settings } = useSettings();
+const store = useStore();
 
 const props = defineProps({
   modelValue: {
@@ -54,12 +54,12 @@ const updateValue = (index: number, newDates: IDateRead) => {
 };
 
 const addNewDate = () => {
-  if (!settings.value) {
+  if (!store.settings) {
     throw new Error('TRYING TO OPEN READ DETAILS BEFORE SETTINGS ARE PRESENT');
   }
   const newValue = [
     ...props.modelValue,
-    { started: format(new Date(), settings.value.dateFormat) },
+    { started: format(new Date(), store.settings.dateFormat) },
   ];
   emit('update:modelValue', newValue);
 };

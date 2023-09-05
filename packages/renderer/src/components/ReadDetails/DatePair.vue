@@ -29,15 +29,15 @@ import { computed } from 'vue';
 
 import type { PropType } from 'vue';
 import type { IDateRead } from '/@main/services/books';
-import { useSettings } from '/@/use/settings';
 import VueDatePicker from '@vuepic/vue-datepicker';
 import { parse } from 'date-fns';
 
 import '@vuepic/vue-datepicker/dist/main.css';
 
 import MiddleIcon from '@heroicons/vue/24/outline/ArrowRightIcon';
+import { useStore } from '/@/use/store';
 
-const { settings } = useSettings();
+const store = useStore();
 
 const props = defineProps({
   modelValue: {
@@ -71,8 +71,8 @@ const dateEnd = computed({
 });
 
 const isDarkMode = computed(() => {
-  if (!settings.value || settings.value.darkMode === -1) return false;
-  if (settings.value.darkMode === 0) {
+  if (!store.settings || store.settings.darkMode === -1) return false;
+  if (store.settings.darkMode === 0) {
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? true : false;
   }
   return true;
@@ -121,7 +121,7 @@ const popoverConfig = {
 
   --dp-secondary-color: #a9a9a9;
   --dp-border-color: #2d2d2d;
-  
+
   --dp-menu-border-color: #2d2d2d;
   --dp-border-color-hover: #aaaeb7;
   --dp-disabled-color: #737373;

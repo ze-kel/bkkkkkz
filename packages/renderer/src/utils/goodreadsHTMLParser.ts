@@ -1,9 +1,8 @@
 import { format, parse, isValid } from 'date-fns';
-import { useRootPath } from '../use/rootPath';
-import { useSettings } from '../use/settings';
 import { trpcApi } from './trpc';
 import type { IBookData, IDateRead } from '/@main/services/books';
 import type { IUnsavedFile } from '/@main/services/files';
+import { useStore } from '/@/use/store';
 
 const grabSimpleValue = (rootElement: Element, name: string) => {
   const value = rootElement
@@ -105,8 +104,7 @@ export const importGoodReadsHTML = (event: any) => {
     return;
   }
 
-  const { settings } = useSettings();
-  const { rootPath } = useRootPath();
+  const store = useStore();
 
   const fr = new FileReader();
   const parser = new DOMParser();
@@ -119,14 +117,14 @@ export const importGoodReadsHTML = (event: any) => {
 
       const result: IUnsavedFile[] = [];
 
-      if (!settings.value || !rootPath.value) return;
+      if (!store.settings || !store.rootPath) return;
 
       for (const book of books) {
-        result.push(parseBook(book, settings.value?.dateFormat));
+        result.push(parseBook(book, store.settings?.dateFormat));
       }
 
       const path = await trpcApi.createFolder.mutate({
-        pathToFolder: rootPath.value,
+        pathToFolder: store.rootPath,
         name: `Goodreads Import ${format(new Date(), 'MM-dd HH-mm-ss')}`,
       });
 
