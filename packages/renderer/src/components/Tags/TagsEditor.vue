@@ -1,5 +1,5 @@
 <template>
-  <div class="flex gap-y-1 gap-x-0.5 flex-wrap">
+  <div class="flex flex-wrap gap-y-1 gap-x-0.5">
     <template v-for="(tag, index) in tags" :key="index">
       <ContentEditable
         ref="tagRefs"
@@ -8,16 +8,16 @@
         tag="div"
         spellcheck="false"
         :no-n-l="true"
-        class="border-neutral-800 border w-fit px-2 rounded text-neutral-200 font-light"
+        class="focus:ring-ring text-foreground inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2"
         @update:model-value="(val: string | Number) => saveTag(index, String(val))"
       />
     </template>
     <div
       v-test-class="'T-editor-add-tag'"
-      class="border-neutral-800 border w-fit pl-1 pr-2 rounded text-neutral-200 cursor-pointer flex items-center group"
+      class="focus:ring-ring text-foreground inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2"
       @click="createNewTag"
     >
-      <PlusIcon class="w-4 fill-neutral-200 group-hover:fill-neutral-400 transition-colors" />
+      <PlusIcon class="w-4 fill-neutral-200 transition-colors group-hover:fill-neutral-400" />
 
       tag
     </div>
@@ -60,6 +60,13 @@ const saveTag = (index: number, tag: string) => {
     newTags[index] = tag;
   }
   tags.value = newTags;
+
+  nextTick(() => {
+    // Add better logic for edge cases
+    const targ = tagRefs.value[index].value;
+    console.log(targ);
+    targ.focus();
+  });
 };
 
 const tagRefs = ref<Ref<HTMLElement>[]>([]);

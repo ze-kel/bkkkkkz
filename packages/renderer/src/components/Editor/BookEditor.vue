@@ -1,14 +1,18 @@
 <template>
-  <div v-if="!loading" class="flex w-full flex-col h-full overflow-x-hidden overflow-y-scroll">
-    <div class="max-w-xl mx-auto w-full">
-      <div class="flex gap-8">
-        <div class="w-full flex flex-col justify-between py-2">
+  <div v-if="!loading" class="flex h-full w-full flex-col overflow-x-hidden overflow-y-scroll">
+    <div class="mx-auto w-full max-w-xl">
+      <div class="flex flex-col">
+        <div class="flex justify-center py-2" :draggable="true" @dragstart="startDrag($event)">
+          <Cover :file="openedFile" class="h-60" @click.right="coverRightClick" />
+        </div>
+
+        <div class="flex flex-col items-center gap-2">
           <ContentEditable
             v-model="openedFile.title"
             v-test-class="'T-editor-title'"
             spellcheck="false"
             tag="div"
-            class="text-2xl w-fit min-w-[100px]"
+            class="w-fit min-w-[100px] text-4xl"
             placeholder="Title"
             :placeholder-classes="'text-neutral-400 hover:text-neutral-600'"
           />
@@ -17,14 +21,16 @@
             v-test-class="'T-editor-author'"
             spellcheck="false"
             tag="div"
-            class="text-xl w-fit min-w-[100px] dark:text-neutral-100 font-regular"
+            class="font-regular w-fit min-w-[100px] text-2xl dark:text-neutral-100"
             placeholder="Author"
             :placeholder-classes="'text-neutral-400 hover:text-neutral-600'"
           />
+        </div>
 
-          <div class="justify-between flex w-full items-stretch mt-3">
-            <div class="flex flex-col h-full justify-between">
-              <h4 class="dark:text-neutral-600 text-sm">Year</h4>
+        <div class="flex w-full flex-col justify-between py-2">
+          <div class="mt-3 flex w-full items-stretch justify-between">
+            <div class="flex h-full flex-col justify-between">
+              <h4 class="text-sm">Year</h4>
 
               <ContentEditable
                 v-model="openedFile.year"
@@ -32,65 +38,61 @@
                 :number="true"
                 spellcheck="false"
                 tag="div"
-                class="text-sm dark:text-neutral-400 w-fit min-w-[75px] font-semibold"
+                class="w-fit min-w-[75px] text-sm font-semibold dark:text-neutral-400"
                 placeholder="Year"
                 :placeholder-classes="'text-neutral-400 hover:text-neutral-600'"
               />
             </div>
 
             <div class="flex flex-col justify-between">
-              <h4 class="dark:text-neutral-600 text-sm">Rating</h4>
-              <div class="text-sm dark:text-neutral-400 cursor-pointer font-bold">
+              <h4 class="text-sm">Rating</h4>
+              <div class="cursor-pointer text-sm font-bold dark:text-neutral-400">
                 <Rating v-model="openedFile.myRating" />
               </div>
             </div>
 
             <div class="flex flex-col justify-between">
-              <h4 class="dark:text-neutral-600 text-sm">ISBN</h4>
+              <h4 class="text-sm">ISBN</h4>
               <ContentEditable
                 v-model="openedFile.ISBN13"
                 v-test-class="'T-editor-isbn'"
                 :number="true"
                 spellcheck="false"
                 tag="div"
-                class="text-sm dark:text-neutral-500 w-fit min-w-[100px]"
+                class="w-fit min-w-[100px] text-sm"
                 placeholder="ISBN13"
                 :placeholder-classes="'text-neutral-400 hover:text-neutral-600'"
               />
             </div>
-          </div>
 
-          <div class="text-neutral-800 dark:text-neutral-600 text-sm mt-3">Read dates</div>
-          <ReadDetails v-model="openedFile.read" />
-
-          <div class="text-neutral-800 dark:text-neutral-600 text-sm mt-3">Tags</div>
-          <Tags v-model="openedFile.tags" class="my-1" />
-
-          <div class="flex flex-col mt-3">
-            <div class="text-neutral-800 dark:text-neutral-600 text-sm">Saved as</div>
-            <div class="flex items-center">
-              <ContentEditable
-                v-model="openedFile.name"
-                v-test-class="'T-editor-filename'"
-                spellcheck="false"
-                tag="div"
-                class="text-sm w-fit min-w-[100px] dark:text-neutral-500"
-                placeholder="Filename"
-                :placeholder-classes="'text-neutral-400 hover:text-neutral-600'"
-              />
-              <button v-if="!autoSave" class="h-full py-0 text-xs ml-3" @click="manualSave">
-                Save
-              </button>
+            <div class="mt-3 flex flex-col">
+              <div class="text-sm">Saved as</div>
+              <div class="flex items-center">
+                <ContentEditable
+                  v-model="openedFile.name"
+                  v-test-class="'T-editor-filename'"
+                  spellcheck="false"
+                  tag="div"
+                  class="w-fit min-w-[100px] text-sm dark:text-neutral-500"
+                  placeholder="Filename"
+                  :placeholder-classes="'text-neutral-400 hover:text-neutral-600'"
+                />
+                <button v-if="!autoSave" class="ml-3 h-full py-0 text-xs" @click="manualSave">
+                  Save
+                </button>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div class="flex justify-center py-2" :draggable="true" @dragstart="startDrag($event)">
-          <Cover :file="openedFile" class="h-60" @click.right="coverRightClick" />
+          <div class="mt-3 text-sm">Read dates</div>
+          <ReadDetails v-model="openedFile.read" />
+
+          <div class="mt-3 text-sm">Tags</div>
+          <Tags v-model="openedFile.tags" class="my-1" />
         </div>
       </div>
 
-      <div class="h-full border-t border-neutral-300 dark:border-neutral-800 py-4 min-h-[200px]">
+      <div class="h-full min-h-[200px] border-t border-neutral-300 py-4 dark:border-neutral-800">
         <Milkdown v-model="openedFile.content" />
       </div>
     </div>
