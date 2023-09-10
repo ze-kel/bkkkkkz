@@ -1,14 +1,14 @@
 <template>
-  <div
-    ref="rootElement"
-    class="flex h-screen flex-col bg-neutral-100 text-neutral-900 dark:bg-neutral-800 dark:text-neutral-50"
-    :class="darkModeClass"
-  >
-    <TopBar />
-    <ContextMenu />
+  <div class="" :class="darkModeClass">
+    <div
+      class="bg-neutral-50 flex h-screen flex-col dark:bg-neutral-950 text-neutral-950 dark:text-neutral-50"
+    >
+      <TopBar />
+      <ContextMenu />
 
-    <ViewCore v-if="hasRootPath" />
-    <Welcome v-else />
+      <ViewCore v-if="hasRootPath" />
+      <Welcome v-else />
+    </div>
   </div>
 </template>
 
@@ -25,8 +25,6 @@ import { trpcApi } from '../utils/trpc';
 import { useStore } from '../use/store';
 
 const store = useStore();
-
-const rootElement = ref<Element | null>(null);
 
 const hasRootPath = computed(() => {
   return typeof store.rootPath === 'string';

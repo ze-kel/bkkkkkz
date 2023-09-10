@@ -1,7 +1,5 @@
 <template>
-  <div
-    class="h-full max-h-full flex overflow-hidden bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-50"
-  >
+  <div class="h-full max-h-full flex overflow-hidden">
     <div class="flex-auto px-2 box-border" :style="{ width: `${fileTreeSize}px` }">
       <IconsMenu />
 
@@ -15,10 +13,10 @@
 
     <div
       ref="resizeHandle"
-      class="w-1 hover:bg-indigo-500 cursor-col-resize transition-colors"
+      class="w-1 hover:bg-indigo-500 cursor-col-resize transition-colors bg-neutral-50 dark:bg-neutral-950"
       :class="isResizing && 'bg-indigo-700'"
     ></div>
-    <div class="bg-neutral-50 dark:bg-neutral-900 flex w-full max-h-full overflow-hidden">
+    <div class="flex w-full max-h-full overflow-hidden">
       <View />
     </div>
   </div>

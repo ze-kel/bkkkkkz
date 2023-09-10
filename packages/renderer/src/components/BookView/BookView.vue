@@ -1,6 +1,6 @@
 <template>
   <div class="flex h-full w-full flex-col">
-    <ViewConrols class="border-b border-neutral-300 dark:border-neutral-600" />
+    <ViewConrols class="" />
 
     <div
       v-if="opened.settings.viewStyle === 'Lines'"

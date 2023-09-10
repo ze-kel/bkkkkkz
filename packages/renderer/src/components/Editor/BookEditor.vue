@@ -28,61 +28,56 @@
         </div>
 
         <div class="flex w-full flex-col justify-between py-2">
-          <div class="mt-3 flex w-full items-stretch justify-between">
-            <div class="flex h-full flex-col justify-between">
-              <h4 class="text-sm">Year</h4>
+          <div class="mt-3 grid grid-cols-4 items-center gap-2">
+            <h4 class="text-xs">Year</h4>
 
+            <h4 class="text-xs">Rating</h4>
+
+            <h4 class="text-xs">ISBN</h4>
+
+            <div class="text-xs">Saved as</div>
+
+            <ContentEditable
+              v-model="openedFile.year"
+              v-test-class="'T-editor-year'"
+              :number="true"
+              spellcheck="false"
+              tag="div"
+              class="min-w-[75px]"
+              placeholder="Year"
+              :placeholder-classes="'text-neutral-400 hover:text-neutral-600'"
+            />
+            <div class="cursor-pointer font-bold">
+              <Rating v-model="openedFile.myRating" />
+            </div>
+
+            <ContentEditable
+              v-model="openedFile.ISBN13"
+              v-test-class="'T-editor-isbn'"
+              :number="true"
+              spellcheck="false"
+              tag="div"
+              class="min-w-[100px]"
+              placeholder="ISBN13"
+              :placeholder-classes="'text-neutral-400 hover:text-neutral-600'"
+            />
+
+            <div class="flex items-center">
               <ContentEditable
-                v-model="openedFile.year"
-                v-test-class="'T-editor-year'"
-                :number="true"
+                v-model="openedFile.name"
+                v-test-class="'T-editor-filename'"
                 spellcheck="false"
                 tag="div"
-                class="w-fit min-w-[75px] text-sm font-semibold dark:text-neutral-400"
-                placeholder="Year"
+                class="min-w-[100px]"
+                placeholder="Filename"
                 :placeholder-classes="'text-neutral-400 hover:text-neutral-600'"
               />
-            </div>
-
-            <div class="flex flex-col justify-between">
-              <h4 class="text-sm">Rating</h4>
-              <div class="cursor-pointer text-sm font-bold dark:text-neutral-400">
-                <Rating v-model="openedFile.myRating" />
-              </div>
-            </div>
-
-            <div class="flex flex-col justify-between">
-              <h4 class="text-sm">ISBN</h4>
-              <ContentEditable
-                v-model="openedFile.ISBN13"
-                v-test-class="'T-editor-isbn'"
-                :number="true"
-                spellcheck="false"
-                tag="div"
-                class="w-fit min-w-[100px] text-sm"
-                placeholder="ISBN13"
-                :placeholder-classes="'text-neutral-400 hover:text-neutral-600'"
-              />
-            </div>
-
-            <div class="mt-3 flex flex-col">
-              <div class="text-sm">Saved as</div>
-              <div class="flex items-center">
-                <ContentEditable
-                  v-model="openedFile.name"
-                  v-test-class="'T-editor-filename'"
-                  spellcheck="false"
-                  tag="div"
-                  class="w-fit min-w-[100px] text-sm dark:text-neutral-500"
-                  placeholder="Filename"
-                  :placeholder-classes="'text-neutral-400 hover:text-neutral-600'"
-                />
-                <button v-if="!autoSave" class="ml-3 h-full py-0 text-xs" @click="manualSave">
-                  Save
-                </button>
-              </div>
             </div>
           </div>
+
+          <button v-if="!autoSave" class="ml-3 h-full py-0 text-xs" @click="manualSave">
+            Save
+          </button>
 
           <div class="mt-3 text-sm">Read dates</div>
           <ReadDetails v-model="openedFile.read" />

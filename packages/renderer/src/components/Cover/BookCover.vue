@@ -6,7 +6,7 @@
 
     <div
       v-else
-      class="p-3 rounded h-full text-neutral-700 dark:text-neutral-400 border-neutral-300 border dark:border-neutral-700 flex flex-col shadow-l shadow-neutral-200"
+      class="p-3 rounded h-full border-neutral-300 border-2 dark:border-neutral-400 flex flex-col"
     >
       <div class="title leading-tight shrink h-1/2 overflow-hidden align-middle text-xl">
         {{ mainTitle }}

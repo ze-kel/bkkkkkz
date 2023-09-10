@@ -1,6 +1,6 @@
 <template>
   <div v-if="store.opened.tabs?.length" class="w-full h-full flex flex-col">
-    <div class="flex bg-neutral-100 dark:bg-neutral-800 h-[32px]">
+    <div class="flex bg-neutral-50 dark:bg-neutral-950 h-[32px]">
       <div
         v-for="(item, index) in store.opened.tabs"
         :key="index"
@@ -8,8 +8,8 @@
         class="px-2 py-1 max-w-[200px] flex items-center transition-colors border-transparent"
         :class="
           index === store.opened.active
-            ? 'bg-neutral-50 dark:bg-neutral-900 text-neutral-900 dark:text-neutral-50'
-            : 'hover:bg-neutral-200 dark:hover:bg-neutral-700 cursor-pointer'
+            ? ''
+            : 'text-neutral-300 dark:text-neutral-600 hover:bg-neutral-200 dark:hover:bg-neutral-900 cursor-pointer'
         "
         @click="store.setOpenedIndex(index)"
       >
@@ -24,7 +24,9 @@
           <CrossIcon
             class="w-4"
             :class="[
-              index === store.opened.active ? 'stroke-neutral-500' : 'stroke-neutral-300',
+              index === store.opened.active
+                ? 'stroke-neutral-50'
+                : 'stroke-neutral-300 dark:stroke-neutral-600',
               'hover:stroke-white',
               'transition-colors',
             ]"

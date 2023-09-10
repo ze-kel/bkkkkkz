@@ -12,14 +12,13 @@
   </div>
 </template>
 
+<!-- eslint-disable @typescript-eslint/no-explicit-any -->
 <script lang="ts" setup>
 import { getCurrentInstance, watch, ref, onMounted } from 'vue';
 import { Slice } from 'prosemirror-model';
 import { defaultValueCtx, Editor, rootCtx, editorViewCtx, parserCtx } from '@milkdown/core';
 import { commonmark } from '@milkdown/preset-commonmark';
 import { listener, listenerCtx } from '@milkdown/plugin-listener';
-
-import type { Ctx } from '@milkdown/core';
 
 const internalInstance = getCurrentInstance();
 
@@ -36,14 +35,14 @@ const emit = defineEmits<{
   (e: 'update:modelValue', thing: string): void;
 }>();
 
-const chagesListener = (ctx: Ctx, markdown: string, prevMarkdown: string | null) => {
+const chagesListener = (ctx: any, markdown: string, prevMarkdown: string | null) => {
   contentCache = markdown;
   emit('update:modelValue', contentCache);
 };
 
 const hasFocus = ref(false);
 
-const focusWatcher = (ctx: Ctx) => {
+const focusWatcher = (ctx: any) => {
   const view = ctx.get(editorViewCtx);
   hasFocus.value = view.hasFocus();
 };
@@ -57,7 +56,7 @@ const makeEditor = (element: HTMLElement) => {
       ctx.get(listenerCtx).focus(focusWatcher);
       ctx.get(listenerCtx).blur(focusWatcher);
     })
-    .use(commonmark.headless())
+    .use(commonmark)
     .use(listener);
 };
 
