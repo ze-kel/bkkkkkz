@@ -52,35 +52,13 @@ const nodeClasses = cva(
   {
     variants: {
       opened: {
-        true: ' text-neutral-800 dark:text-neutral-300',
-        false: 'cursor-pointer text-neutral-700 dark:text-neutral-400',
+        true: 'text-neutral-800 dark:text-neutral-50',
+        false: 'cursor-pointer text-neutral-400 dark:text-neutral-600',
       },
       canDropHere: {
-        true: '',
+        true: 'bg-neutral-800 dark:bg-neutral-200',
       },
     },
-    compoundVariants: [
-      {
-        opened: true,
-        canDropHere: false,
-        class: 'bg-neutral-300 dark:bg-neutral-600',
-      },
-      {
-        opened: false,
-        canDropHere: false,
-        class: 'hover:bg-neutral-200 dark:hover:bg-neutral-700',
-      },
-      {
-        opened: true,
-        canDropHere: true,
-        class: 'bg-neutral-200 dark:bg-neutral-500',
-      },
-      {
-        opened: false,
-        canDropHere: true,
-        class: 'bg-neutral-200 dark:bg-neutral-500',
-      },
-    ],
   },
 );
 </script>

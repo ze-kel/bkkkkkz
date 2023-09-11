@@ -23,14 +23,8 @@
         }
       "
     >
-      <ChevronDownIcon
-        :class="[
-          'mr-1 h-3 w-3',
-          isFolded && '-rotate-90',
-          isOpened
-            ? 'stroke-neutral-800 dark:stroke-neutral-300'
-            : 'stroke-neutral-700 dark:stroke-neutral-400',
-        ]"
+      <ChevronDown
+        :class="['w-3 h-3 mr-1', isFolded && '-rotate-90']"
         class="cursor-poiner pointer-events-none"
       />
     </div>
@@ -79,8 +73,7 @@ import { computed, onUpdated, ref, watchEffect, nextTick } from 'vue';
 import { openMenu } from '/@/use/contextMenu';
 import { cloneDeep as _cloneDeep } from 'lodash';
 import { getDefaultViewSettings } from '/@/utils/getDefaultViewSettings';
-import ChevronDownIcon from '@heroicons/vue/24/outline/ChevronDownIcon';
-
+import { ChevronDown } from 'lucide-vue-next';
 import type { PropType } from 'vue';
 import type { IFolderTree } from '/@main/services/files';
 import type { ContextMenu } from '/@/use/contextMenu';
@@ -315,35 +308,14 @@ const nodeClasses = cva(
   {
     variants: {
       opened: {
-        true: ' text-neutral-800 dark:text-neutral-300',
-        false: 'cursor-pointer text-neutral-700 dark:text-neutral-400 ',
+        true: 'text-neutral-800 dark:text-neutral-50',
+        false: 'cursor-pointer text-neutral-400 dark:text-neutral-600',
       },
       canDropHere: {
         true: '',
       },
     },
-    compoundVariants: [
-      {
-        opened: true,
-        canDropHere: false,
-        class: 'bg-neutral-300 dark:bg-neutral-600',
-      },
-      {
-        opened: false,
-        canDropHere: false,
-        class: 'hover:bg-neutral-200 dark:hover:bg-neutral-700',
-      },
-      {
-        opened: true,
-        canDropHere: true,
-        class: 'bg-neutral-200 dark:bg-neutral-500',
-      },
-      {
-        opened: false,
-        canDropHere: true,
-        class: 'bg-neutral-200 dark:bg-neutral-500',
-      },
-    ],
+    compoundVariants: [],
   },
 );
 </script>

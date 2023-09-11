@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-wrap gap-y-1 gap-x-0.5">
+  <div class="flex flex-wrap gap-1">
     <template v-for="(tag, index) in tags" :key="index">
       <ContentEditable
         ref="tagRefs"
@@ -14,12 +14,10 @@
     </template>
     <div
       v-test-class="'T-editor-add-tag'"
-      class="focus:ring-ring text-foreground inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2"
+      class="cursor-pointer focus:ring-ring gap-1 text-foreground inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2"
       @click="createNewTag"
     >
       <PlusIcon class="w-4 fill-neutral-200 transition-colors group-hover:fill-neutral-400" />
-
-      tag
     </div>
   </div>
 </template>

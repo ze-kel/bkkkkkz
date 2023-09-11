@@ -1,7 +1,7 @@
 <template>
   <div class="w-full rounded">
     <div class="flex flex-col gap-2">
-      <template v-for="(date, index) in modelValue" :key="index">
+      <div v-for="(date, index) in modelValue" :key="index" class="flex items-center gap-2">
         <DatePair
           v-if="store.settings"
           :model-value="date"
@@ -13,11 +13,11 @@
             class="h-4 w-4 cursor-pointer stroke-neutral-200 transition-colors dark:stroke-neutral-600 dark:hover:stroke-neutral-300"
           />
         </div>
-      </template>
+      </div>
     </div>
     <div
       v-test-class="'T-editor-date-add'"
-      class="w-fit cursor-pointer text-sm font-light transition-colors dark:text-neutral-600 dark:hover:text-neutral-200"
+      class="w-fit py-2 cursor-pointer text-sm font-light transition-colors dark:text-neutral-600 dark:hover:text-neutral-200"
       @click="addNewDate"
     >
       Log new read date

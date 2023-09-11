@@ -1,12 +1,14 @@
 <template>
-  <div class="flex w-fit overflow-hidden rounded border border-neutral-200 dark:border-neutral-700">
+  <div
+    class="flex rounded-md w-fit overflow-hidden border border-neutral-200 bg-transparent shadow-sm dark:border-neutral-800"
+  >
     <div
       v-for="option in options"
       :key="option.key"
       class="px-2 py-1 transition-colors"
       :class="[
         modelValue === option.key
-          ? 'bg-neutral-300 hover:bg-neutral-200 dark:bg-neutral-700 dark:hover:bg-neutral-800'
+          ? 'bg-neutral-200  dark:bg-neutral-800 '
           : 'cursor-pointer hover:bg-neutral-200 dark:hover:bg-neutral-800',
         optionClasses,
       ]"
@@ -18,6 +20,7 @@
 </template>
 
 <script lang="ts" setup>
+//hover:bg-neutral-100 hover:text-neutral-900 dark:hover:bg-neutral-800 dark:hover:text-neutral-50
 import type { PropType } from 'vue';
 
 export type ISwitchOption = { key: string | number; [key: string]: unknown };
@@ -38,6 +41,7 @@ const props = defineProps({
 });
 
 const emit = defineEmits<{
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (e: 'update:modelValue', key: any): void;
 }>();
 

@@ -1,21 +1,19 @@
 <template>
   <div class="h-full max-h-full flex overflow-hidden">
-    <div class="flex-auto px-2 box-border" :style="{ width: `${fileTreeSize}px` }">
-      <IconsMenu />
+    <div class="flex-auto box-border" :style="{ width: `${fileTreeSize}px` }">
+      <div class="h-10 bg-neutral-900"></div>
+      <div class="px-2">
+        <IconsMenu />
 
-      <div class="overflow-y-auto overflow-x-hidden">
-        <FileTree />
+        <div class="overflow-y-auto overflow-x-hidden">
+          <FileTree />
 
-        <hr class="bg-neutral-200 dark:bg-neutral-700 h-[1px] border-0 w-full my-3" />
-        <TagsTree />
+          <hr class="bg-neutral-200 dark:bg-neutral-700 h-[1px] border-0 w-full my-3" />
+          <TagsTree />
+        </div>
       </div>
     </div>
 
-    <div
-      ref="resizeHandle"
-      class="w-1 hover:bg-indigo-500 cursor-col-resize transition-colors bg-neutral-50 dark:bg-neutral-950"
-      :class="isResizing && 'bg-indigo-700'"
-    ></div>
     <div class="flex w-full max-h-full overflow-hidden">
       <View />
     </div>

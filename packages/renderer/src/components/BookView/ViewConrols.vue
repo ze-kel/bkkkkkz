@@ -3,56 +3,25 @@
     <div class="flex w-3/12 gap-2 py-2">
       <input
         v-model="store.currentViewSettings.searchQuery"
-        class="rounded-sm border border-neutral-100 bg-transparent px-2 py-1 outline-none transition-colors focus:border-neutral-300 dark:border-neutral-800"
+        class="flex h-9 w-full rounded-md border border-neutral-200 bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-neutral-500 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-neutral-950 disabled:cursor-not-allowed disabled:opacity-50 dark:border-neutral-800 dark:placeholder:text-neutral-400 dark:focus-visible:ring-neutral-300"
         placeholder="Search Books"
       />
     </div>
 
-    <div class="flex w-fit">
-      <div
-        class="group mr-2 cursor-pointer rounded p-1 transition-colors"
-        :class="
-          store.currentViewSettings.grouped
-            ? 'bg-neutral-300 hover:bg-neutral-200 dark:bg-neutral-700 dark:hover:bg-neutral-800'
-            : 'hover:bg-neutral-200 dark:hover:bg-neutral-800'
-        "
-        @click="flipGrouped"
-      >
-        <ReactangleStackIcon
-          class="w-6 transition-colors"
-          :class="
-            store.currentViewSettings.grouped
-              ? 'stroke-neutral-700 dark:stroke-neutral-400'
-              : 'stroke-neutral-500 dark:stroke-neutral-600'
-          "
-        />
-      </div>
+    <div class="flex w-fit gap-3">
+      <BasicButton variant="outline" size="icon" @click="flipGrouped">
+        <GroupIcon v-if="store.currentViewSettings.grouped" />
+        <UngroupIcon v-else />
+      </BasicButton>
 
       <ButtonsSwitch
         v-model="store.currentViewSettings.viewStyle"
-        class="mr-2"
         :options="[{ key: 'Covers' }, { key: 'Lines' }]"
         :option-classes="['px-1 flex items-center justify-center']"
       >
-        <template #option="{ option, active }">
-          <SquaresIcon
-            v-if="option.key === 'Covers'"
-            class="w-6"
-            :class="
-              active
-                ? 'stroke-neutral-700 dark:stroke-neutral-400'
-                : 'stroke-neutral-500 dark:stroke-neutral-600'
-            "
-          />
-          <TableIcon
-            v-if="option.key === 'Lines'"
-            class="w-6"
-            :class="
-              active
-                ? 'stroke-neutral-700 dark:stroke-neutral-400'
-                : 'stroke-neutral-500 dark:stroke-neutral-600'
-            "
-          />
+        <template #option="{ option }">
+          <BookIcon v-if="option.key === 'Covers'" class="w-6" />
+          <TableIcon v-if="option.key === 'Lines'" class="w-6" />
         </template>
       </ButtonsSwitch>
 
@@ -63,28 +32,28 @@
         <option v-for="item in canSortby" :key="item">{{ item }}</option>
       </select>
 
-      <div
-        class="group ml-2 flex aspect-square h-full cursor-pointer items-center justify-center p-1"
-        @click="flipSortDirection"
-      >
-        <ArrowDown
-          class="w-6 stroke-neutral-700 transition-transform"
-          :class="[store.currentViewSettings.sortDirection < 0 && 'rotate-180']"
-        />
-      </div>
+      <BasicButton variant="outline" size="icon" @click="flipSortDirection">
+        <ArrowDownZAIcon v-if="store.currentViewSettings.sortDirection < 0" />
+        <ArrowDownAZIcon v-else />
+      </BasicButton>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
 import { useStore } from '/@/use/store';
-import ReactangleStackIcon from '@heroicons/vue/24/outline/RectangleStackIcon';
-import SquaresIcon from '@heroicons/vue/24/outline/Square2StackIcon';
-import TableIcon from '@heroicons/vue/24/outline/TableCellsIcon';
-import ArrowDown from '@heroicons/vue/24/outline/ArrowDownIcon';
+import {
+  GroupIcon,
+  UngroupIcon,
+  ArrowDownAZIcon,
+  ArrowDownZAIcon,
+  TableIcon,
+  BookIcon,
+} from 'lucide-vue-next';
 
 import ButtonsSwitch from '../_UI/ButtonsSwitch.vue';
 import type { ISortByOption } from '/@main/services/openedTabs';
+import BasicButton from '/@/components/_UI/BasicButton.vue';
 
 const store = useStore();
 

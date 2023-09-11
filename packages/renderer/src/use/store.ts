@@ -116,6 +116,9 @@ export const useStore = defineStore('main', {
     updateTags(data: ITags) {
       this.tagsTree = data;
     },
+    updateOpened(data: IOpenedTabs) {
+      this.opened = data;
+    },
   },
   getters: {
     openedItem(state) {

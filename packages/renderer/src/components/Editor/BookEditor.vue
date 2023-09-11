@@ -25,6 +25,8 @@
             placeholder="Author"
             :placeholder-classes="'text-neutral-400 hover:text-neutral-600'"
           />
+
+          <Tags v-model="openedFile.tags" class="my-1" />
         </div>
 
         <div class="flex w-full flex-col justify-between py-2">
@@ -79,11 +81,7 @@
             Save
           </button>
 
-          <div class="mt-3 text-sm">Read dates</div>
-          <ReadDetails v-model="openedFile.read" />
-
-          <div class="mt-3 text-sm">Tags</div>
-          <Tags v-model="openedFile.tags" class="my-1" />
+          <ReadDetails v-model="openedFile.read" class="mt-4" />
         </div>
       </div>
 
