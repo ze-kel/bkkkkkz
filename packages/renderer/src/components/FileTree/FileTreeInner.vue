@@ -9,9 +9,9 @@
     @dragenter="dragEnter"
     @dragleave="dragLeave"
     @dragover.prevent
-    @click.exact="makeNewOpenedAndSelect(false)"
-    @click.alt.exact="makeNewOpenedAndSelect(true)"
-    @click.middle.exact="makeNewOpenedAndSelect(true, true)"
+    @click.exact="makeNewOpenedAndSelect({ place: 'current', focus: true })"
+    @click.alt.exact="makeNewOpenedAndSelect({ place: 'last' })"
+    @click.middle.exact="makeNewOpenedAndSelect({ place: 'last' })"
     @click.right.exact="openContextMenu"
   >
     <div
@@ -105,15 +105,10 @@ const isOpened = computed(() => {
 
 const foldable = computed(() => Object.keys(props.content.content).length > 0 && !isRoot);
 
-const makeNewOpenedAndSelect = (newTab: boolean, doNotFocus = false) => {
-  const params: OpenNewOneParams = {
-    doNotFocus,
-  };
-
-  if (!newTab) params.index = 'current';
-
+const makeNewOpenedAndSelect = (params: OpenNewOneParams) => {
   store.openNewOne(
     {
+      id: store.generateRandomId(),
       type: 'folder',
       thing: props.content.path,
       scrollPosition: 0,
@@ -137,11 +132,11 @@ const startDrag = (devt: DragEvent, path: string) => {
 
   devt.dataTransfer.setData('itemPath', path);
 
-  if (!store.opened.tabs) {
+  if (!store.openedTabs) {
     return;
   }
 
-  const toUpdateIndexes = store.opened.tabs.reduce((acc: number[], opened, index) => {
+  const toUpdateIndexes = store.openedTabs.reduce((acc: number[], opened, index) => {
     if (opened.type === 'folder' && opened.thing === path) {
       acc.push(index);
     }
@@ -169,10 +164,10 @@ const onDrop = async (e: DragEvent, targetPath: string) => {
     });
 
     indexes.forEach((index) => {
-      if (!store.opened.tabs) return;
-      const before = store.opened.tabs[index];
+      if (!store.openedTabs) return;
+      const before = store.openedTabs[index];
       if (before.type === 'file' || before.type === 'folder') {
-        store.openNewOne({ ...before, thing: newPath }, { index });
+        store.openNewOne({ ...before, thing: newPath }, { place: 'replace', index });
       }
     });
   }
@@ -232,15 +227,18 @@ const saveName = async () => {
       srcPath: props.content.path,
     });
 
-    if (!store.opened.tabs) return;
+    if (!store.openedTabs) return;
 
-    store.opened.tabs.forEach((item, index) => {
+    store.openedTabs.forEach((item, index) => {
       if (item.type === 'folder' && item.thing === oldPath) {
-        store.openNewOne({ ...item, thing: newPath }, { index });
+        store.openNewOne({ ...item, thing: newPath }, { place: 'replace', index });
       }
 
       if (item.type === 'file' && item.thing.includes(oldPath)) {
-        store.openNewOne({ ...item, thing: item.thing.replace(oldPath, newPath) }, { index });
+        store.openNewOne(
+          { ...item, thing: item.thing.replace(oldPath, newPath) },
+          { place: 'replace', index },
+        );
       }
     });
   }

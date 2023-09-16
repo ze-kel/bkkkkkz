@@ -128,10 +128,6 @@ const props = defineProps({
     type: Object as PropType<IOpenedFile | IOpenedNewFile>,
     required: true,
   },
-  index: {
-    type: Number,
-    required: true,
-  },
 });
 
 const openedFile = ref<ISavedFile | IUnsavedFile>({ unsaved: true, name: '' });
@@ -163,7 +159,7 @@ const manualSave = async () => {
       file: _cloneDeep(openedFile.value) as IUnsavedFile,
     });
     openedFile.value = saved;
-    store.openNewOne({ ...props.opened, type: 'file', thing: saved.path }, { index: props.index });
+    store.openNewOne({ ...props.opened, type: 'file', thing: saved.path }, { place: 'current' });
     autoSave.value = true;
   } else {
     save(openedFile.value);
@@ -177,7 +173,7 @@ const save = (file: ISavedFile) => {
 const rename = async (newName: string) => {
   if (!openedFile.value || 'unsaved' in openedFile.value) return;
   const newPath = await trpcApi.rename.mutate({ srcPath: openedFile.value.path, newName });
-  store.openNewOne({ ...props.opened, thing: newPath }, { index: props.index });
+  store.openNewOne({ ...props.opened, thing: newPath }, { place: 'current' });
 };
 
 const debouncedSave = _debounce(save, 500);
@@ -220,7 +216,7 @@ const registerHandles = () => {
   });
   const r = trpcApi.fileRemove.subscribe(undefined, {
     onData: () => {
-      store.closeOpened(props.index);
+      store.closeOpened();
     },
   });
   toClear.push(u, r);
@@ -253,8 +249,8 @@ const startDrag = (devt: DragEvent) => {
   devt.dataTransfer.setDragImage(forDrag.value, 0, 0);
   dragging.value = openedFile.value.name;
 
-  if (!store.opened.tabs) return;
-  const toUpdateIndexes = store.opened.tabs.reduce((acc: number[], opened, index) => {
+  if (!store.openedTabs) return;
+  const toUpdateIndexes = store.openedTabs.reduce((acc: number[], opened, index) => {
     if ('unsaved' in openedFile.value) return [];
     if (opened.type === 'file' && opened.thing === openedFile.value?.path) {
       acc.push(index);

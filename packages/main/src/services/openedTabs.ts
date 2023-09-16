@@ -33,6 +33,7 @@ export const zViewSettings = z.object({
 export type IViewSettings = z.infer<typeof zViewSettings>;
 
 export const zOpenedPath = z.object({
+  id: z.string(),
   type: z.literal('folder'),
   // Path
   thing: z.string(),
@@ -44,6 +45,7 @@ export const zOpenedPath = z.object({
 export type IOpenedPath = z.infer<typeof zOpenedPath>;
 
 export const zOpenedTag = z.object({
+  id: z.string(),
   type: z.literal('tag'),
   // Tag Name
   thing: z.string(),
@@ -54,6 +56,7 @@ export const zOpenedTag = z.object({
 export type IOpenedTag = z.infer<typeof zOpenedTag>;
 
 export const zOpenedFile = z.object({
+  id: z.string(),
   type: z.literal('file'),
   // Path
   thing: z.string(),
@@ -63,6 +66,7 @@ export const zOpenedFile = z.object({
 export type IOpenedFile = z.infer<typeof zOpenedFile>;
 
 export const zOpenedNewFile = z.object({
+  id: z.string(),
   type: z.literal('newFile'),
   // Path to be saved at
   thing: z.string(),
@@ -72,6 +76,7 @@ export const zOpenedNewFile = z.object({
 export type IOpenedNewFile = z.infer<typeof zOpenedNewFile>;
 
 export const zOpenedInnerPage = z.object({
+  id: z.string(),
   type: z.literal('innerPage'),
   thing: z.enum(['home', 'settings']),
   scrollPosition: z.number(),
@@ -91,7 +96,7 @@ export type IOpened = z.infer<typeof zOpened>;
 
 export const ZOpenedTabs = z.object({
   tabs: z.array(zOpened),
-  active: z.number().optional(),
+  activeId: z.string().default(''),
 });
 
 export type IOpenedTabs = z.infer<typeof ZOpenedTabs>;

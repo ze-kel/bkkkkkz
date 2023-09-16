@@ -10,8 +10,8 @@
 
     <div class="flex w-fit gap-3">
       <BasicButton variant="outline" size="icon" @click="flipGrouped">
-        <GroupIcon v-if="store.currentViewSettings.grouped" />
-        <UngroupIcon v-else />
+        <GroupIcon v-if="store.currentViewSettings.grouped" stroke-width="1" />
+        <UngroupIcon v-else stroke-width="1" />
       </BasicButton>
 
       <ButtonsSwitch
@@ -20,8 +20,8 @@
         :option-classes="['px-1 flex items-center justify-center']"
       >
         <template #option="{ option }">
-          <BookIcon v-if="option.key === 'Covers'" class="w-6" />
-          <TableIcon v-if="option.key === 'Lines'" class="w-6" />
+          <BookIcon v-if="option.key === 'Covers'" stroke-width="1" class="w-6" />
+          <TableIcon v-if="option.key === 'Lines'" stroke-width="1" class="w-6" />
         </template>
       </ButtonsSwitch>
 
@@ -33,8 +33,8 @@
       </select>
 
       <BasicButton variant="outline" size="icon" @click="flipSortDirection">
-        <ArrowDownZAIcon v-if="store.currentViewSettings.sortDirection < 0" />
-        <ArrowDownAZIcon v-else />
+        <ArrowDownZAIcon v-if="store.currentViewSettings.sortDirection < 0" stroke-width="1" />
+        <ArrowDownAZIcon v-else stroke-width="1" />
       </BasicButton>
     </div>
   </div>

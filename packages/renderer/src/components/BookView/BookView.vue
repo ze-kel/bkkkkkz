@@ -258,8 +258,8 @@ const startDrag = (devt: DragEvent, file: IFile) => {
   devt.dataTransfer.setDragImage(forDrag.value, 0, 0);
   dragging.value = file.name;
 
-  if (!store.opened.tabs) return;
-  const toUpdateIndexes = store.opened.tabs.reduce((acc: number[], opened, index) => {
+  if (!store.openedTabs) return;
+  const toUpdateIndexes = store.openedTabs.reduce((acc: number[], opened, index) => {
     if (opened.type === 'file' && opened.thing === file.path) {
       acc.push(index);
     }

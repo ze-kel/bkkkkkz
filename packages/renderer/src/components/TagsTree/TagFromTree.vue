@@ -2,8 +2,8 @@
   <div
     v-test-class="['T-tag-tree-item', isOpened && 'T-opened-tag']"
     :class="nodeClasses({ opened: isOpened, canDropHere: false })"
-    @click.exact="select(tag, false)"
-    @click.alt="select(tag, true)"
+    @click.exact="select(tag, { place: 'current', focus: true })"
+    @click.alt="select(tag, { place: 'next' })"
   >
     #{{ tag }}
   </div>
@@ -29,12 +29,10 @@ const isOpened = computed(
   () => store.openedItem && store.openedItem.type === 'tag' && store.openedItem.thing === props.tag,
 );
 
-const select = (tag: string, newTab: boolean, doNotFocus = false) => {
-  const params: OpenNewOneParams = { doNotFocus };
-  if (!newTab) params.index = 'current';
-
+const select = (tag: string, params: OpenNewOneParams) => {
   store.openNewOne(
     {
+      id: store.generateRandomId(),
       type: 'tag',
       thing: tag,
       scrollPosition: 0,
@@ -52,7 +50,7 @@ const nodeClasses = cva(
   {
     variants: {
       opened: {
-        true: 'text-neutral-800 dark:text-neutral-50',
+        true: 'text-neutral-800 dark:text-neutral-50 cursor-default',
         false: 'cursor-pointer text-neutral-400 dark:text-neutral-600',
       },
       canDropHere: {

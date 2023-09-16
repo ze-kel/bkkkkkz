@@ -4,9 +4,9 @@
     ref="itemRef"
     v-test-class="'T-book-item'"
     class="cursor-pointer"
-    @click.exact="openFullEditor(false)"
-    @click.alt="openFullEditor(true)"
-    @click.middle.exact="openFullEditor(true, true)"
+    @click.exact="openFullEditor({ place: 'current', focus: true })"
+    @click.alt="openFullEditor({ place: 'last' })"
+    @click.middle.exact="openFullEditor({ place: 'last' })"
   >
     <template v-if="viewStyle === 'Covers'">
       <Cover v-if="inViewport || !observer" :file="currentFile" class="transition-transform" />
@@ -75,14 +75,16 @@ const props = defineProps({
   },
 });
 
-const openFullEditor = (newTab: boolean, doNotFocus = false) => {
-  const params: OpenNewOneParams = {
-    doNotFocus,
-  };
-
-  if (!newTab) params.index = 'current';
-
-  store.openNewOne({ type: 'file', thing: props.currentFile.path, scrollPosition: 0 }, params);
+const openFullEditor = (params: OpenNewOneParams) => {
+  store.openNewOne(
+    {
+      id: store.generateRandomId(),
+      type: 'file',
+      thing: props.currentFile.path,
+      scrollPosition: 0,
+    },
+    params,
+  );
 };
 
 const itemRef = ref<HTMLElement>();
@@ -105,7 +107,9 @@ const stringifiedDates = computed(() => {
 
   if (!store.settings) return '';
 
-  return props.currentFile.read.reduce(dateReducerAllYears(store.settings.dateFormat), []).join(', ');
+  return props.currentFile.read
+    .reduce(dateReducerAllYears(store.settings.dateFormat), [])
+    .join(', ');
 });
 </script>
 

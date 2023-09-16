@@ -4,15 +4,15 @@
   </Popup>
   <div class="flex items-center justify-start py-2">
     <BasicButton variant="ghost" size="icon" @click="openHome">
-      <HomeIcon />
+      <HomeIcon stroke-width="1" />
     </BasicButton>
 
     <BasicButton variant="ghost" size="icon" @click="flipSettings">
-      <Settings2Icon />
+      <Settings2Icon stroke-width="1" />
     </BasicButton>
 
     <BasicButton variant="ghost" size="icon" @click="addBook">
-      <PlusIcon />
+      <PlusIcon stroke-width="1" />
     </BasicButton>
   </div>
 </template>
@@ -34,7 +34,10 @@ const flipSettings = () => {
 };
 
 const openHome = () => {
-  store.openNewOne({ type: 'innerPage', thing: 'home', scrollPosition: 0 });
+  store.openNewOne(
+    { id: store.generateRandomId(), type: 'innerPage', thing: 'home', scrollPosition: 0 },
+    { place: 'last' },
+  );
 };
 
 const homeOpened = computed(() => {
@@ -46,9 +49,25 @@ const homeOpened = computed(() => {
 const addBook = () => {
   if (!store.rootPath) return;
   if (!store.openedItem || store.openedItem.thing !== 'folder') {
-    store.openNewOne({ type: 'newFile', thing: store.rootPath, scrollPosition: 0 });
+    store.openNewOne(
+      {
+        id: store.generateRandomId(),
+        type: 'newFile',
+        thing: store.rootPath,
+        scrollPosition: 0,
+      },
+      { place: 'last' },
+    );
   } else {
-    store.openNewOne({ type: 'newFile', thing: store.openedItem.thing, scrollPosition: 0 });
+    store.openNewOne(
+      {
+        id: store.generateRandomId(),
+        type: 'newFile',
+        thing: store.openedItem.thing,
+        scrollPosition: 0,
+      },
+      { place: 'last' },
+    );
   }
 };
 </script>

@@ -3,6 +3,7 @@ import './security-restrictions';
 import { restoreOrCreateWindow } from '/@/mainWindow';
 import { platform } from 'node:process';
 import Files from './services/files';
+import { installExtension, VUEJS_DEVTOOLS } from 'electron-extension-installer';
 
 /**
  * Prevent electron from running multiple instances.
@@ -45,18 +46,13 @@ app
  * Install Vue.js or any other extension in development mode only.
  */
 if (import.meta.env.DEV) {
-  app
-    .whenReady()
-    .then(() => import('electron-devtools-installer'))
-    .then((dt) => {
-      //@ts-expect-error no idea why, but only this works
-      dt.default.default(dt.VUEJS3_DEVTOOLS, {
-        loadExtensionOptions: {
-          allowFileAccess: true,
-        },
-      });
-    })
-    .catch((e) => console.error('Failed install extension:', e));
+  app.on('ready', async () => {
+    await installExtension(VUEJS_DEVTOOLS, {
+      loadExtensionOptions: {
+        allowFileAccess: true,
+      },
+    });
+  });
 }
 
 /**

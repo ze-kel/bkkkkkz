@@ -3,24 +3,34 @@ import { defineStore, acceptHMRUpdate } from 'pinia';
 import { clamp as _clamp, cloneDeep } from 'lodash';
 import { cloneDeep as _cloneDeep } from 'lodash';
 import { trpcApi } from '../utils/trpc';
+import ShortUniqueId from 'short-unique-id';
 
-import type { IOpened, IOpenedTabs } from '/@main/services/openedTabs';
+import type { IOpened, IOpenedTabs, IViewSettings } from '/@main/services/openedTabs';
 import type { IFolderTree } from '/@main/services/files';
 import type { ISettings } from '/@main/services/settings';
 import type { ITags } from '/@main/watcher/tagUpdates';
 
+const uid = new ShortUniqueId({ length: 10 });
+
 export type StateType = {
   rootPath: string | null;
-  opened: IOpenedTabs;
+  openedTabs: IOpenedTabs['tabs'];
+  openedTabsActiveId: IOpenedTabs['activeId'];
   folderTree: IFolderTree | null;
   settings: ISettings | null;
   tagsTree: ITags;
 };
 
-export type OpenNewOneParams = {
-  index?: number | 'current';
-  doNotFocus?: boolean;
-};
+export type OpenNewOneParams =
+  | {
+      place: 'current' | 'next' | 'last';
+      focus?: boolean;
+    }
+  | {
+      place: 'replace' | 'insert';
+      index: number;
+      focus?: boolean;
+    };
 
 export const useStore = defineStore('main', {
   state: (): StateType => {
@@ -29,61 +39,73 @@ export const useStore = defineStore('main', {
       tagsTree: [],
       settings: null,
       folderTree: null,
-      opened: { tabs: [], active: undefined },
+      openedTabs: [],
+      openedTabsActiveId: '',
     };
   },
   actions: {
     //
     // Opened Tabs
     //
-    openNewOne(item: IOpened, params: OpenNewOneParams = {}) {
-      let indexToSet: number;
 
-      if (params.index) {
-        if (params.index === 'current') {
-          indexToSet = this.opened.active || 0;
-        } else {
-          indexToSet = params.index;
+    generateRandomId() {
+      return uid.randomUUID();
+    },
+
+    openNewOne(item: IOpened, params: OpenNewOneParams) {
+      // Place: 'last' or  is covered here
+      let indexToSet = this.openedTabs.length;
+
+      if (params.place === 'insert' || params.place === 'replace') {
+        indexToSet = params.index;
+      } else if (typeof this.openedTabsActiveIndex === 'number') {
+        if (params.place === 'current') {
+          indexToSet = this.openedTabsActiveIndex;
         }
+
+        if (params.place === 'next') {
+          indexToSet = this.openedTabsActiveIndex + 1;
+        }
+      }
+
+      if (params.place === 'insert') {
+        this.openedTabs.splice(indexToSet, 0, item);
       } else {
-        indexToSet = this.opened.tabs.length;
+        this.openedTabs[indexToSet] = item;
       }
 
-      // Inner pages can't be opened in two different tabs
-      if (item.type === 'innerPage') {
-        const existing = this.opened.tabs.findIndex(
-          (el) => el.type === item.type && el.thing === item.thing,
-        );
-        if (existing >= 0) indexToSet = existing;
+      if (params.focus) {
+        this.openedTabsActiveId = item.id;
       }
-
-      indexToSet = _clamp(indexToSet, 0, this.opened.tabs.length);
-
-      this.opened.tabs[indexToSet] = item;
-
-      if (!params.doNotFocus) {
-        if (params.index) {
-          this.opened.active = indexToSet;
-        } else {
-          this.opened.active = this.opened.tabs.length - 1;
-        }
-      }
+      console.log('index', indexToSet);
 
       this.saveOpened();
     },
 
-    closeOpened(index: number) {
-      this.opened.tabs.splice(index, 1);
-      if (this.opened.active && this.opened.active >= this.opened.tabs.length) {
-        this.opened.active = this.opened.tabs.length - 1;
+    closeOpened(index?: number) {
+      if (typeof index !== 'number') {
+        index = this.openedTabsActiveIndex;
       }
+      if (typeof index !== 'number') return;
+
+      this.openedTabs.splice(index, 1);
+      this.setOpenedIndex(index);
       this.saveOpened();
     },
+
     async saveOpened() {
-      await trpcApi.setOpenedTabs.mutate(cloneDeep(this.opened));
+      const clone: IOpenedTabs = cloneDeep({
+        tabs: this.openedTabs,
+        activeId: this.openedTabsActiveId,
+      });
+
+      await trpcApi.setOpenedTabs.mutate(clone);
     },
     async fetchOpened() {
-      this.opened = await trpcApi.getOpenedTabs.query();
+      const res = await trpcApi.getOpenedTabs.query();
+
+      this.openedTabs = res.tabs;
+      this.openedTabsActiveId = res.activeId;
     },
     async fetchSetting() {
       this.settings = await trpcApi.getSettings.query();
@@ -95,13 +117,27 @@ export const useStore = defineStore('main', {
       this.rootPath = await trpcApi.getRootPath.query();
     },
 
+    setOpenedId(id: string) {
+      this.openedTabsActiveId = id;
+    },
+
     setOpenedIndex(index: number) {
-      if (!this.opened.tabs.length) return;
-      this.opened.active = _clamp(index, 0, this.opened.tabs.length - 1);
+      if (!this.openedTabs.length) return;
+
+      index = _clamp(index, 0, this.openedTabs.length - 1);
+
+      this.openedTabsActiveId = this.openedTabs[index].id;
+    },
+    setOpenedIndexRelative(offset: number) {
+      if (!this.openedTabs.length || typeof this.openedTabsActiveIndex !== 'number') return;
+
+      const max = this.openedTabs.length;
+
+      this.setOpenedIndex((this.openedTabsActiveIndex + offset + max) % max);
     },
 
     saveScrollPosition(index: number, value: number) {
-      this.opened.tabs[index].scrollPosition = value;
+      this.openedTabs[index].scrollPosition = value;
     },
 
     //
@@ -116,22 +152,28 @@ export const useStore = defineStore('main', {
     updateTags(data: ITags) {
       this.tagsTree = data;
     },
-    updateOpened(data: IOpenedTabs) {
-      this.opened = data;
+    updateOpened(data: IOpenedTabs['tabs']) {
+      this.openedTabs = data;
+      //this.saveOpened();
     },
   },
   getters: {
-    openedItem(state) {
-      if (typeof state.opened.active !== 'number') return;
-      return state.opened.tabs[state.opened.active];
+    openedTabsActiveIndex: (state) => {
+      if (typeof state.openedTabsActiveId !== 'string') return;
+      const res = state.openedTabs.findIndex((t) => t.id === state.openedTabsActiveId);
+      return res === -1 ? undefined : res;
     },
-    currentViewSettings(state) {
-      if (typeof state.opened.active !== 'number') return undefined;
-      const opened = state.opened.tabs[state.opened.active];
 
-      if (opened.type !== 'folder' && opened.type !== 'tag') return undefined;
+    openedItem(): IOpened | undefined {
+      if (typeof this.openedTabsActiveIndex === 'number') {
+        return this.openedTabs[this.openedTabsActiveIndex];
+      }
+    },
+    currentViewSettings(): IViewSettings | undefined {
+      if (!this.openedItem) return;
+      if (this.openedItem.type !== 'folder' && this.openedItem.type !== 'tag') return undefined;
 
-      return opened.settings;
+      return this.openedItem.settings;
     },
   },
 });

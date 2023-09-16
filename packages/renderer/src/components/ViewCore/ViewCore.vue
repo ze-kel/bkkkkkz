@@ -1,7 +1,7 @@
 <template>
   <div class="h-full max-h-full flex overflow-hidden">
     <div class="flex-auto box-border" :style="{ width: `${fileTreeSize}px` }">
-      <div class="h-10 bg-neutral-900"></div>
+      <div class="h-10 bg-neutral-200 dark:bg-neutral-900 dragApp"></div>
       <div class="px-2">
         <IconsMenu />
 
@@ -15,7 +15,24 @@
     </div>
 
     <div class="flex w-full max-h-full overflow-hidden">
-      <View />
+      <div class="w-full h-full flex flex-col">
+        <TabsSelector />
+        <div
+          v-if="store.openedItem"
+          :key="store.openedItem.thing"
+          class="w-full h-[calc(100%_-_40px)]"
+        >
+          <template v-if="store.openedItem.type === 'innerPage'">
+            <HomePage v-if="store.openedItem.thing === 'home'" />
+          </template>
+          <template v-else>
+            <BookEditor
+              v-if="store.openedItem.type === 'file' || store.openedItem.type === 'newFile'"
+              :opened="store.openedItem" />
+            <BookView v-else :opened="store.openedItem" :index="store.openedTabsActiveIndex || 0"
+          /></template>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -28,7 +45,13 @@ import { debounce as _debounce } from 'lodash';
 import IconsMenu from '/@/components/IconsMenu/IconsMenu.vue';
 import FileTree from '/@/components/FileTree/FileTree.vue';
 import TagsTree from '/@/components/TagsTree/TagsTree.vue';
-import View from '/@/components/ViewPane/AppView.vue';
+import HomePage from '/@/components/HomePage/HomePage.vue';
+import BookEditor from '/@/components/Editor/BookEditor.vue';
+import BookView from '/@/components/BookView/BookView.vue';
+import TabsSelector from './TabsSelector.vue';
+import { useStore } from '/@/use/store';
+
+const store = useStore();
 
 const fileTreeSize = ref<number>(200);
 
