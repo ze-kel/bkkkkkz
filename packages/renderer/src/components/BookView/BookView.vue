@@ -42,7 +42,6 @@
               :view-style="opened.settings.viewStyle"
               :observer="elementObserver"
               @dragstart="startDrag($event, item)"
-              @click.right="(e) => openContextMenu(e, item)"
             />
           </div>
         </div>
@@ -63,7 +62,6 @@
           :view-style="opened.settings.viewStyle"
           :observer="elementObserver"
           @dragstart="startDrag($event, item)"
-          @click.right="(e) => openContextMenu(e, item)"
         />
       </div>
     </div>
@@ -86,7 +84,6 @@ import {
 } from 'vue';
 import Fuse from 'fuse.js';
 import { useStore } from '/@/use/store';
-import { openMenu } from '/@/use/contextMenu';
 
 import { debounce as _debounce } from 'lodash';
 import { cloneDeep as _cloneDeep } from 'lodash';
@@ -102,7 +99,6 @@ import ViewConrols from './ViewConrols.vue';
 
 import type { IFile, IFiles } from '/@main/services/files';
 import type { PropType } from 'vue';
-import type { ContextMenu } from '/@/use/contextMenu';
 import type { IOpenedPath, IOpenedTag } from '/@main/services/openedTabs';
 
 const store = useStore();
@@ -267,16 +263,6 @@ const startDrag = (devt: DragEvent, file: IFile) => {
   }, []);
 
   devt.dataTransfer.setData('indexesToUpdate', JSON.stringify(toUpdateIndexes));
-};
-//
-// Right click
-//
-const getMenu = (book: IFile): ContextMenu => {
-  return [{ label: 'Delete', handler: () => trpcApi.delete.mutate(book.path) }];
-};
-
-const openContextMenu = (e: MouseEvent, book: IFile) => {
-  openMenu(getMenu(book), e.x, e.y);
 };
 
 //

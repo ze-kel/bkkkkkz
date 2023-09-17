@@ -3,8 +3,6 @@
     <div
       class="bg-neutral-50 flex h-screen flex-col dark:bg-neutral-950 text-neutral-950 dark:text-neutral-50"
     >
-      <ContextMenu />
-
       <ViewCore v-if="hasRootPath" />
       <Welcome v-else />
     </div>
@@ -17,7 +15,6 @@ import { computed, watch, onMounted, onUnmounted, ref, onBeforeMount } from 'vue
 import { debounce as _debounce } from 'lodash';
 
 import Welcome from './WelcomeScreen/WelcomeScreen.vue';
-import ContextMenu from './_UI/ContextMenu.vue';
 import ViewCore from './ViewCore/ViewCore.vue';
 import { trpcApi } from '../utils/trpc';
 import { useStore } from '../use/store';

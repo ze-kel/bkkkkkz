@@ -36,7 +36,7 @@ const flipSettings = () => {
 const openHome = () => {
   store.openNewOne(
     { id: store.generateRandomId(), type: 'innerPage', thing: 'home', scrollPosition: 0 },
-    { place: 'last' },
+    { place: 'last', focus: true },
   );
 };
 

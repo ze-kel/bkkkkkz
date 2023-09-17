@@ -1,86 +1,104 @@
 <template>
-  <div
-    ref="treeEl"
-    v-test-class="['T-file-tree-item', isOpened && 'T-opened-folder']"
-    :class="nodeClasses({ canDropHere, opened: isOpened })"
-    :draggable="!isRoot"
-    @dragstart="startDrag($event, content.path)"
-    @drop="onDrop($event, content.path)"
-    @dragenter="dragEnter"
-    @dragleave="dragLeave"
-    @dragover.prevent
-    @click.exact="makeNewOpenedAndSelect({ place: 'current', focus: true })"
-    @click.alt.exact="makeNewOpenedAndSelect({ place: 'last' })"
-    @click.middle.exact="makeNewOpenedAndSelect({ place: 'last' })"
-    @click.right.exact="openContextMenu"
-  >
-    <div
-      v-if="foldable"
-      class="cursor-pointer"
-      @click="
-        () => {
-          isFolded = !isFolded;
-        }
-      "
-    >
-      <ChevronDown
-        :class="['w-3 h-3 mr-1', isFolded && '-rotate-90']"
-        class="cursor-poiner pointer-events-none"
-      />
-    </div>
-    <template v-if="isRoot">
-      <span v-test-class="'T-label'" class="pointer-events-none"> All Books </span>
-    </template>
-    <template v-else>
-      <span v-if="!isRenaming" v-test-class="'T-label'" class="pointer-events-none truncate">
-        {{ content.name }}
-      </span>
-      <input
-        v-else
-        ref="inputName"
-        v-model="newName"
-        :class="['w-full bg-transparent outline-none', 'border-neutral-500']"
-        @blur="saveName"
-        @keyup.enter="removeFocus"
-      />
-    </template>
-  </div>
-  <div v-if="!isFolded || isCreating" :class="(foldable || isCreating) && 'pl-2'">
-    <FileTreeInner
-      v-for="item in content.content"
-      :key="item.path"
-      :content="item"
-      :depth="depth + 10"
-    />
-    <div
-      v-if="isCreating"
-      class="mt-[1px] px-2 py-0.5"
-      :class="nodeClasses({ opened: true, canDropHere: false })"
-    >
-      <input
-        ref="inputName"
-        v-model="newName"
-        class="w-full border-none bg-transparent outline-none"
-        @blur="saveFolder"
-        @keyup.enter="removeFocus"
-      />
-    </div>
-  </div>
+  <ContextMenu>
+    <ContextMenuTrigger>
+      <div
+        ref="treeEl"
+        v-test-class="['T-file-tree-item', isOpened && 'T-opened-folder']"
+        :draggable="!isRoot"
+        :class="nodeClasses({ canDropHere, opened: isOpened })"
+        @dragstart="startDrag($event, content.path)"
+        @drop="onDrop($event, content.path)"
+        @dragenter="dragEnter"
+        @dragleave="dragLeave"
+        @dragover.prevent
+        @click.exact="makeNewOpenedAndSelect({ place: 'current', focus: true })"
+        @click.alt.exact="makeNewOpenedAndSelect({ place: 'last' })"
+        @click.middle.exact="makeNewOpenedAndSelect({ place: 'last' })"
+      >
+        <div
+          v-if="foldable"
+          class="cursor-pointer"
+          @click="
+            () => {
+              isFolded = !isFolded;
+            }
+          "
+        >
+          <ChevronDown
+            :class="['w-3 h-3 mr-1', isFolded && '-rotate-90']"
+            class="cursor-poiner pointer-events-none"
+          />
+        </div>
+        <template v-if="isRoot">
+          <span v-test-class="'T-label'" class="pointer-events-none"> All Books </span>
+        </template>
+        <template v-else>
+          <span v-if="!isRenaming" v-test-class="'T-label'" class="pointer-events-none truncate">
+            {{ content.name }}
+          </span>
+          <input
+            v-else
+            ref="inputName"
+            v-model="newName"
+            :class="['w-full bg-transparent outline-none', 'border-neutral-500']"
+            @blur="saveName"
+            @keyup.enter="removeFocus"
+          />
+        </template>
+      </div>
+      <div v-if="!isFolded || isCreating" :class="(foldable || isCreating) && 'pl-5'">
+        <FileTreeInner
+          v-for="item in content.content"
+          :key="item.path"
+          :content="item"
+          :depth="depth + 10"
+        />
+        <div
+          v-if="isCreating"
+          class="mt-[1px] px-2 py-0.5"
+          :class="nodeClasses({ opened: true, canDropHere: false })"
+        >
+          <input
+            ref="inputName"
+            v-model="newName"
+            class="w-full border-none bg-transparent outline-none"
+            @blur="saveFolder"
+            @keyup.enter="removeFocus"
+          />
+        </div>
+      </div>
+    </ContextMenuTrigger>
+    <ContextMenuContent>
+      <ContextMenuItem @click="startCreating"> Create folder </ContextMenuItem>
+
+      <template v-if="!isRoot">
+        <ContextMenuItem @click="startRenaming"> Rename folder </ContextMenuItem>
+
+        <ContextMenuItem @click="deleteFolder"> Delete folder </ContextMenuItem>
+      </template>
+    </ContextMenuContent>
+  </ContextMenu>
 </template>
 
 <script setup lang="ts">
 import { computed, onUpdated, ref, watchEffect, nextTick } from 'vue';
-import { openMenu } from '/@/use/contextMenu';
+
 import { cloneDeep as _cloneDeep } from 'lodash';
 import { getDefaultViewSettings } from '/@/utils/getDefaultViewSettings';
 import { ChevronDown } from 'lucide-vue-next';
 import type { PropType } from 'vue';
 import type { IFolderTree } from '/@main/services/files';
-import type { ContextMenu } from '/@/use/contextMenu';
 import { trpcApi } from '/@/utils/trpc';
 import type { OpenNewOneParams } from '/@/use/store';
 import { useStore } from '/@/use/store';
 import { cva } from 'class-variance-authority';
+
+import {
+  ContextMenu,
+  ContextMenuTrigger,
+  ContextMenuContent,
+  ContextMenuItem,
+} from '/@/components/_UI/ContextMenu/';
 
 const store = useStore();
 
@@ -264,49 +282,20 @@ const saveFolder = () => {
   }
 };
 
-///
-/// Right click
-///
-const getMenu = (): ContextMenu => {
-  const base = [
-    {
-      label: 'New folder',
-      handler: startCreating,
-    },
-  ];
-
-  if (!isRoot) {
-    base.push(
-      {
-        label: 'Rename',
-        handler: startRenaming,
-      },
-      {
-        label: 'Delete',
-        handler: () => trpcApi.delete.mutate(props.content.path),
-      },
-    );
-  }
-
-  return base;
-};
-
-const openContextMenu = (e: MouseEvent) => {
-  openMenu(getMenu(), e.x, e.y);
-};
+const deleteFolder = () => trpcApi.delete.mutate(props.content.path);
 
 ///
 /// Styling
 ///
 const nodeClasses = cva(
   [
-    `p-1 mt-0.5 flex items-center text-m whitespace-nowrap overflow-hidden
+    `px-2 py-1 mt-0.5 flex items-center text-m whitespace-nowrap overflow-hidden
     rounded text-sm font-medium outline-0 transition-colors`,
   ],
   {
     variants: {
       opened: {
-        true: 'text-neutral-800 dark:text-neutral-50',
+        true: 'text-neutral-800 dark:text-neutral-50 bg-neutral-900',
         false: 'cursor-pointer text-neutral-400 dark:text-neutral-600',
       },
       canDropHere: {

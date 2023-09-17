@@ -3,7 +3,22 @@
     <div class="mx-auto w-full max-w-xl">
       <div class="flex flex-col">
         <div class="flex justify-center py-2" :draggable="true" @dragstart="startDrag($event)">
-          <Cover :file="openedFile" class="h-60" @click.right="coverRightClick" />
+          <ContextMenu>
+            <ContextMenuTrigger>
+              <Cover :file="openedFile" class="h-60" />
+            </ContextMenuTrigger>
+            <ContextMenuContent>
+              <ContextMenuItem @click="setCover">
+                {{ openedFile.cover ? 'Change cover' : 'Add cover' }}
+              </ContextMenuItem>
+
+              <ContextMenuItem> Try to fetch cover </ContextMenuItem>
+
+              <ContextMenuItem v-if="openedFile.cover" @click="removeCover">
+                Remove cover
+              </ContextMenuItem>
+            </ContextMenuContent>
+          </ContextMenu>
         </div>
 
         <div class="flex flex-col items-center gap-2">
@@ -98,8 +113,6 @@
 
 <script lang="ts" setup>
 import { ref, onMounted, watchEffect, onUnmounted, watch, nextTick, computed } from 'vue';
-import { openMenu } from '/@/use/contextMenu';
-
 import ContentEditable from '../_UI/ContentEditable.vue';
 import ReadDetails from '../ReadDetails/ReadDetails.vue';
 import Rating from '../Rating/RatingStars.vue';
@@ -113,9 +126,15 @@ import { cloneDeep as _cloneDeep } from 'lodash';
 import { debounce as _debounce } from 'lodash';
 import { ISBN10to13 } from '/@main/helpers/utils';
 
+import {
+  ContextMenu,
+  ContextMenuTrigger,
+  ContextMenuContent,
+  ContextMenuItem,
+} from '/@/components/_UI/ContextMenu/';
+
 import type { PropType } from 'vue';
 import type { IFile, ISavedFile, IUnsavedFile } from '/@main/services/files';
-import type { ContextMenu } from '/@/use/contextMenu';
 import { trpcApi } from '/@/utils/trpc';
 import type { Unsubscribable } from '@trpc/server/observable';
 import type { IOpenedFile, IOpenedNewFile } from '/@main/services/openedTabs';
@@ -303,32 +322,6 @@ const removeCover = () => {
 const setCover = () => {
   if ('unsaved' in openedFile.value) return;
   trpcApi.setCover.mutate(openedFile.value.path);
-};
-
-const coverRightClick = (e: MouseEvent) => {
-  const menu: ContextMenu = [];
-
-  if ('unsaved' in openedFile.value) return;
-
-  if (openedFile.value.cover) {
-    menu.push(
-      {
-        handler: setCover,
-        label: 'Change Cover',
-      },
-      {
-        handler: removeCover,
-        label: 'Remove Cover',
-      },
-    );
-  } else {
-    menu.push({
-      handler: setCover,
-      label: 'Add Cover',
-    });
-  }
-
-  openMenu(menu, e.x, e.y);
 };
 </script>
 

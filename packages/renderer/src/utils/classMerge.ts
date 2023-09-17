@@ -1,4 +1,4 @@
-import { twMerge } from 'tw-merge';
+import { twMerge } from 'tailwind-merge';
 import { clsx } from 'clsx';
 
 export function classMerge(...classes: (string | boolean)[]) {
