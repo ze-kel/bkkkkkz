@@ -6,6 +6,7 @@
         ref="itemRef"
         v-test-class="'T-book-item'"
         class="cursor-pointer"
+        :class="$attrs.class"
         @click.exact="openFullEditor({ place: 'current', focus: true })"
         @click.alt="openFullEditor({ place: 'last' })"
         @click.middle.exact="openFullEditor({ place: 'last' })"
@@ -37,7 +38,6 @@
               <Rating :model-value="currentFile.myRating" disabled />
             </div>
           </div>
-          <hr class="my-1 h-[1px] w-full border-0 bg-neutral-200 dark:bg-neutral-700" />
         </template>
       </div>
     </ContextMenuTrigger>

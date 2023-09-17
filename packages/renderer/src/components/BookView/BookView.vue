@@ -1,22 +1,24 @@
 <template>
-  <div class="flex h-full w-full flex-col">
+  <div class="flex h-full w-full flex-col px-2 py-2">
     <ViewConrols class="" />
 
-    <div
-      v-if="opened.settings.viewStyle === 'Lines'"
-      class="grid grid-cols-5 gap-5 border-b border-neutral-300 px-3 font-semibold dark:border-neutral-600"
-    >
-      <div class="border-r border-neutral-300 py-1 dark:border-neutral-600">Title</div>
-      <div class="border-r border-neutral-300 py-1 dark:border-neutral-600">Author</div>
-      <div class="border-r border-neutral-300 py-1 dark:border-neutral-600">Year</div>
-      <div class="border-r border-neutral-300 py-1 dark:border-neutral-600">Read</div>
-      <div class="py-1">Rating</div>
-    </div>
-
+    <!--Table Header -->
     <div
       ref="scrollRoot"
-      class="box-border h-full w-full items-start overflow-x-hidden overflow-y-scroll px-2 py-2"
+      class="box-border border border-neutral-400 dark:border-neutral-900 rounded-md h-full w-full items-start overflow-x-hidden overflow-y-scroll"
     >
+      <div
+        v-if="opened.settings.viewStyle === 'Lines'"
+        class="grid grid-cols-5 gap-5 font-semibold py-1 px-3"
+      >
+        <div class="">Title</div>
+        <div class="">Author</div>
+        <div class="">Year</div>
+        <div class="">Read</div>
+        <div class="py-1">Rating</div>
+      </div>
+
+      <!--Grouped case -->
       <div v-if="opened.settings.grouped">
         <div v-for="group in groupedFiles" :key="group.label" class="mt-4 first:mt-0">
           <div
@@ -30,6 +32,7 @@
             />
             <template v-else>{{ group.label }} </template>
           </div>
+
           <div
             class="grid"
             :class="opened.settings.viewStyle === 'Lines' ? 'grid-cols-1' : 'cards gap-4'"
@@ -46,7 +49,7 @@
           </div>
         </div>
       </div>
-
+      <!--Regular case -->
       <div
         v-else
         tag="div"

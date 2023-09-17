@@ -1,5 +1,5 @@
 <template>
-  <div v-if="store.currentViewSettings" class="flex items-center justify-between gap-2 px-2">
+  <div v-if="store.currentViewSettings" class="flex items-center justify-between gap-2">
     <div class="flex w-3/12 gap-2 py-2">
       <input
         v-model="store.currentViewSettings.searchQuery"
@@ -25,12 +25,9 @@
         </template>
       </ButtonsSwitch>
 
-      <select
-        v-model="store.currentViewSettings.sortBy"
-        class="rounded border border-neutral-200 bg-transparent px-1 focus:outline-none dark:border-neutral-700 dark:text-neutral-500"
-      >
-        <option v-for="item in canSortby" :key="item">{{ item }}</option>
-      </select>
+      <SelectorRoot v-model="store.currentViewSettings.sortBy" class="w-40">
+        <SelectorItem v-for="item in canSortby" :key="item" :value="item">{{ item }}</SelectorItem>
+      </SelectorRoot>
 
       <BasicButton variant="outline" size="icon" @click="flipSortDirection">
         <ArrowDownZAIcon v-if="store.currentViewSettings.sortDirection < 0" stroke-width="1" />
@@ -54,6 +51,7 @@ import {
 import ButtonsSwitch from '../_UI/ButtonsSwitch.vue';
 import type { ISortByOption } from '/@main/services/openedTabs';
 import BasicButton from '/@/components/_UI/BasicButton.vue';
+import { SelectorItem, SelectorRoot } from '/@/components/_UI/Selector';
 
 const store = useStore();
 

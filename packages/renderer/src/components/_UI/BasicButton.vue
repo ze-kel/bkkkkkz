@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { cva } from 'class-variance-authority';
+import classMerge from '/@/utils/classMerge';
 
 const buttonVariants = cva(
   'inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-neutral-950 disabled:pointer-events-none disabled:opacity-50 dark:focus-visible:ring-neutral-300',
@@ -45,7 +46,10 @@ withDefaults(defineProps<Props>(), {
 </script>
 
 <template>
-  <component :is="as" :class="[buttonVariants({ variant, size }), $attrs.class ?? '']">
+  <component
+    :is="as"
+    :class="classMerge(buttonVariants({ variant, size }), $attrs.class as string)"
+  >
     <slot />
   </component>
 </template>

@@ -16,7 +16,7 @@
 
     <div class="flex w-full max-h-full overflow-hidden">
       <div class="w-full h-full flex flex-col">
-        <TabsSelector />
+        <TabsSelector class="bg-neutral-200 dark:bg-neutral-900" />
         <div
           v-if="store.openedItem"
           :key="store.openedItem.thing"

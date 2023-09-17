@@ -1,7 +1,7 @@
 <template>
   <div
     ref="widgetDiv"
-    class="bg-neutral-50 dark:bg-neutral-950 h-10 relative overflow-hidden pr-24"
+    class="h-10 relative overflow-hidden pr-24"
     @drop="onDrop($event)"
     @dragenter.prevent="dragEnter"
     @dragleave.prevent="dragLeave"

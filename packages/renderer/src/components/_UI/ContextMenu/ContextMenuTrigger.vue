@@ -1,5 +1,5 @@
 <template>
-  <div @click.right="openMenu">
+  <div @click.right.stop="openMenu">
     <slot> </slot>
   </div>
 </template>

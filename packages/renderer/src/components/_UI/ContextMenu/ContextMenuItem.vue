@@ -1,12 +1,9 @@
 <template>
-  <div
-    :class="[
-      'relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none',
-      'hover:bg-neutral-100 dark:hover:bg-neutral-900 cursor-pointer',
-    ]"
-  >
+  <MenuItem>
     <slot></slot>
-  </div>
+  </MenuItem>
 </template>
 
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { MenuItem } from '/@/components/_UI/GenericMenu';
+</script>

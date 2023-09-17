@@ -8,51 +8,44 @@
     <div v-for="index in 5" :key="index" class="relative">
       <div class="h-full w-[50%] absolute" @mouseenter="setHovered(index - 0.5)"></div>
       <div class="h-full w-[50%] left-[50%] absolute" @mouseenter="setHovered(index)"></div>
-      <template v-if="index <= Number(displayedValue.value)">
-        <svg
-          v-test-class="['T-editor-star', 'T-editor-star-filled']"
-          xmlns="http://www.w3.org/2000/svg"
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-        >
-          <path
-            d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279-7.416-3.967-7.417 3.967 1.481-8.279-6.064-5.828 8.332-1.151z"
-          />
-        </svg>
-      </template>
-      <template v-else-if="index - 0.5 === Number(displayedValue.value)">
-        <svg
-          v-test-class="['T-editor-star', 'T-editor-star-half']"
-          xmlns="http://www.w3.org/2000/svg"
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-        >
-          <path
-            d="M12 5.173l2.335 4.817 5.305.732-3.861 3.71.942 5.27-4.721-2.524v-12.005zm0-4.586l-3.668 7.568-8.332 1.151 6.064 5.828-1.48 8.279 7.416-3.967 7.416 3.966-1.48-8.279 6.064-5.827-8.332-1.15-3.668-7.569z"
-          />
-        </svg>
-      </template>
-      <template v-else>
-        <svg
-          v-test-class="['T-editor-star', 'T-editor-star-empty']"
-          xmlns="http://www.w3.org/2000/svg"
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-        >
-          <path
-            d="M12 5.173l2.335 4.817 5.305.732-3.861 3.71.942 5.27-4.721-2.524-4.721 2.525.942-5.27-3.861-3.71 5.305-.733 2.335-4.817zm0-4.586l-3.668 7.568-8.332 1.151 6.064 5.828-1.48 8.279 7.416-3.967 7.416 3.966-1.48-8.279 6.064-5.827-8.332-1.15-3.668-7.569z"
-          />
-        </svg>
-      </template>
+
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        stroke="#fff"
+        :fill="getFill(index, displayedValue.value)"
+        stroke-width="1"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        class="lucide lucide-star"
+      >
+        <defs>
+          <linearGradient id="grad">
+            <stop offset="50%" stop-color="white" />
+            <stop offset="50%" stop-color="transparent" />
+          </linearGradient>
+        </defs>
+        <polygon
+          points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
+        />
+      </svg>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
 import { computed, ref } from 'vue';
+
+const getFill = (index: number, displayedValue: number) => {
+  if (index <= displayedValue) {
+    return '#fff';
+  } else if (index - 0.5 === displayedValue) {
+    return 'url(#grad)';
+  }
+  return 'none';
+};
 
 const props = defineProps({
   modelValue: {
