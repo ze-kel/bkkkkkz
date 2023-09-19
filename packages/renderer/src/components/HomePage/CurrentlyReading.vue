@@ -20,7 +20,7 @@
 <script lang="ts" setup>
 import { computed, ref } from 'vue';
 
-import BookItem from '/@/components/BookView/BookItem.vue';
+import BookItem from '/@/components/BookView/BookItemWrapper.vue';
 
 import type { IFile, IFiles } from '/@main/services/files';
 import { trpcApi } from '/@/utils/trpc';

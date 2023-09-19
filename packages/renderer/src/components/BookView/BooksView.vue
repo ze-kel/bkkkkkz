@@ -5,7 +5,12 @@
     <!--Table Header -->
     <div
       ref="scrollRoot"
-      class="box-border border border-neutral-400 dark:border-neutral-900 rounded-md h-full w-full items-start overflow-x-hidden overflow-y-scroll"
+      :class="[
+        'box-border border rounded-md h-full w-full items-start overflow-x-hidden overflow-y-scroll',
+        opened.settings.viewStyle === 'Lines'
+          ? 'border-neutral-400 dark:border-neutral-800'
+          : 'border-transparent',
+      ]"
     >
       <div
         v-if="opened.settings.viewStyle === 'Lines'"
@@ -41,10 +46,8 @@
               v-for="item in group.content"
               :key="item.path"
               :current-file="item"
-              :draggable="true"
               :view-style="opened.settings.viewStyle"
               :observer="elementObserver"
-              @dragstart="startDrag($event, item)"
             />
           </div>
         </div>
@@ -61,16 +64,11 @@
           v-for="item in sortedFiles"
           :key="item.path"
           :current-file="item"
-          :draggable="true"
           :view-style="opened.settings.viewStyle"
           :observer="elementObserver"
-          @dragstart="startDrag($event, item)"
         />
       </div>
     </div>
-  </div>
-  <div ref="forDrag" class="absolute top-[-50px]">
-    <DragDisplay> {{ dragging }} </DragDisplay>
   </div>
 </template>
 
@@ -95,8 +93,7 @@ import { groupItems } from './groupItems';
 import ElObserver from './elementObserver';
 import { trpcApi } from '/@/utils/trpc';
 
-import BookItem from './BookItem.vue';
-import DragDisplay from '../_UI/DragDisplay.vue';
+import BookItem from './BookItemWrapper.vue';
 import Rating from '../Rating/RatingStars.vue';
 import ViewConrols from './ViewConrols.vue';
 
@@ -107,7 +104,6 @@ import type { IOpenedPath, IOpenedTag } from '/@main/services/openedTabs';
 const store = useStore();
 
 const files = ref<IFiles>({});
-const forDrag = ref();
 
 const props = defineProps({
   opened: {
@@ -243,39 +239,13 @@ const groupedFiles = computed(() => {
 });
 
 //
-// Drag & drop
-//
-const dragging = ref('');
-const startDrag = (devt: DragEvent, file: IFile) => {
-  if (devt.dataTransfer === null || !file) {
-    return;
-  }
-
-  devt.dataTransfer.setData('type', 'file');
-
-  devt.dataTransfer.setData('itemPath', file.path);
-  devt.dataTransfer.setDragImage(forDrag.value, 0, 0);
-  dragging.value = file.name;
-
-  if (!store.openedTabs) return;
-  const toUpdateIndexes = store.openedTabs.reduce((acc: number[], opened, index) => {
-    if (opened.type === 'file' && opened.thing === file.path) {
-      acc.push(index);
-    }
-    return acc;
-  }, []);
-
-  devt.dataTransfer.setData('indexesToUpdate', JSON.stringify(toUpdateIndexes));
-};
-
-//
 // Observer for lazy loading
 //
 const scrollRoot = ref<HTMLElement>();
 
 let elementObserver = ref<ElObserver>();
 
-onBeforeMount(() => {
+onMounted(() => {
   if (!scrollRoot.value) return;
   elementObserver.value = new ElObserver(scrollRoot.value);
 });

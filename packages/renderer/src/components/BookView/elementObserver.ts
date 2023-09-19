@@ -13,6 +13,7 @@ class ElObserver {
   }
 
   watchElement(element: Element, callback: IObsCallback) {
+    console.log('watch', element);
     if (!this.observer) {
       throw 'Trying to use observer without it being present';
     }

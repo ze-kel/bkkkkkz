@@ -28,9 +28,10 @@
           <template v-else>
             <BookEditor
               v-if="store.openedItem.type === 'file' || store.openedItem.type === 'newFile'"
-              :opened="store.openedItem" />
-            <BookView v-else :opened="store.openedItem" :index="store.openedTabsActiveIndex || 0"
-          /></template>
+              :opened="store.openedItem"
+            />
+            <BookView v-else :opened="store.openedItem" :index="store.openedTabsActiveIndex || 0" />
+          </template>
         </div>
       </div>
     </div>
@@ -47,7 +48,7 @@ import FileTree from '/@/components/FileTree/FileTree.vue';
 import TagsTree from '/@/components/TagsTree/TagsTree.vue';
 import HomePage from '/@/components/HomePage/HomePage.vue';
 import BookEditor from '/@/components/Editor/BookEditor.vue';
-import BookView from '/@/components/BookView/BookView.vue';
+import BookView from '/@/components/BookView/BooksView.vue';
 import TabsSelector from './TabsSelector.vue';
 import { useStore } from '/@/use/store';
 

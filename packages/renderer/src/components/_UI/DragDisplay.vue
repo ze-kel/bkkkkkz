@@ -1,6 +1,6 @@
 <template>
   <div
-    class="absolute bg-neutral-50 dark:bg-neutral-950 truncate rounded-sm text-neutral-50 dark:text-neutral-900 px-2 py-1"
+    class="absolute bg-neutral-50 dark:bg-neutral-950 truncate max-w-md rounded-md border-neutral-400 border dark:border-neutral-800 text-neutral-50 dark:text-neutral-50 px-2 py-1"
   >
     <slot> </slot>
   </div>
