@@ -77,7 +77,6 @@ export const useStore = defineStore('main', {
       if (params.focus) {
         this.openedTabsActiveId = item.id;
       }
-      console.log('index', indexToSet);
 
       this.saveOpened();
     },

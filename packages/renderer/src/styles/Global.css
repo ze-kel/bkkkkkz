@@ -4,10 +4,10 @@
 
 ::-webkit-scrollbar {
   -webkit-appearance: none;
-  @apply w-2;
+  @apply w-1;
 }
 ::-webkit-scrollbar-thumb {
-  @apply bg-neutral-300 dark:bg-neutral-700;
+  @apply bg-neutral-50;
 }
 ::-webkit-scrollbar-thumb:hover {
   @apply bg-neutral-500;

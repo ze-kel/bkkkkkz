@@ -5,7 +5,9 @@
         <div class="flex justify-center py-2" :draggable="true" @dragstart="startDrag($event)">
           <ContextMenu>
             <ContextMenuTrigger>
-              <Cover :file="openedFile" class="h-60" />
+              <div class="aspect-[6/8] w-[150px] bg-transparent">
+                <Cover :file="openedFile" />
+              </div>
             </ContextMenuTrigger>
             <ContextMenuContent>
               <ContextMenuItem @click="setCover">
@@ -22,23 +24,21 @@
         </div>
 
         <div class="flex flex-col items-center gap-2">
-          <ContentEditable
+          <BasicInput
             v-model="openedFile.title"
             v-test-class="'T-editor-title'"
             spellcheck="false"
-            tag="div"
-            class="w-fit min-w-[100px] text-4xl"
+            class="line-clamp-1 min-w-[100px] text-center text-4xl leading-none"
             placeholder="Title"
-            :placeholder-classes="'text-neutral-400 hover:text-neutral-600'"
+            theme="hidden"
           />
-          <ContentEditable
+          <BasicInput
             v-model="openedFile.author"
             v-test-class="'T-editor-author'"
             spellcheck="false"
-            tag="div"
-            class="font-regular w-fit min-w-[100px] text-2xl dark:text-neutral-100"
+            class="font-regular -mt-1 w-fit min-w-[100px] text-center text-2xl leading-none"
+            theme="hidden"
             placeholder="Author"
-            :placeholder-classes="'text-neutral-400 hover:text-neutral-600'"
           />
 
           <Tags v-model="openedFile.tags" class="my-1" />
@@ -46,48 +46,39 @@
 
         <div class="flex w-full flex-col justify-between py-2">
           <div class="mt-3 grid grid-cols-4 items-center gap-2">
-            <h4 class="text-xs">Year</h4>
-
             <h4 class="text-xs">Rating</h4>
+            <h4 class="text-xs">Year</h4>
 
             <h4 class="text-xs">ISBN</h4>
 
             <div class="text-xs">Saved as</div>
 
-            <ContentEditable
-              v-model="openedFile.year"
-              v-test-class="'T-editor-year'"
-              :number="true"
-              spellcheck="false"
-              tag="div"
-              class="min-w-[75px]"
-              placeholder="Year"
-              :placeholder-classes="'text-neutral-400 hover:text-neutral-600'"
-            />
             <div class="cursor-pointer font-bold">
               <Rating v-model="openedFile.myRating" />
             </div>
 
-            <ContentEditable
+            <BasicInput
+              v-model="openedFile.year"
+              v-test-class="'T-editor-year'"
+              type="number"
+              class="w-[75px]"
+              placeholder="Year"
+            />
+            <BasicInput
               v-model="openedFile.ISBN13"
               v-test-class="'T-editor-isbn'"
               :number="true"
-              spellcheck="false"
-              tag="div"
               class="min-w-[100px]"
               placeholder="ISBN13"
-              :placeholder-classes="'text-neutral-400 hover:text-neutral-600'"
             />
 
             <div class="flex items-center">
-              <ContentEditable
+              <BasicInput
                 v-model="openedFile.name"
                 v-test-class="'T-editor-filename'"
                 spellcheck="false"
-                tag="div"
                 class="min-w-[100px]"
                 placeholder="Filename"
-                :placeholder-classes="'text-neutral-400 hover:text-neutral-600'"
               />
             </div>
           </div>
@@ -120,7 +111,7 @@ import Milkdown from './MdMikdown.vue';
 import Tags from '../Tags/TagsEditor.vue';
 import DragDisplay from '/@/components/_UI/DragDisplay.vue';
 import Cover from '../Cover/BookCover.vue';
-import TextEditable from '../_UI/TextEditable.vue';
+import BasicInput from '../_UI/BasicInput.vue';
 
 import { cloneDeep as _cloneDeep } from 'lodash';
 import { debounce as _debounce } from 'lodash';

@@ -35,7 +35,6 @@ export const getReadChallenge = () => {
 
 export const saveReadChallenge = (settings: IReadChallengeData) => {
   const rootPath = getRootPath();
-  console.log('saving', settings);
 
   if (!rootPath) {
     throw new Error('Trying to write settings without root path present');

@@ -8,13 +8,14 @@
         tag="div"
         spellcheck="false"
         :no-n-l="true"
-        class="focus:ring-ring text-foreground inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2"
+        :class="classes()"
         @update:model-value="(val: string | Number) => saveTag(index, String(val))"
       />
     </template>
     <div
       v-test-class="'T-editor-add-tag'"
-      class="cursor-pointer focus:ring-ring gap-1 text-foreground inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2"
+      class="cursor-pointer"
+      :class="classes()"
       @click="createNewTag"
     >
       <PlusIcon class="w-4 fill-neutral-200 transition-colors group-hover:fill-neutral-400" />
@@ -27,6 +28,13 @@ import { getCurrentInstance, computed, nextTick, ref } from 'vue';
 import type { PropType, Ref } from 'vue';
 import ContentEditable from '/@/components/_UI/ContentEditable.vue';
 import PlusIcon from '@heroicons/vue/24/outline/PlusSmallIcon';
+import { cva } from 'class-variance-authority';
+
+const classes = cva([
+  'text-foreground inline-flex items-center rounded-md  px-2.5 py-0.5 text-xs font-semibold transition-colors',
+  'border-neutral-200 dark:border-neutral-800 border',
+  'focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-neutral-950 dark:focus-visible:ring-neutral-300',
+]);
 
 const props = defineProps({
   modelValue: {

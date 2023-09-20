@@ -1,6 +1,6 @@
 <template>
   <div
-    class="flex rounded-md w-fit overflow-hidden border border-neutral-200 bg-transparent shadow-sm dark:border-neutral-800"
+    class="flex w-fit overflow-hidden rounded-md border border-neutral-200 bg-transparent shadow-sm dark:border-neutral-800"
   >
     <div
       v-for="option in options"

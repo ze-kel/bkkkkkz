@@ -120,7 +120,6 @@ export const appRouter = t.router({
   }),
 
   saveReadChallenge: t.procedure.input(zReadChallenge).mutation(async ({ input }) => {
-    console.log('trpc', input);
     return await saveReadChallenge(input);
   }),
 

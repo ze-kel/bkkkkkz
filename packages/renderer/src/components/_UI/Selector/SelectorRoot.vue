@@ -47,10 +47,7 @@ const outsideClickHandler = (e: MouseEvent) => {
 };
 
 const openMenu = (e: MouseEvent) => {
-  console.log('ooo');
-
   if (!isOpened.value) {
-    console.log('set to true');
     isOpened.value = true;
     addEventListener('click', outsideClickHandler);
   } else {

@@ -23,9 +23,6 @@ import { XIcon } from 'lucide-vue-next';
 import BasicButton from '/@/components/_UI/BasicButton.vue';
 import { onRenderTracked } from 'vue';
 
-onRenderTracked(() => {
-  console.log('rendering', props.text);
-});
 
 const props = defineProps({
   isNewAndAnimating: {
