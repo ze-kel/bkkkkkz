@@ -1,6 +1,8 @@
 <template>
   <div class="flex gap-2">
-    {{ dateStart }}
+    <div>
+      <BasicCalendar v-model="dateStart" />
+    </div>
   </div>
 </template>
 
@@ -16,7 +18,7 @@ import '@vuepic/vue-datepicker/dist/main.css';
 
 import MiddleIcon from '@heroicons/vue/24/outline/ArrowRightIcon';
 import { useStore } from '/@/use/store';
-import BasicCalendar from '/@/components/_UI/BasicCalendar.vue';
+import BasicCalendar from '/@/components/_UI/Calendar/BasicCalendar.vue';
 
 const store = useStore();
 
