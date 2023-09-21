@@ -27,7 +27,7 @@
 import { getCurrentInstance, computed, nextTick, ref } from 'vue';
 import type { PropType, Ref } from 'vue';
 import ContentEditable from '/@/components/_UI/ContentEditable.vue';
-import PlusIcon from '@heroicons/vue/24/outline/PlusSmallIcon';
+import { PlusIcon } from 'lucide-vue-next';
 import { cva } from 'class-variance-authority';
 
 const classes = cva([

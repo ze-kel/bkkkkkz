@@ -1,23 +1,30 @@
 <template>
   <div class="w-full rounded">
     <div class="flex flex-col gap-2">
-      <div v-for="(date, index) in modelValue" :key="index" class="flex items-center gap-2">
+      <div
+        v-for="(date, index) in modelValue"
+        :key="index"
+        class="flex items-center justify-between gap-2"
+      >
         <DatePair
           v-if="store.settings"
           :model-value="date"
           :date-format="store.settings.dateFormat"
           @update:model-value="(val) => updateValue(index, val)"
         />
-        <div v-test-class="'T-editor-date-remove'" @click="removeDate(index)">
-          <CrossIcon
-            class="h-4 w-4 cursor-pointer stroke-neutral-200 transition-colors dark:stroke-neutral-600 dark:hover:stroke-neutral-300"
-          />
-        </div>
+        <BasicButton
+          v-test-class="'T-editor-date-remove'"
+          variant="ghost"
+          size="icon"
+          @click="removeDate(index)"
+        >
+          <XIcon class="w-4 opacity-50" />
+        </BasicButton>
       </div>
     </div>
     <div
       v-test-class="'T-editor-date-add'"
-      class="w-fit py-2 cursor-pointer text-sm font-light transition-colors dark:text-neutral-600 dark:hover:text-neutral-200"
+      class="w-fit cursor-pointer py-2 text-sm font-light transition-colors dark:text-neutral-600 dark:hover:text-neutral-200"
       @click="addNewDate"
     >
       Log new read date
@@ -30,8 +37,9 @@ import type { PropType } from 'vue';
 import type { IDateRead } from '/@main/services/books';
 import DatePair from './DatePair.vue';
 import { format } from 'date-fns';
-import CrossIcon from '@heroicons/vue/24/outline/XMarkIcon';
+import { XIcon } from 'lucide-vue-next';
 import { useStore } from '/@/use/store';
+import BasicButton from '/@/components/_UI/BasicButton.vue';
 
 const store = useStore();
 

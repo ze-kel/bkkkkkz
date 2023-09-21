@@ -1,9 +1,7 @@
 <template>
-  <div class="flex gap-2">
-    <div>
-      <BasicCalendar v-model="dateStart" />
-    </div>
-  </div>
+    <DateInput v-model="dateStart" />
+    <MoveRight class="w-4" />
+    <DateInput v-model="dateEnd" />
 </template>
 
 <script lang="ts" setup>
@@ -15,12 +13,10 @@ import VueDatePicker from '@vuepic/vue-datepicker';
 import { parse } from 'date-fns';
 
 import '@vuepic/vue-datepicker/dist/main.css';
+import { MoveRight } from 'lucide-vue-next';
 
-import MiddleIcon from '@heroicons/vue/24/outline/ArrowRightIcon';
 import { useStore } from '/@/use/store';
-import BasicCalendar from '/@/components/_UI/Calendar/BasicCalendar.vue';
-
-const store = useStore();
+import DateInput from '/@/components/_UI/Calendar/DateInput.vue';
 
 const props = defineProps({
   modelValue: {
@@ -36,8 +32,6 @@ const props = defineProps({
 const emit = defineEmits<{
   (e: 'update:modelValue', data: IDateRead): void;
 }>();
-
-const customPosition = () => ({ top: 0, left: 0 });
 
 const dateStart = computed({
   get: () => props.modelValue.started,

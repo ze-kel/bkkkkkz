@@ -43,6 +43,10 @@ const props = defineProps<{
   };
 }>();
 
+const emits = defineEmits<{
+  (e: 'update:modelValue', payload: string): void;
+}>();
+
 const computedLimits = computed(() => {
   const res = {
     start: props.limits?.start ? stringToDate(props.limits.start) : new Date(1970, 0, 1),
@@ -50,10 +54,6 @@ const computedLimits = computed(() => {
   };
   return res as Interval;
 });
-
-const emits = defineEmits<{
-  (e: 'update:modelValue', payload: string): void;
-}>();
 
 const convertedModelValue = computed(() =>
   props.modelValue ? stringToDate(props.modelValue) : undefined,

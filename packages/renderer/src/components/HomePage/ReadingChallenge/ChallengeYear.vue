@@ -8,14 +8,14 @@
     </div>
 
     <div class="flex items-center">
-      <div class="bg-neutral-600 rounded-xl w-full h-2">
+      <div class="h-2 w-full rounded-xl bg-neutral-600">
         <div
-          class="bg-indigo-600 rounded-xl h-full"
+          class="h-full rounded-xl bg-indigo-600"
           :style="{ width: `${percentCompletion}%` }"
         ></div>
       </div>
 
-      <div class="ml-3 font-black whitespace-nowrap flex w-fit">
+      <div class="ml-3 flex w-fit whitespace-nowrap font-black">
         <span class="mr-1">{{ booksForThatYear.length }}</span>
         /
         <ContentEditable
@@ -27,11 +27,11 @@
       </div>
 
       <div
-        class="hover:bg-neutral-800 rounded flex items-center h-4 ml-1 transition-colors cursor-pointer"
+        class="ml-1 flex h-4 cursor-pointer items-center rounded transition-colors hover:bg-neutral-800"
         @click="emit('delete')"
       >
-        <CrossIcon
-          class="w-4 h-4 stroke-neutral-200 dark:stroke-neutral-600 dark:hover:stroke-neutral-300 transition-colors cursor-pointer"
+        <XIcon
+          class="h-4 w-4 cursor-pointer stroke-neutral-200 transition-colors dark:stroke-neutral-600 dark:hover:stroke-neutral-300"
         />
       </div>
     </div>
@@ -42,7 +42,7 @@
 import { computed, ref } from 'vue';
 
 import ContentEditable from '/@/components/_UI/ContentEditable.vue';
-import CrossIcon from '@heroicons/vue/24/outline/XMarkIcon';
+import { XIcon } from 'lucide-vue-next';
 
 import type { PropType } from 'vue';
 import type { ISavedFile } from '/@main/services/files';

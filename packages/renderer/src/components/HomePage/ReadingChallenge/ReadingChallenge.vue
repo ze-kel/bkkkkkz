@@ -32,7 +32,7 @@
 
     <div
       v-if="allYearsThatHaveChallengeButTheCurrent.length"
-      class="mt-3 mb-2 flex w-full cursor-pointer justify-center fill-neutral-900 text-center dark:fill-neutral-50"
+      class="mb-2 mt-3 flex w-full cursor-pointer justify-center fill-neutral-900 text-center dark:fill-neutral-50"
       @click="flipExpanded"
     >
       <ChevronDown class="mr-2 w-6" :class="[expanded && 'rotate-180']" />
@@ -51,7 +51,7 @@ import ChallengeYear from './ChallengeYear.vue';
 import getSortFunction from '/@/components/BookView/getSortFunction';
 import { dateReducerAllYears } from '/@/components/BookView/getDateReducer';
 import { cloneDeep, cloneDeep as _cloneDeep, findIndex } from 'lodash';
-import ChevronDown from '@heroicons/vue/24/outline/ChevronDownIcon';
+import { ChevronDown } from 'lucide-vue-next';
 
 import type { IFiles, ISavedFile } from '/@main/services/files';
 import { trpcApi } from '/@/utils/trpc';
