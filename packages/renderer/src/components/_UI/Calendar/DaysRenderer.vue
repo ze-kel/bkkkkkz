@@ -14,8 +14,6 @@ import {
 import type { Interval } from 'date-fns';
 import { computed, ref, watch } from 'vue';
 import BasicButton from '/@/components/_UI/BasicButton.vue';
-import { useStore } from '/@/use/store';
-import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-vue-next';
 
 const props = defineProps<{
   cursor: Date;

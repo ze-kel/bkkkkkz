@@ -1,11 +1,15 @@
 <template>
   <div v-if="!loading" class="flex h-full w-full flex-col overflow-x-hidden overflow-y-scroll">
-    <div class="mx-auto w-full max-w-xl">
-      <div class="flex flex-col">
-        <div class="flex justify-center py-2" :draggable="true" @dragstart="startDrag($event)">
+    <div class="mx-auto w-full max-w-2xl">
+      <div class="grid gap-4 py-4" style="grid-template-columns: auto 1fr">
+        <div class="flex flex-col items-center gap-2">
           <ContextMenu>
-            <ContextMenuTrigger>
-              <div class="aspect-[6/8] w-[150px] bg-transparent">
+            <ContextMenuTrigger class="w-fit">
+              <div
+                class="aspect-[6/9] w-[175px] bg-transparent"
+                :draggable="true"
+                @dragstart="startDrag($event)"
+              >
                 <Cover :file="openedFile" />
               </div>
             </ContextMenuTrigger>
@@ -14,21 +18,47 @@
                 {{ openedFile.cover ? 'Change cover' : 'Add cover' }}
               </ContextMenuItem>
 
-              <ContextMenuItem> Try to fetch cover </ContextMenuItem>
+              <ContextMenuItem @click="fetchCover"> Try to fetch cover </ContextMenuItem>
 
               <ContextMenuItem v-if="openedFile.cover" @click="removeCover">
                 Remove cover
               </ContextMenuItem>
             </ContextMenuContent>
           </ContextMenu>
+
+          <Rating v-model="openedFile.myRating" class="mt-3 place-content-center self-center" />
+
+          <BasicInput
+            v-model="openedFile.ISBN13"
+            v-test-class="'T-editor-isbn'"
+            :number="true"
+            class="min-w-[100px] text-center opacity-50 focus:opacity-100"
+            theme="hidden"
+            placeholder="ISBN13"
+          />
         </div>
 
-        <div class="flex flex-col items-center gap-2">
+        <div class="flex flex-col gap-2">
+          <div class="flex w-full items-center gap-3">
+            <BasicInput
+              v-model="openedFile.name"
+              v-test-class="'T-editor-filename'"
+              spellcheck="false"
+              class="w-full min-w-[100px] opacity-50 focus:opacity-100"
+              placeholder="Filename"
+              theme="hidden"
+            />
+
+            <BasicButton v-if="!autoSave" variant="outline" size="sm" @click="manualSave">
+              Save
+            </BasicButton>
+          </div>
+
           <BasicInput
             v-model="openedFile.title"
             v-test-class="'T-editor-title'"
             spellcheck="false"
-            class="line-clamp-1 min-w-[100px] text-center text-4xl leading-none"
+            class="line-clamp-1 min-w-[100px] text-4xl font-light leading-none"
             placeholder="Title"
             theme="hidden"
           />
@@ -36,63 +66,31 @@
             v-model="openedFile.author"
             v-test-class="'T-editor-author'"
             spellcheck="false"
-            class="font-regular -mt-1 w-fit min-w-[100px] text-center text-2xl leading-none"
+            class="font-regular -mt-1 w-fit min-w-[100px] text-2xl leading-none"
             theme="hidden"
             placeholder="Author"
           />
 
-          <Tags v-model="openedFile.tags" class="my-1" />
-        </div>
-
-        <div class="flex w-full flex-col justify-between py-2">
-          <div class="mt-3 grid grid-cols-4 items-center gap-2">
-            <h4 class="text-xs">Rating</h4>
-            <h4 class="text-xs">Year</h4>
-
-            <h4 class="text-xs">ISBN</h4>
-
-            <div class="text-xs">Saved as</div>
-
-            <div class="cursor-pointer font-bold">
-              <Rating v-model="openedFile.myRating" />
-            </div>
-
+          <div class="flex items-center gap-3">
             <BasicInput
               v-model="openedFile.year"
               v-test-class="'T-editor-year'"
               type="number"
+              theme="hidden"
               class="w-[75px]"
               placeholder="Year"
             />
-            <BasicInput
-              v-model="openedFile.ISBN13"
-              v-test-class="'T-editor-isbn'"
-              :number="true"
-              class="min-w-[100px]"
-              placeholder="ISBN13"
-            />
-
-            <div class="flex items-center">
-              <BasicInput
-                v-model="openedFile.name"
-                v-test-class="'T-editor-filename'"
-                spellcheck="false"
-                class="min-w-[100px]"
-                placeholder="Filename"
-              />
-            </div>
           </div>
 
-          <button v-if="!autoSave" class="ml-3 h-full py-0 text-xs" @click="manualSave">
-            Save
-          </button>
-
-          <ReadDetails v-model="openedFile.read" class="mt-4" />
+          <Tags v-model="openedFile.tags" class="" />
+          <ReadDetails v-model="openedFile.read" class="mt-3" />
         </div>
       </div>
 
       <div class="h-full min-h-[200px] border-t border-neutral-300 py-4 dark:border-neutral-800">
-        <Milkdown v-model="openedFile.content" />
+        <MilkdownProvider>
+          <MilkdownEditor v-model="openedFile.content" />
+        </MilkdownProvider>
       </div>
     </div>
   </div>
@@ -112,6 +110,9 @@ import Tags from '../Tags/TagsEditor.vue';
 import DragDisplay from '/@/components/_UI/DragDisplay.vue';
 import Cover from '../Cover/BookCover.vue';
 import BasicInput from '../_UI/BasicInput.vue';
+import MilkdownEditor from './MilkdownEditor.vue';
+
+import { MilkdownProvider } from '@milkdown/vue';
 
 import { cloneDeep as _cloneDeep } from 'lodash';
 import { debounce as _debounce } from 'lodash';
@@ -130,6 +131,7 @@ import { trpcApi } from '/@/utils/trpc';
 import type { Unsubscribable } from '@trpc/server/observable';
 import type { IOpenedFile, IOpenedNewFile } from '/@main/services/openedTabs';
 import { useStore } from '/@/use/store';
+import BasicButton from '/@/components/_UI/BasicButton.vue';
 
 const store = useStore();
 
@@ -271,48 +273,37 @@ const startDrag = (devt: DragEvent) => {
   devt.dataTransfer.setData('indexesToUpdate', JSON.stringify(toUpdateIndexes));
 };
 
-//
-// Title Split
-//
-const mainTitle = computed({
-  get() {
-    return openedFile.value.title?.split(':')[0] || '';
-  },
-  set(val: string) {
-    openedFile.value.title = secondaryTitle.value ? val + ':' + secondaryTitle.value : val;
-  },
-});
-
-const secondaryTitle = computed({
-  get() {
-    const [main, ...rest] = openedFile.value.title?.split(':') || ['', ''];
-    return rest.join(':');
-  },
-  set(val: string) {
-    openedFile.value.title = val ? mainTitle.value + ':' + val : mainTitle.value;
-  },
-});
-
-const mainTitleRef = ref<HTMLElement | undefined>(undefined);
-
-const removeSecondary = () => {
-  openedFile.value.title = mainTitle.value + secondaryTitle.value;
-  nextTick(() => {
-    mainTitleRef.value?.focus();
-  });
-};
-
 ///
 /// Cover Right click
 ///
 const removeCover = () => {
   if ('unsaved' in openedFile.value) return;
-  trpcApi.removeCoverFile.mutate(openedFile.value.path);
+  trpcApi.removeCoverFile.mutate({ bookFilePath: openedFile.value.path });
 };
 
 const setCover = () => {
   if ('unsaved' in openedFile.value) return;
-  trpcApi.setCover.mutate(openedFile.value.path);
+  trpcApi.setCover.mutate({ bookFilePath: openedFile.value.path });
+};
+
+const fetchCover = async () => {
+  if (!openedFile.value.ISBN13) {
+    store.showNotification({
+      title: `Can't fetch cover without ISBN13`,
+      text: 'Please specify ISBN and try again',
+    });
+    return;
+  }
+
+  if ('unsaved' in openedFile.value) {
+    store.showNotification({
+      title: `Can't fetch cover for unsaved file`,
+      text: 'Save file and try again',
+    });
+    return;
+  }
+
+  trpcApi.fetchCover.mutate({ bookFilePath: openedFile.value.path });
 };
 </script>
 

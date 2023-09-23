@@ -51,7 +51,7 @@ const nodeClasses = cva(
     variants: {
       opened: {
         true: 'text-neutral-800 dark:text-neutral-50 cursor-default',
-        false: 'cursor-pointer text-neutral-400 dark:text-neutral-600',
+        false: 'cursor-pointer text-neutral-400 dark:text-neutral-500',
       },
       canDropHere: {
         true: 'bg-neutral-800 dark:bg-neutral-200',

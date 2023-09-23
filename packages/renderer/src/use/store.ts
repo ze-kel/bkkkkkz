@@ -9,6 +9,7 @@ import type { IOpened, IOpenedTabs, IViewSettings } from '/@main/services/opened
 import type { IFolderTree } from '/@main/services/files';
 import type { ISettings } from '/@main/services/settings';
 import type { ITags } from '/@main/watcher/tagUpdates';
+import type { INotification } from '/@main/ipc/api';
 
 const uid = new ShortUniqueId({ length: 10 });
 
@@ -19,6 +20,7 @@ export type StateType = {
   folderTree: IFolderTree | null;
   settings: ISettings | null;
   tagsTree: ITags;
+  notifications: INotification[];
 };
 
 export type OpenNewOneParams =
@@ -41,6 +43,7 @@ export const useStore = defineStore('main', {
       folderTree: null,
       openedTabs: [],
       openedTabsActiveId: '',
+      notifications: [],
     };
   },
   actions: {
@@ -154,6 +157,18 @@ export const useStore = defineStore('main', {
     updateOpened(data: IOpenedTabs['tabs']) {
       this.openedTabs = data;
       //this.saveOpened();
+    },
+
+    //
+    // Notifications
+    //
+    showNotification(notif: INotification) {
+      this.notifications.push(notif);
+
+      setTimeout(this.shiftNotification, 5000);
+    },
+    shiftNotification() {
+      this.notifications.shift();
     },
   },
   getters: {

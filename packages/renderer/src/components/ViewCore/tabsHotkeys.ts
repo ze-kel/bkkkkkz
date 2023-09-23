@@ -18,6 +18,7 @@ export const setupTabsHotkeys = () => {
           thing: store.rootPath as string,
           settings: getDefaultViewSettings(),
           scrollPosition: 0,
+          recursive: true,
         },
         {
           place: 'last',

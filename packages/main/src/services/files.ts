@@ -10,6 +10,7 @@ import { dialog } from 'electron';
 import { zBookData } from './books';
 import { z } from 'zod';
 import { getRootPathSafe } from './rootPath';
+import { sendNotificationToUser } from '../ipc/api';
 
 export type IFolderTree = {
   type: 'folder';
@@ -176,13 +177,16 @@ const moveToFolder = async (moveItemPath: string, toFolderPath: string): Promise
 const rename = async (srcPath: string, newName: string) => {
   const onlyDir = path.dirname(srcPath);
   const targetPath = path.join(onlyDir, newName);
+  // TODO: handle collisions
   await fs.move(srcPath, targetPath);
+  // TODO: send notification
   return targetPath;
 };
 
 const remove = async (delPath: string): Promise<void> => {
   const root = getRootPathSafe();
   if (!root) return;
+  // TODO: send notification
   await fs.remove(delPath);
 };
 
@@ -199,36 +203,49 @@ const removeCover = async (filePath: string): Promise<void> => {
   await fs.remove(coverPath);
   delete book.cover;
   await saveFileContent(book);
+
+  sendNotificationToUser({
+    title: 'Deleted',
+    text: 'Cover removed and deleted from disk',
+  });
 };
 
-const setCover = async (filePath: string) => {
+// Takes filename for cover we want to save and returns path to save it.
+// Can accept both "filename.ext" and "/folder/filename.ext"
+const getPathForCoverSaving = (coverFile: string): string => {
   const localSettings = getSettings();
   const root = getRootPathSafe();
 
+  fs.ensureDirSync(path.join(root, localSettings.coversPath));
+
+  const ext = path.extname(coverFile);
+  let coverFileName = path.parse(coverFile).name;
+
+  while (fs.existsSync(path.join(root, localSettings.coversPath, coverFileName + ext))) {
+    coverFileName += '(1)';
+  }
+
+  return path.join(root, localSettings.coversPath, coverFileName + ext);
+};
+
+const setCover = async (filePath: string) => {
+  const root = getRootPathSafe();
   const book = await getFileContent(filePath);
   const file = await dialog.showOpenDialog({
     properties: ['openFile'],
-    filters: [{ name: 'Images', extensions: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'] }],
+    filters: [{ name: 'Images', extensions: ['jpg', 'jpeg', 'png', 'gif', 'webp'] }],
   });
   if (file.filePaths.length) {
     const selectedFile = file.filePaths[0];
 
-    const fileWithExt = path.basename(selectedFile);
-    const ext = path.extname(fileWithExt);
+    const filename = path.basename(selectedFile);
 
-    let coverFileName = fileWithExt.replace(ext, '');
+    const pathToSave = getPathForCoverSaving(filename);
 
-    while (fs.existsSync(path.join(root, localSettings.coversPath, coverFileName))) {
-      coverFileName += '(1)';
-    }
-    fs.copyFile(selectedFile, path.join(root, localSettings.coversPath, coverFileName + ext));
+    await fs.copyFile(selectedFile, path.join(root, pathToSave));
 
-    const previous = book.cover || null;
-
-    book.cover = coverFileName + ext;
+    book.cover = path.basename(pathToSave);
     saveFileContent(book);
-
-    if (previous) await fs.remove(locateCover(previous));
   }
 };
 
@@ -236,6 +253,59 @@ const createFolder = (pathForFolder: string, name: string) => {
   const newPath = path.join(pathForFolder, name);
   fs.mkdirSync(path.join(pathForFolder, name));
   return newPath;
+};
+
+const saveCoverFromBlob = async (fileNameWithExtension: string, imageBlob: Blob) => {
+  const path = getPathForCoverSaving(fileNameWithExtension);
+
+  await fs.writeFile(path, Buffer.from(await imageBlob.arrayBuffer()));
+  return path;
+};
+
+const fetchCover = async (filePath: string) => {
+  const book = await getFileContent(filePath);
+  if (!book.ISBN13 || (String(book.ISBN13).length !== 13 && String(book.ISBN13).length !== 10)) {
+    sendNotificationToUser({
+      title: 'Unable to fetch',
+      text: 'ISBN is incorrect. It should be 10 or 13 numbers.',
+    });
+    return;
+  }
+
+  sendNotificationToUser({
+    title: 'Trying to fetch cover',
+    text: 'Please wait',
+  });
+
+  const res = await fetch(`https://covers.openlibrary.org/b/ISBN/${book.ISBN13}-L.jpg`);
+
+  if (res.status !== 200) {
+    sendNotificationToUser({
+      title: 'Unable to fetch',
+      text: 'OpenLibrary has no cover awailable for this ISBN',
+    });
+    return;
+  }
+
+  const cover = await res.blob();
+
+  // Sometimes API returns empty 1px by 1px image. Treat this as if we got 404
+  if (cover.size / 1000 < 5) {
+    sendNotificationToUser({
+      title: 'Unable to fetch',
+      text: 'OpenLibrary has no cover awailable for this ISBN',
+    });
+    return;
+  }
+
+  const bookFilePath = await saveCoverFromBlob(String(book.ISBN13), cover);
+  book.cover = path.basename(bookFilePath);
+  saveFileContent(book);
+
+  sendNotificationToUser({
+    title: 'Got cover',
+    text: 'OpenLibrary found cover for this ISBN, added it.',
+  });
 };
 
 export default {
@@ -253,4 +323,5 @@ export default {
   locateCover,
   setCover,
   createFolder,
+  fetchCover,
 };

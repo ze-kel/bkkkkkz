@@ -61,7 +61,7 @@ const convertedModelValue = computed(() =>
 
 const currentMonthString = computed(() => format(cursor.value, 'MMMM yyyy'));
 
-// Day in a month we are currently viewin
+// Day in a month we are currently looking at
 const cursor = ref(startOfMonth(props.modelValue ? stringToDate(props.modelValue) : new Date()));
 
 // Whetner to transiton to new month from left or right
@@ -145,7 +145,7 @@ watch(cursor, () => {
       </BasicButton>
     </div>
     <div
-      class="heightTransition relative mt-2"
+      class="heightTransition relative mt-2 w-64"
       :style="{ height: transitionHeigth ? height + 'px' : 'auto' }"
     >
       <div
@@ -164,7 +164,7 @@ watch(cursor, () => {
       <div
         v-if="isAnimating"
         :key="previousCursor.toDateString()"
-        class="2 absolute left-0 top-0 grid w-fit grid-cols-7 gap-1"
+        class="absolute left-0 top-0 grid w-fit grid-cols-7 gap-1"
         :class="previousMonth"
       >
         <DaysRenderer

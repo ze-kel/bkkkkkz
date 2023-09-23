@@ -1,26 +1,31 @@
 <template>
-  <div class="h-full max-h-full flex overflow-hidden">
-    <div class="flex-auto box-border" :style="{ width: `${fileTreeSize}px` }">
-      <div class="h-10 bg-neutral-200 dark:bg-neutral-900 dragApp"></div>
-      <div class="px-2">
+  <div class="flex h-full max-h-full overflow-hidden">
+    <div
+      class="relative box-border flex-auto overflow-hidden"
+      :style="{ width: `${fileTreeSize}px` }"
+    >
+      <div class="dragApp h-10 bg-neutral-200 dark:bg-neutral-900"></div>
+      <div class="z-2 relative h-full border-r border-neutral-100 px-2 dark:border-neutral-900">
         <IconsMenu />
 
         <div class="overflow-y-auto overflow-x-hidden">
           <FileTree />
 
-          <hr class="bg-neutral-200 dark:bg-neutral-700 h-[1px] border-0 w-full my-3" />
+          <hr
+            class="dark:bg-neutral-000 my-3 h-[1px] w-full border-0 bg-neutral-100 dark:bg-neutral-900"
+          />
           <TagsTree />
         </div>
       </div>
     </div>
 
-    <div class="flex w-full max-h-full overflow-hidden">
-      <div class="w-full h-full flex flex-col">
+    <div class="flex max-h-full w-full overflow-hidden">
+      <div class="flex h-full w-full flex-col">
         <TabsSelector class="bg-neutral-200 dark:bg-neutral-900" />
         <div
           v-if="store.openedItem"
           :key="store.openedItem.thing"
-          class="w-full h-[calc(100%_-_40px)]"
+          class="h-[calc(100%_-_40px)] w-full"
         >
           <template v-if="store.openedItem.type === 'innerPage'">
             <HomePage v-if="store.openedItem.thing === 'home'" />

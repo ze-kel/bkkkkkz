@@ -1,10 +1,11 @@
 <template>
   <div class="" :class="darkModeClass">
     <div
-      class="bg-neutral-50 flex h-screen flex-col dark:bg-neutral-950 text-neutral-950 dark:text-neutral-50"
+      class="flex h-screen flex-col bg-neutral-50 text-neutral-950 dark:bg-neutral-950 dark:text-neutral-50"
     >
       <ViewCore v-if="hasRootPath" />
       <Welcome v-else />
+      <NotificationHandler />
     </div>
   </div>
 </template>
@@ -18,6 +19,7 @@ import Welcome from './WelcomeScreen/WelcomeScreen.vue';
 import ViewCore from './ViewCore/ViewCore.vue';
 import { trpcApi } from '../utils/trpc';
 import { useStore } from '../use/store';
+import NotificationHandler from '/@/components/Notifications/NotificationHandler.vue';
 
 const store = useStore();
 
@@ -47,6 +49,18 @@ const darkModeClass = computed(() => {
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : '';
   }
   return 'dark';
+});
+
+//
+// Handle backend notification
+//
+
+const r = trpcApi.sendNotification.subscribe(undefined, {
+  onData: store.showNotification,
+});
+
+onUnmounted(async () => {
+  r.unsubscribe();
 });
 </script>
 

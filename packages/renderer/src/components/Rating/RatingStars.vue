@@ -1,13 +1,13 @@
 <template>
   <div
-    class="flex fill-neutral-800 dark:fill-neutral-100"
+    class="flex h-fit fill-neutral-800 dark:fill-neutral-100"
     :class="!disabled && 'cursor-pointer'"
     @mouseleave="clearHovered"
     @click="setRating"
   >
-    <div v-for="index in 5" :key="index" class="relative">
-      <div class="h-full w-[50%] absolute" @mouseenter="setHovered(index - 0.5)"></div>
-      <div class="h-full w-[50%] left-[50%] absolute" @mouseenter="setHovered(index)"></div>
+    <div v-for="index in 5" :key="index" class="relative h-fit">
+      <div class="absolute h-full w-[50%]" @mouseenter="setHovered(index - 0.5)"></div>
+      <div class="absolute left-[50%] h-full w-[50%]" @mouseenter="setHovered(index)"></div>
 
       <svg
         xmlns="http://www.w3.org/2000/svg"

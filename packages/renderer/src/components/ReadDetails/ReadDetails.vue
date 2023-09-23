@@ -1,5 +1,5 @@
 <template>
-  <div class="w-full rounded">
+  <div class="w-fit rounded">
     <div class="flex flex-col gap-2">
       <div
         v-for="(date, index) in modelValue"
@@ -21,13 +21,15 @@
           <XIcon class="w-4 opacity-50" />
         </BasicButton>
       </div>
-    </div>
-    <div
-      v-test-class="'T-editor-date-add'"
-      class="w-fit cursor-pointer py-2 text-sm font-light transition-colors dark:text-neutral-600 dark:hover:text-neutral-200"
-      @click="addNewDate"
-    >
-      Log new read date
+      <BasicButton
+        v-test-class="'T-editor-date-remove'"
+        variant="ghost"
+        size="sm"
+        class="mt-2"
+        @click="addNewDate"
+      >
+        Log new reading
+      </BasicButton>
     </div>
   </div>
 </template>

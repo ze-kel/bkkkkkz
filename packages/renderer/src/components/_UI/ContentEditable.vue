@@ -3,13 +3,13 @@
     :is="tag"
     ref="element"
     class="outline-none focus:outline-none"
-    :class="placeholder && placeholderClasses"
+    :class="isPlaceholder && placeholderClasses"
     :contenteditable="contenteditable"
     @input="inputHandler"
     @focus="focusHandler"
     @blur="blurHandler"
     @paste="onPaste"
-    @keyup="onKeypress"
+    @keypress="onKeypress"
   />
 </template>
 
@@ -63,11 +63,11 @@ function replaceAll(str: string, search: string, replacement: string) {
   return str.split(search).join(replacement);
 }
 
-const element = ref<HTMLElement | null>(null);
-defineExpose(element);
+const element = ref<HTMLElement>();
+defineExpose({ element });
 
 const focused = ref();
-const placeholder = ref();
+const isPlaceholder = ref();
 
 function currentContent() {
   if (!element.value) return '';
@@ -79,9 +79,9 @@ function updateContent(newcontent: string | number | undefined, usePlaceholder: 
 
   if (usePlaceholder && !newcontent) {
     element.value.innerHTML = props.placeholder;
-    placeholder.value = true;
+    isPlaceholder.value = true;
   } else {
-    placeholder.value = false;
+    isPlaceholder.value = false;
 
     if (typeof newcontent === 'number') {
       newcontent = Number.isNaN(newcontent) ? '' : String(newcontent);
@@ -97,7 +97,7 @@ function updateContent(newcontent: string | number | undefined, usePlaceholder: 
 
 function focusHandler() {
   focused.value = true;
-  placeholder.value = false;
+  isPlaceholder.value = false;
 
   updateContent(props.modelValue, false);
 }

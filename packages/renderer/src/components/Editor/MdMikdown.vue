@@ -1,13 +1,5 @@
 <template>
   <div class="relative h-full w-full">
-    <transition name="fade">
-      <div
-        v-if="!hasFocus && (!modelValue || modelValue === '\n' || modelValue === '\n\n')"
-        class="absolute left-[50%] top-[50%] -translate-x-full -translate-y-full text-neutral-500"
-      >
-        No markdown content
-      </div>
-    </transition>
     <div ref="editorRef" v-test-class="'T-editor-markdown'" class="h-full"></div>
   </div>
 </template>

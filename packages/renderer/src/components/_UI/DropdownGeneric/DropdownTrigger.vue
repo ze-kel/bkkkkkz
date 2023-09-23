@@ -1,5 +1,5 @@
 <template>
-  <div :ref="(v) => setTriggerRef(v)" :class="$attrs.class" @click.stop="open">
+  <div :ref="(v) => setTriggerRef(v)" :class="$attrs.class" @click="open">
     <slot></slot>
   </div>
 </template>

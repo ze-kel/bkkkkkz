@@ -1,15 +1,18 @@
 <template>
-  <slot />
+  <div ref="baseRef" class="relative">
+    <slot />
+  </div>
 </template>
 
 <script lang="ts" setup>
 import { InjectionKey, nextTick, onMounted, ref } from 'vue';
-import { useFloating, flip, shift, offset } from '@floating-ui/vue';
+import { useFloating, flip, shift, offset, autoUpdate } from '@floating-ui/vue';
 import { provide } from 'vue';
 import { PROVIDE_KEY } from './';
 
 const triggerRef = ref();
 const floatingRef = ref();
+const baseRef = ref();
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const setTriggerRef = (v: any) => {
@@ -22,7 +25,8 @@ const setFloatingRef = (v: any) => {
 };
 
 const { floatingStyles, update } = useFloating(triggerRef, floatingRef, {
-  middleware: [offset(5), flip(), shift()],
+  middleware: [offset(5)],
+  whileElementsMounted: autoUpdate,
   placement: 'bottom',
 });
 
@@ -30,9 +34,9 @@ const isOpened = ref(false);
 
 const outsideClickHandler = (e: MouseEvent) => {
   const t = e.target as HTMLElement;
-  if (!t || !floatingRef.value) return;
+  if (!t || !baseRef.value) return;
 
-  if (floatingRef.value.contains(t)) {
+  if (baseRef.value.contains(t)) {
     return;
   }
 

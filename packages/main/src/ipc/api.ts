@@ -12,9 +12,18 @@ import { getRootPath, setRootPath } from '../services/rootPath';
 import { getSettings, saveSettings, zSettings } from '../services/settings';
 import { getReadChallenge, saveReadChallenge, zReadChallenge } from '../services/readChalenge';
 
+export type INotification = {
+  title: string;
+  text: string;
+};
+
 const t = initTRPC.create({ isServer: true });
 
 export const apiEventsEmitter = new EventEmitter();
+
+export const sendNotificationToUser = (notif: INotification) => {
+  apiEventsEmitter.emit('SEND_NOTIFICATION', notif);
+};
 
 export const appRouter = t.router({
   getFileTree: t.procedure.query(async () => {
@@ -73,13 +82,24 @@ export const appRouter = t.router({
     return TagsStore.getTags();
   }),
 
-  removeCoverFile: t.procedure.input(z.string()).mutation(async ({ input }) => {
-    return await FileService.removeCover(input);
-  }),
+  removeCoverFile: t.procedure
+    .input(z.object({ bookFilePath: z.string() }))
+    .mutation(async ({ input }) => {
+      return await FileService.removeCover(input.bookFilePath);
+    }),
 
-  setCover: t.procedure.input(z.string()).mutation(async ({ input }) => {
-    return await FileService.setCover(input);
-  }),
+  setCover: t.procedure
+    .input(z.object({ bookFilePath: z.string() }))
+    .mutation(async ({ input }) => {
+      return await FileService.setCover(input.bookFilePath);
+    }),
+
+  /// askldjasldk
+  fetchCover: t.procedure
+    .input(z.object({ bookFilePath: z.string() }))
+    .mutation(async ({ input }) => {
+      return await FileService.fetchCover(input.bookFilePath);
+    }),
 
   createFolder: t.procedure
     .input(z.object({ pathToFolder: z.string(), name: z.string() }))
@@ -182,6 +202,19 @@ export const appRouter = t.router({
       };
     });
   }),
+
+  sendNotification: t.procedure.subscription(() => {
+    return observable<INotification>((emit) => {
+      function onThing(data: INotification) {
+        emit.next(data);
+      }
+      apiEventsEmitter.on('SEND_NOTIFICATION', onThing);
+      return () => {
+        apiEventsEmitter.off('SEND_NOTIFICATION', onThing);
+      };
+    });
+  }),
+
   clearAllEvents: t.procedure.mutation(() => {
     apiEventsEmitter.removeAllListeners('FILE_UPDATE');
     apiEventsEmitter.removeAllListeners('FILE_REMOVE');
@@ -189,6 +222,7 @@ export const appRouter = t.router({
     apiEventsEmitter.removeAllListeners('TREE_UPDATE');
     apiEventsEmitter.removeAllListeners('TAGS_UPDATE');
     apiEventsEmitter.removeAllListeners('SETTINGS_UPDATE');
+    apiEventsEmitter.removeAllListeners('SEND_NOTIFICATION');
   }),
 });
 

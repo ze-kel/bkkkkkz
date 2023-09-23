@@ -1,19 +1,26 @@
 <template>
-  <div v-if="file.cover && !forceFake" class="h-full flex items-end shadow-neutral-200">
-    <img :src="`covers://${file.cover}`" @error="() => (forceFake = true)" />
-  </div>
-
-  <div
-    v-else
-    class="p-3 rounded h-full border-neutral-400 border dark:border-neutral-800 flex flex-col"
-  >
-    <div class="title leading-tight shrink h-1/2 overflow-hidden align-middle text-xl">
-      {{ mainTitle }}
+  <div class="relative h-full w-full overflow-hidden">
+    <div
+      v-if="!showImage"
+      class="absolute left-0 top-0 flex h-full w-full flex-col rounded-md border border-neutral-400 p-3 transition-opacity dark:border-neutral-800"
+    >
+      <div
+        class="title overflow-hiddenalign-middle h-1/2 shrink overflow-hidden text-xl leading-tight"
+      >
+        {{ mainTitle }}
+      </div>
+      <hr class="my-2 h-[1px] w-full border-0 bg-neutral-50 dark:bg-neutral-900" />
+      <div class="author text-md flex-grow font-semibold">{{ file.author || 'Unknown' }}</div>
+      <div v-if="file.year">
+        {{ file.year }}
+      </div>
     </div>
-    <hr class="h-[1px] border-0 w-full bg-neutral-50 dark:bg-neutral-900 my-2" />
-    <div class="author flex-grow font-semibold text-md">{{ file.author || 'Unknown' }}</div>
-    <div v-if="file.year">
-      {{ file.year }}
+    <div v-else class="flex h-full items-end overflow-hidden rounded-md">
+      <img
+        :src="`covers://${file.cover}`"
+        class="block h-full w-full object-cover"
+        @error="() => (forceFake = true)"
+      />
     </div>
   </div>
 </template>
@@ -33,6 +40,8 @@ const props = defineProps({
 });
 
 const forceFake = ref(false);
+
+const showImage = computed(() => props.file.cover && !forceFake.value);
 
 watch(
   () => props.file.cover,

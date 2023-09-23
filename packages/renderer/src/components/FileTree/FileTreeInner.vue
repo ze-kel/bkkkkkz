@@ -17,15 +17,15 @@
       >
         <div
           v-if="foldable"
-          class="cursor-pointer"
-          @click="
+          class="flex cursor-pointer items-center justify-center pr-1"
+          @click.stop="
             () => {
               isFolded = !isFolded;
             }
           "
         >
           <ChevronDown
-            :class="['w-3 h-3 mr-1', isFolded && '-rotate-90']"
+            :class="['h-3 w-3', isFolded && '-rotate-90']"
             class="cursor-poiner pointer-events-none"
           />
         </div>
@@ -289,14 +289,14 @@ const deleteFolder = () => trpcApi.delete.mutate(props.content.path);
 ///
 const nodeClasses = cva(
   [
-    `px-2 py-1 mt-0.5 flex items-center text-m whitespace-nowrap overflow-hidden
+    `px-2 py-1 mt-0.5 flex items-stretch text-m whitespace-nowrap overflow-hidden
     rounded text-sm font-medium outline-0 transition-colors`,
   ],
   {
     variants: {
       opened: {
         true: 'text-neutral-800 dark:text-neutral-50 bg-neutral-900',
-        false: 'cursor-pointer text-neutral-400 dark:text-neutral-600',
+        false: 'cursor-pointer text-neutral-400 dark:text-neutral-500',
       },
       canDropHere: {
         true: '',

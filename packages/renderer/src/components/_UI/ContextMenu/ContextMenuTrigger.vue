@@ -1,5 +1,5 @@
 <template>
-  <div @click.right.stop="openMenu">
+  <div :class="$attrs.class" @click.right.stop="openMenu">
     <slot> </slot>
   </div>
 </template>

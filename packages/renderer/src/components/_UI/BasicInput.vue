@@ -7,7 +7,7 @@ import { NUMBERS_REGEX } from '/@main/helpers/utils';
 
 const inputVariants = cva(
   [
-    'min-h-9 flex w-full rounded-md border bg-transparent px-3 py-1 text-sm shadow-sm transition-colors',
+    'min-h-8 flex w-full rounded-md border bg-transparent px-3 py-1 text-sm shadow-sm transition-all',
     'file:border-0 file:bg-transparent file:text-sm file:font-medium',
     'focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-neutral-950 dark:focus-visible:ring-neutral-300',
     'placeholder:text-neutral-500 dark:placeholder:text-neutral-400  disabled:cursor-not-allowed disabled:opacity-50  ',
