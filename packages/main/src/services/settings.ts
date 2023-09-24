@@ -9,7 +9,7 @@ export const zSettings = z.object({
   dateFormat: z.string().default('yyyy-MM-dd'),
   dateLocale: z.string().default('en-GB'),
   coversPath: z.string().default('.covers'),
-  darkMode: z.number().min(-1).max(1).default(0),
+  darkMode: z.enum(['Light', 'System', 'Dark']).default('System'),
 });
 
 export type ISettings = z.infer<typeof zSettings>;
@@ -30,8 +30,12 @@ export const getSettings = () => {
 
   const f = fs.existsSync(targetFile) ? JSON.parse(fs.readFileSync(targetFile).toString()) : {};
 
-  const parsed = zSettings.parse(f);
-  return parsed;
+  const parsed = zSettings.safeParse(f);
+  if (!parsed.success) {
+    const def = zSettings.parse({});
+    return def;
+  }
+  return parsed.data;
 };
 
 export const saveSettings = (settings: ISettings) => {

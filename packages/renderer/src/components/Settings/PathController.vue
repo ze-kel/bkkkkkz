@@ -1,16 +1,18 @@
 <template>
   <div class="">
-    <h2 class="font-semibold mb-1">{{ title }}</h2>
+    <h2 class="mb-1 font-semibold">{{ title }}</h2>
     <div class="">
       <div class="currentPath mb-0.5 font-mono">{{ path ? path : 'Not Set' }}</div>
-      <button class="" @click="emit('change')">
+      <BasicButton class="mt-1" variant="outline" @click="emit('change')">
         {{ path ? 'Change' : 'Set' }}
-      </button>
+      </BasicButton>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
+import BasicButton from '/@/components/_UI/BasicButton/BasicButton.vue';
+
 const props = defineProps({
   title: {
     type: String,

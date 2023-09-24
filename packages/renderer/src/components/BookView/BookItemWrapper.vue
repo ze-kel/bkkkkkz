@@ -5,7 +5,7 @@
       <ContextMenu>
         <ContextMenuTrigger>
           <div
-            v-test-class="'T-book-item'"
+            v-test-class="testClasses.bookItems"
             v-bind="$attrs"
             class="cursor-pointer"
             :draggable="true"
@@ -74,6 +74,7 @@ import { trpcApi } from '/@/utils/trpc';
 
 import BookItemCover from '/@/components/BookView/BookItemCover.vue';
 import BookItemLine from '/@/components/BookView/BookItemLine.vue';
+import { testClasses } from '/@/utils/testClassBinds';
 export type IBookStyle = 'CARDS' | 'LINES';
 
 const store = useStore();

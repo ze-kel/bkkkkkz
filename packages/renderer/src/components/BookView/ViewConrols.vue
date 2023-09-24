@@ -50,7 +50,7 @@ import {
 
 import ButtonsSwitch from '../_UI/ButtonsSwitch.vue';
 import type { ISortByOption } from '/@main/services/openedTabs';
-import BasicButton from '/@/components/_UI/BasicButton.vue';
+import BasicButton from '/@/components/_UI/BasicButton/BasicButton.vue';
 import { SelectorItem, SelectorRoot } from '/@/components/_UI/Selector';
 
 const store = useStore();

@@ -24,7 +24,7 @@ import Settings from '../Settings/SettingsPage.vue';
 import { useStore } from '/@/use/store';
 
 import { PlusIcon, Settings2Icon, HomeIcon } from 'lucide-vue-next';
-import BasicButton from '/@/components/_UI/BasicButton.vue';
+import BasicButton from '/@/components/_UI/BasicButton/BasicButton.vue';
 
 const store = useStore();
 

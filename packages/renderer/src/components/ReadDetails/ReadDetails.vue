@@ -13,7 +13,7 @@
           @update:model-value="(val) => updateValue(index, val)"
         />
         <BasicButton
-          v-test-class="'T-editor-date-remove'"
+          v-test-class="testClasses.editorDateRemove"
           variant="ghost"
           size="icon"
           @click="removeDate(index)"
@@ -22,7 +22,7 @@
         </BasicButton>
       </div>
       <BasicButton
-        v-test-class="'T-editor-date-remove'"
+        v-test-class="testClasses.editorDateAdd"
         variant="ghost"
         size="sm"
         class="mt-2"
@@ -41,7 +41,8 @@ import DatePair from './DatePair.vue';
 import { format } from 'date-fns';
 import { XIcon } from 'lucide-vue-next';
 import { useStore } from '/@/use/store';
-import BasicButton from '/@/components/_UI/BasicButton.vue';
+import BasicButton from '/@/components/_UI/BasicButton/BasicButton.vue';
+import { testClasses } from '/@/utils/testClassBinds';
 
 const store = useStore();
 

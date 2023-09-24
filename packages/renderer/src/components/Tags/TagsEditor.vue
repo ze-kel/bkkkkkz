@@ -3,7 +3,7 @@
     <template v-for="(tag, index) in tags" :key="index">
       <ContentEditable
         ref="tagRefs"
-        v-test-class="'T-editor-tag'"
+        v-test-class="testClasses.editorTag"
         :model-value="tag"
         tag="div"
         spellcheck="false"
@@ -16,7 +16,7 @@
       />
     </template>
     <div
-      v-test-class="'T-editor-add-tag'"
+      v-test-class="testClasses.editorAddTag"
       class="cursor-pointer"
       :class="classes()"
       @click="createNewTag"
@@ -35,8 +35,7 @@ import type { PropType, Ref } from 'vue';
 import ContentEditable from '/@/components/_UI/ContentEditable.vue';
 import { PlusIcon } from 'lucide-vue-next';
 import { cva } from 'class-variance-authority';
-import { useElementSize } from '@vueuse/core';
-import BasicInput from '/@/components/_UI/BasicInput.vue';
+import { testClasses } from '/@/utils/testClassBinds';
 
 const classes = cva([
   'text-foreground inline-flex items-center rounded-md  px-2.5 py-0.5 text-xs font-semibold transition-all h-6',
@@ -83,7 +82,6 @@ const saveTag = (index: number, tag: string) => {
       const indexToSet = index === 0 ? 0 : index - 1;
 
       const targ = tagRefs.value[indexToSet].element;
-      console.log(targ);
       targ.focus();
       selectElement(targ);
     });
@@ -105,7 +103,7 @@ const selectElement = (element: HTMLElement, place?: 'end' | 'start') => {
       const text = element.childNodes[0];
       if (!text) {
         // Shouldn't happen, but just in case
-        console.log('Somethings is wrong when moving selection between tags');
+        console.error('Somethings is wrong when moving selection between tags');
       } else {
         if (place === 'end') {
           range.setStart(text, text.nodeValue?.length || 0);
@@ -160,10 +158,6 @@ const keyDownHandler = (e: KeyboardEvent, index: number) => {
     selectElement(tag, 'start');
     return;
   }
-
-  console.log(
-    `offA ${selection.anchorOffset} offF ${selection.focusOffset}  len ${tagValue.length} dir ${dir}`,
-  );
 };
 </script>
 

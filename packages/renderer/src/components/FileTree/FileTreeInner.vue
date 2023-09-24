@@ -3,9 +3,18 @@
     <ContextMenuTrigger>
       <div
         ref="treeEl"
-        v-test-class="['T-file-tree-item', isOpened && 'T-opened-folder']"
+        v-test-class="testClasses.fileTreeItems"
         :draggable="!isRoot"
-        :class="nodeClasses({ canDropHere, opened: isOpened })"
+        :class="
+          classMerge(
+            'border border-transparent',
+            buttonVariants({
+              variant: canDropHere ? 'outline' : isOpened ? 'default' : 'ghost',
+              size: 'compact',
+            }),
+            'w-full justify-start truncate',
+          )
+        "
         @dragstart="startDrag($event, content.path)"
         @drop="onDrop($event, content.path)"
         @dragenter="dragEnter"
@@ -30,10 +39,14 @@
           />
         </div>
         <template v-if="isRoot">
-          <span v-test-class="'T-label'" class="pointer-events-none"> All Books </span>
+          <span v-test-class="testClasses.label" class="pointer-events-none"> All Books </span>
         </template>
         <template v-else>
-          <span v-if="!isRenaming" v-test-class="'T-label'" class="pointer-events-none truncate">
+          <span
+            v-if="!isRenaming"
+            v-test-class="testClasses.label"
+            class="pointer-events-none truncate"
+          >
             {{ content.name }}
           </span>
           <input
@@ -53,11 +66,7 @@
           :content="item"
           :depth="depth + 10"
         />
-        <div
-          v-if="isCreating"
-          class="mt-[1px] px-2 py-0.5"
-          :class="nodeClasses({ opened: true, canDropHere: false })"
-        >
+        <div v-if="isCreating" class="mt-[1px] px-2 py-0.5">
           <input
             ref="inputName"
             v-model="newName"
@@ -91,7 +100,9 @@ import type { IFolderTree } from '/@main/services/files';
 import { trpcApi } from '/@/utils/trpc';
 import type { OpenNewOneParams } from '/@/use/store';
 import { useStore } from '/@/use/store';
-import { cva } from 'class-variance-authority';
+import { testClasses } from '/@/utils/testClassBinds';
+import classMerge from '/@/utils/classMerge';
+import { buttonVariants } from '/@/components/_UI/BasicButton/BasicButtonStyle';
 
 import {
   ContextMenu,
@@ -283,28 +294,6 @@ const saveFolder = () => {
 };
 
 const deleteFolder = () => trpcApi.delete.mutate(props.content.path);
-
-///
-/// Styling
-///
-const nodeClasses = cva(
-  [
-    `px-2 py-1 mt-0.5 flex items-stretch text-m whitespace-nowrap overflow-hidden
-    rounded text-sm font-medium outline-0 transition-colors`,
-  ],
-  {
-    variants: {
-      opened: {
-        true: 'text-neutral-800 dark:text-neutral-50 bg-neutral-900',
-        false: 'cursor-pointer text-neutral-400 dark:text-neutral-500',
-      },
-      canDropHere: {
-        true: '',
-      },
-    },
-    compoundVariants: [],
-  },
-);
 </script>
 
 <style lang="postcss"></style>

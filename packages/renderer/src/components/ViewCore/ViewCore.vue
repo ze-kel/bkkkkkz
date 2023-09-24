@@ -1,11 +1,8 @@
 <template>
   <div class="flex h-full max-h-full overflow-hidden">
-    <div
-      class="relative box-border flex-auto overflow-hidden"
-      :style="{ width: `${fileTreeSize}px` }"
-    >
+    <div class="box-border flex-auto overflow-hidden" :style="{ width: `${fileTreeSize}px` }">
       <div class="dragApp h-10 bg-neutral-200 dark:bg-neutral-900"></div>
-      <div class="z-2 relative h-full border-r border-neutral-100 px-2 dark:border-neutral-900">
+      <div class="z-2 h-full border-r border-neutral-100 px-2 dark:border-neutral-900">
         <IconsMenu />
 
         <div class="overflow-y-auto overflow-x-hidden">
@@ -85,13 +82,4 @@ onMounted(async () => {
 });
 </script>
 
-<style>
-#app {
-  font-family: BlinkMacSystemFont, 'SF PRO DISPLAY', 'Roboto', 'Segoe UI';
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-
-  background-color: var(--bg-main);
-  color: var(--text-main);
-}
-</style>
+<style></style>

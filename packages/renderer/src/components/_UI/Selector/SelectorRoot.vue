@@ -9,9 +9,11 @@
     </DropdownTrigger>
 
     <DropdownContent>
-      <MenuRoot>
-        <slot></slot>
-      </MenuRoot>
+      <DropdownCloser>
+        <MenuRoot>
+          <slot></slot>
+        </MenuRoot>
+      </DropdownCloser>
     </DropdownContent>
   </DropdownRoot>
 </template>
@@ -22,18 +24,21 @@ import { InjectionKey, onMounted, ref } from 'vue';
 import { useFloating, flip, shift, offset } from '@floating-ui/vue';
 import { provide } from 'vue';
 import { PROVIDE_KEY } from './';
-import BasicButton from '../BasicButton.vue';
+import BasicButton from '/@/components/_UI/BasicButton/BasicButton.vue';
 
 import { useVModel } from '@vueuse/core';
 import { MenuRoot } from '/@/components/_UI/GenericMenu';
 import { ChevronDown } from 'lucide-vue-next';
 
-import { DropdownContent, DropdownRoot, DropdownTrigger } from '/@/components/_UI/DropdownGeneric';
-
-// TODO: SPLIT BASIC MODAL INTO A SEPARATE REUSABLE COMPONENT
+import {
+  DropdownContent,
+  DropdownRoot,
+  DropdownTrigger,
+  DropdownCloser,
+} from '/@/components/_UI/DropdownGeneric';
 
 const props = defineProps<{
-  modelValue: string;
+  modelValue: string | number;
 }>();
 const emit = defineEmits(['update:modelValue']);
 

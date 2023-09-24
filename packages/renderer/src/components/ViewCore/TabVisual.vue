@@ -1,28 +1,31 @@
 <template>
   <div
     :class="[
-      'py-1 h-10 flex items-center justify-between border-transparent transition-all',
+      'flex h-10 items-center justify-between border-transparent py-1 transition-all',
       widthAwailable > 100 ? 'px-2 text-sm' : 'px-1 text-xs',
       isActive
-        ? 'dark:bg-neutral-950 bg-neutral-50 rounded-tl-md rounded-tr-md'
-        : 'bg-neutral-200 text-neutral-600 dark:bg-neutral-900 dark:text-neutral-600 hover:bg-neutral-300 dark:hover:bg-neutral-800',
+        ? 'rounded-tl-md rounded-tr-md bg-neutral-50 dark:bg-neutral-950'
+        : 'bg-neutral-200 text-neutral-600 hover:bg-neutral-300 dark:bg-neutral-900 dark:text-neutral-600 dark:hover:bg-neutral-800',
     ]"
   >
-    <div v-test-class="'T-label'" class="truncate" :class="isNewAndAnimating && 'animate-new'">
+    <div
+      v-test-class="testClasses.label"
+      class="truncate"
+      :class="isNewAndAnimating && 'animate-new'"
+    >
       {{ text }}
     </div>
 
     <BasicButton variant="ghost" size="iconSm" @mousedown.stop @click.stop="emit('close')">
-      <XIcon class="duration-[0] text-neutral-300 dark:text-neutral-600" />
+      <XIcon class="text-neutral-300 duration-[0] dark:text-neutral-600" />
     </BasicButton>
   </div>
 </template>
 
 <script lang="ts" setup>
 import { XIcon } from 'lucide-vue-next';
-import BasicButton from '/@/components/_UI/BasicButton.vue';
-import { onRenderTracked } from 'vue';
-
+import BasicButton from '/@/components/_UI/BasicButton/BasicButton.vue';
+import { testClasses } from '/@/utils/testClassBinds';
 
 const props = defineProps({
   isNewAndAnimating: {

@@ -8,7 +8,7 @@
         No markdown content
       </div>
     </transition>
-    <Milkdown class="h-full" />
+    <Milkdown v-test-class="testClasses.editorMarkdown" class="h-full" />
   </div>
 </template>
 
@@ -21,6 +21,7 @@ import { listener, listenerCtx } from '@milkdown/plugin-listener';
 import { Slice } from 'prosemirror-model';
 import 'prosemirror-view/style/prosemirror.css';
 import type { Ctx } from '@milkdown/ctx';
+import { testClasses } from '/@/utils/testClassBinds';
 
 const props = defineProps({
   modelValue: {

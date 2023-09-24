@@ -13,10 +13,19 @@ import {
 } from 'date-fns';
 import type { Interval } from 'date-fns';
 import { computed, onMounted, ref, watch, nextTick } from 'vue';
-import BasicButton from '/@/components/_UI/BasicButton.vue';
+import BasicButton from '/@/components/_UI/BasicButton/BasicButton.vue';
 import { useStore } from '/@/use/store';
 import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-vue-next';
 import DaysRenderer from '/@/components/_UI/Calendar/DaysRenderer.vue';
+import {
+  DropdownRoot,
+  DropdownContent,
+  DropdownTrigger,
+  DropdownCloser,
+} from '/@/components/_UI/DropdownGeneric';
+import { MenuItem, MenuRoot } from '/@/components/_UI/GenericMenu';
+import BasicInput from '/@/components/_UI/BasicInput.vue';
+import { testClasses } from '/@/utils/testClassBinds';
 
 const store = useStore();
 
@@ -59,10 +68,51 @@ const convertedModelValue = computed(() =>
   props.modelValue ? stringToDate(props.modelValue) : undefined,
 );
 
-const currentMonthString = computed(() => format(cursor.value, 'MMMM yyyy'));
-
 // Day in a month we are currently looking at
 const cursor = ref(startOfMonth(props.modelValue ? stringToDate(props.modelValue) : new Date()));
+
+const currentMonthString = computed(() => format(cursor.value, 'MMMM'));
+
+const allMonths = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+];
+
+const setMonth = (i: number) => {
+  const cur = cursor.value.getMonth();
+  if (i === cur) return;
+
+  moveDirection.value = i - cursor.value.getMonth() < 0 ? -1 : 1;
+
+  cursor.value = new Date(cursor.value.getFullYear(), i, cursor.value.getDate());
+};
+
+const currentYearInputValue = ref(cursor.value.getFullYear());
+
+watch(currentYearInputValue, (year) => {
+  const yearNum = Number(year);
+
+  if (yearNum < 1970 || yearNum > 2100) return;
+  if (yearNum === cursor.value.getFullYear()) return;
+
+  moveDirection.value = yearNum - cursor.value.getFullYear() < 0 ? -1 : 1;
+
+  cursor.value = new Date(yearNum, cursor.value.getMonth(), cursor.value.getDate());
+});
+
+const currentYearInputBlurHandler = () => {
+  currentYearInputValue.value = cursor.value.getFullYear();
+};
 
 // Whetner to transiton to new month from left or right
 const moveDirection = ref(0);
@@ -134,18 +184,49 @@ watch(cursor, () => {
 </script>
 
 <template>
-  <div class="overflow-hidden">
+  <div class="">
     <div class="flex items-center justify-between">
       <BasicButton variant="outline" size="icon" @click="moveCursorMonths(-1)">
         <ChevronLeftIcon class="w-5" />
       </BasicButton>
-      {{ currentMonthString }}
+
+      <DropdownRoot>
+        <DropdownTrigger>
+          <BasicButton v-test-class="testClasses.editorCalendarMonthSelectorButton" variant="ghost">
+            {{ currentMonthString }}
+          </BasicButton>
+        </DropdownTrigger>
+        <DropdownContent>
+          <DropdownCloser>
+            <MenuRoot class="grid w-64 grid-cols-2">
+              <MenuItem
+                v-for="(month, i) in allMonths"
+                :key="month"
+                v-test-class="testClasses.editorCalendarMonthSelectorMonth"
+                @click="setMonth(i)"
+              >
+                {{ month }}
+              </MenuItem>
+            </MenuRoot>
+          </DropdownCloser>
+        </DropdownContent>
+      </DropdownRoot>
+
+      <BasicInput
+        v-model="currentYearInputValue"
+        v-test-class="testClasses.editorCalendarYearInput"
+        type="number"
+        theme="hidden"
+        class="w-16 text-center"
+        @blur="currentYearInputBlurHandler"
+      />
+
       <BasicButton variant="outline" size="icon" @click="moveCursorMonths(1)">
         <ChevronRightIcon class="w-5" />
       </BasicButton>
     </div>
     <div
-      class="heightTransition relative mt-2 w-64"
+      class="heightTransition relative mt-2 w-64 overflow-hidden"
       :style="{ height: transitionHeigth ? height + 'px' : 'auto' }"
     >
       <div
@@ -171,7 +252,6 @@ watch(cursor, () => {
           :cursor="previousCursor"
           :limits="computedLimits"
           :selected="convertedModelValue"
-          @click-day="recordDate"
         />
       </div>
     </div>

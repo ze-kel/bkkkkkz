@@ -30,8 +30,8 @@
 
           <BasicInput
             v-model="openedFile.ISBN13"
-            v-test-class="'T-editor-isbn'"
-            :number="true"
+            v-test-class="testClasses.editorIsbn"
+            type="number"
             class="min-w-[100px] text-center opacity-50 focus:opacity-100"
             theme="hidden"
             placeholder="ISBN13"
@@ -42,7 +42,7 @@
           <div class="flex w-full items-center gap-3">
             <BasicInput
               v-model="openedFile.name"
-              v-test-class="'T-editor-filename'"
+              v-test-class="testClasses.editorFilename"
               spellcheck="false"
               class="w-full min-w-[100px] opacity-50 focus:opacity-100"
               placeholder="Filename"
@@ -56,7 +56,7 @@
 
           <BasicInput
             v-model="openedFile.title"
-            v-test-class="'T-editor-title'"
+            v-test-class="testClasses.editorTitle"
             spellcheck="false"
             class="line-clamp-1 min-w-[100px] text-4xl font-light leading-none"
             placeholder="Title"
@@ -64,7 +64,7 @@
           />
           <BasicInput
             v-model="openedFile.author"
-            v-test-class="'T-editor-author'"
+            v-test-class="testClasses.editorAuthor"
             spellcheck="false"
             class="font-regular -mt-1 w-fit min-w-[100px] text-2xl leading-none"
             theme="hidden"
@@ -74,7 +74,7 @@
           <div class="flex items-center gap-3">
             <BasicInput
               v-model="openedFile.year"
-              v-test-class="'T-editor-year'"
+              v-test-class="testClasses.editorYear"
               type="number"
               theme="hidden"
               class="w-[75px]"
@@ -131,7 +131,8 @@ import { trpcApi } from '/@/utils/trpc';
 import type { Unsubscribable } from '@trpc/server/observable';
 import type { IOpenedFile, IOpenedNewFile } from '/@main/services/openedTabs';
 import { useStore } from '/@/use/store';
-import BasicButton from '/@/components/_UI/BasicButton.vue';
+import BasicButton from '/@/components/_UI/BasicButton/BasicButton.vue';
+import { testClasses } from '/@/utils/testClassBinds';
 
 const store = useStore();
 

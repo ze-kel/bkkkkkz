@@ -7,7 +7,6 @@
 <script lang="ts" setup>
 import Tag from './TagFromTree.vue';
 import { cloneDeep as _cloneDeep } from 'lodash';
-import type { ITags } from '/@main/watcher/tagUpdates';
 import type { Unsubscribable } from 'type-fest';
 import { computed, onBeforeMount, onMounted, onUnmounted } from 'vue';
 import { trpcApi } from '/@/utils/trpc';

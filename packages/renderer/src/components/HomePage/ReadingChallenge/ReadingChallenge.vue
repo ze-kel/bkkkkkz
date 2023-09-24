@@ -76,7 +76,7 @@ const load = async () => {
   try {
     read.value = await trpcApi.loadFilesFromTag.query('_i_read');
   } catch (e) {
-    console.log('');
+    console.error('failed loading read tag');
   }
 };
 

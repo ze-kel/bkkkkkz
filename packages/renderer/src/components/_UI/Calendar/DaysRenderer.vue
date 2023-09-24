@@ -13,12 +13,14 @@ import {
 } from 'date-fns';
 import type { Interval } from 'date-fns';
 import { computed, ref, watch } from 'vue';
-import BasicButton from '/@/components/_UI/BasicButton.vue';
+import BasicButton from '/@/components/_UI/BasicButton/BasicButton.vue';
+import { testClasses } from '/@/utils/testClassBinds';
 
 const props = defineProps<{
   cursor: Date;
   selected?: Date;
   limits: Interval;
+  disabled?: boolean;
 }>();
 
 const emits = defineEmits<{
@@ -47,7 +49,7 @@ const inLimit = (day: number) => {
 };
 
 const recordDate = (day: number) => {
-  if (!inLimit(day)) return;
+  if (!inLimit(day) || props.disabled) return;
   emits('clickDay', day);
 };
 
@@ -62,6 +64,7 @@ const higlight = computed(() =>
   <BasicButton
     v-for="day in dates"
     :key="day"
+    v-test-class="!disabled && testClasses.editorCalendarDay"
     class="h-8 w-8"
     :disabled="!inLimit(day)"
     :variant="day === higlight ? 'default' : 'ghost'"

@@ -51,7 +51,6 @@ export const FileUpdates: IFileUpdatesModule = {
   ignored: {},
   addFile(file) {
     const relevantIndexes = getRelevantIndexes(file.path);
-    console.log('relevant', relevantIndexes);
     if (relevantIndexes.length) apiEventsEmitter.emit('FILE_ADD', { file, relevantIndexes });
   },
   changeFile(file) {

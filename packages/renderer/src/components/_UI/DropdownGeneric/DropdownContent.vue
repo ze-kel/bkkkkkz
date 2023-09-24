@@ -5,8 +5,8 @@
     :class="
       classMerge(
         'z-50',
-        !unstyled &&
-          'overflow-hidden rounded-md border border-neutral-100 bg-neutral-50 p-1 shadow-md dark:border-neutral-900 dark:bg-neutral-950',
+        styled &&
+          'rounded-md border border-neutral-100 bg-neutral-50 p-1 shadow-md dark:border-neutral-900 dark:bg-neutral-950',
         $attrs.class as string,
       )
     "
@@ -24,7 +24,7 @@ import type { DROPDOWN_PROVIDE } from './DropdownRoot.vue';
 import classMerge from '/@/utils/classMerge';
 
 const props = defineProps({
-  unstyled: {
+  styled: {
     type: Boolean,
     default: false,
   },

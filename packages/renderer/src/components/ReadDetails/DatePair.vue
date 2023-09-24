@@ -1,7 +1,7 @@
 <template>
-    <DateInput v-model="dateStart" />
-    <MoveRight class="w-4" />
-    <DateInput v-model="dateEnd" />
+  <DateInput v-model="dateStart" v-test-class="testClasses.editorDateFrom" />
+  <MoveRight class="w-4" />
+  <DateInput v-model="dateEnd" v-test-class="testClasses.editorDateTo" />
 </template>
 
 <script lang="ts" setup>
@@ -9,13 +9,9 @@ import { computed } from 'vue';
 
 import type { PropType } from 'vue';
 import type { IDateRead } from '/@main/services/books';
-import VueDatePicker from '@vuepic/vue-datepicker';
-import { parse } from 'date-fns';
-
-import '@vuepic/vue-datepicker/dist/main.css';
 import { MoveRight } from 'lucide-vue-next';
+import { testClasses } from '/@/utils/testClassBinds';
 
-import { useStore } from '/@/use/store';
 import DateInput from '/@/components/_UI/Calendar/DateInput.vue';
 
 const props = defineProps({

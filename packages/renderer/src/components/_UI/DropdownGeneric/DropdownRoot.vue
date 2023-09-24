@@ -14,6 +14,13 @@ const triggerRef = ref();
 const floatingRef = ref();
 const baseRef = ref();
 
+const props = defineProps({
+  closeOnClickInside: {
+    type: Boolean,
+    default: false,
+  },
+});
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const setTriggerRef = (v: any) => {
   triggerRef.value = v;
@@ -32,7 +39,7 @@ const { floatingStyles, update } = useFloating(triggerRef, floatingRef, {
 
 const isOpened = ref(false);
 
-const outsideClickHandler = (e: MouseEvent) => {
+const clickHandler = (e: MouseEvent) => {
   const t = e.target as HTMLElement;
   if (!t || !baseRef.value) return;
 
@@ -40,14 +47,14 @@ const outsideClickHandler = (e: MouseEvent) => {
     return;
   }
 
-  removeEventListener('click', outsideClickHandler);
+  removeEventListener('click', clickHandler);
   close();
 };
 
 const open = (e: MouseEvent) => {
   if (!isOpened.value) {
     isOpened.value = true;
-    addEventListener('click', outsideClickHandler);
+    addEventListener('click', clickHandler);
   } else {
     close();
   }

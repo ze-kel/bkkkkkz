@@ -1,12 +1,14 @@
 <template>
-  <div
-    v-test-class="['T-tag-tree-item', isOpened && 'T-opened-tag']"
-    :class="nodeClasses({ opened: isOpened, canDropHere: false })"
+  <BasicButton
+    v-test-class="[testClasses.tagTreeItem]"
+    :variant="isOpened ? 'default' : 'ghost'"
+    size="compact"
+    class="w-full justify-start"
     @click.exact="select(tag, { place: 'current', focus: true })"
     @click.alt="select(tag, { place: 'next' })"
   >
     #{{ tag }}
-  </div>
+  </BasicButton>
 </template>
 
 <script lang="ts" setup>
@@ -15,6 +17,8 @@ import { computed } from 'vue';
 import type { OpenNewOneParams } from '/@/use/store';
 import { useStore } from '/@/use/store';
 import { getDefaultViewSettings } from '/@/utils/getDefaultViewSettings';
+import { testClasses } from '/@/utils/testClassBinds';
+import BasicButton from '/@/components/_UI/BasicButton/BasicButton.vue';
 
 const store = useStore();
 

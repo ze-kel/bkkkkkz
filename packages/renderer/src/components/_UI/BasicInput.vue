@@ -27,7 +27,7 @@ const inputVariants = cva(
 );
 
 const props = defineProps<{
-  modelValue?: string | number | undefined;
+  modelValue: string | number | undefined;
   theme?: NonNullable<Parameters<typeof inputVariants>[0]>['theme'];
   type?: HTMLInputElement['type'];
 }>();
@@ -39,7 +39,6 @@ const emits = defineEmits<{
 const innerValue = ref(props.modelValue);
 
 watch(innerValue, () => {
-  console.log('www');
   const val = innerValue.value;
 
   if (typeof val === 'undefined') {
@@ -51,6 +50,15 @@ watch(innerValue, () => {
     emits('update:modelValue', val);
   }
 });
+
+watch(
+  () => props.modelValue,
+  (v) => {
+    if (v !== innerValue.value) {
+      innerValue.value = v;
+    }
+  },
+);
 </script>
 
 <template>

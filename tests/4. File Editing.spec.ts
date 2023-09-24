@@ -7,9 +7,9 @@ import {
   afterTest,
   sleep,
   getLocators,
-  LOAD_TIMEOUT,
   getBookFromEditor,
   removeLineTerminators,
+  LOAD_TIMEOUT,
 } from './helpers';
 import type { TestBookFromEditor } from './helpers';
 
@@ -42,7 +42,7 @@ test('Changes on disk are reflected in the interface', async () => {
     year: '1998',
     ISBN: '9780140280197',
     tags: ['48tag', 'anothertag'],
-    dates: [{ from: '24/03/2017', to: '12/05/2017' }],
+    dates: [{ from: '24 March 2017', to: '12 May 2017' }],
     rating: 4,
   };
 
@@ -61,8 +61,8 @@ test('Changes on disk are reflected in the interface', async () => {
     ISBN: '9780140449334',
     tags: ['1one', '2two', '3three'],
     dates: [
-      { from: '01/06/2019', to: '30/07/2019' },
-      { from: '10/02/2020', to: '30/07/2020' },
+      { from: '01 June 2019', to: '30 July 2019' },
+      { from: '10 February 2020', to: '30 July 2020' },
     ],
     rating: 3.5,
   };
@@ -72,13 +72,12 @@ test('Changes on disk are reflected in the interface', async () => {
   expect(bookInEditor).toEqual(expectedAfter);
 });
 
-test('Changes made in edtior are reflected in interface', async () => {
+test('Editing book works and saves correctly', async () => {
   const page = await electronApp.firstWindow();
   const L = getLocators(page);
 
   await sleep(LOAD_TIMEOUT);
 
-  // We have to click first, otherwise it won't clear properly. Gotta be some problem with playwright and contenteditable
   await L.editorAuthor.click();
   await L.editorAuthor.fill('Branden, Nathaniel');
 
@@ -91,33 +90,34 @@ test('Changes made in edtior are reflected in interface', async () => {
   await L.editorIsbn.click();
   await L.editorIsbn.fill('9780553374391');
 
-  await sleep(LOAD_TIMEOUT);
-
-  await sleep(LOAD_TIMEOUT);
-
   await L.editorStar.last().click({ force: true });
 
   await L.editorDateRemove.first().click();
   await L.editorDateAdd.first().click();
 
-  await L.editorDateFrom.last().fill('01/01/2021');
+  //01/01/2021
+  await L.editorDateFrom.last().click();
+  await L.editorCalendarYearInput.fill('2021');
 
+  await L.editorCalendarMonthSelectorButton.click();
+  await L.editorCalendarMonthSelectorMonth.first().click();
   await sleep(LOAD_TIMEOUT);
+  await L.editorCalendarDay.first().click();
 
-  await L.editorDateTo.last().fill('07/01/2021');
-  await L.editorDateTo.last().press('Enter');
+  //07/01/2021
+  await L.editorDateTo.last().click();
+  await L.editorCalendarYearInput.fill('2021');
 
+  await L.editorCalendarMonthSelectorButton.click();
+  await L.editorCalendarMonthSelectorMonth.first().click();
   await sleep(LOAD_TIMEOUT);
+  await L.editorCalendarDay.nth(6).click();
 
   await L.editorMarkdown.click();
   await L.editorMarkdown.type(' and some more');
 
-  await sleep(LOAD_TIMEOUT);
-
   await L.editorTag.first().click();
   await L.editorTag.first().fill('');
-
-  await sleep(LOAD_TIMEOUT);
 
   await L.editorAddTag.first().click();
 
@@ -130,8 +130,8 @@ test('Changes made in edtior are reflected in interface', async () => {
     ISBN: '9780553374391',
     tags: ['2two', '3three', 'tag3'],
     dates: [
-      { from: '10/02/2020', to: '30/07/2020' },
-      { from: '01/01/2021', to: '07/01/2021' },
+      { from: '10 February 2020', to: '30 July 2020' },
+      { from: '01 January 2021', to: '07 January 2021' },
     ],
     rating: 5,
   };
@@ -142,6 +142,7 @@ test('Changes made in edtior are reflected in interface', async () => {
 });
 
 test('Changes made in edtior are saved to disk', async () => {
+  await sleep(LOAD_TIMEOUT);
   const expected = fs.readFileSync(path.join(workingPath, 'editorChange.txt'));
   const onDisk = fs.readFileSync(path.join(workingPath, '48.md'));
 

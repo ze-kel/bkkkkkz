@@ -44,8 +44,8 @@ onMounted(async () => {
 //
 
 const darkModeClass = computed(() => {
-  if (!store.settings || store.settings.darkMode === -1) return '';
-  if (store.settings.darkMode === 0) {
+  if (!store.settings || store.settings.darkMode === 'Light') return '';
+  if (store.settings.darkMode === 'System') {
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : '';
   }
   return 'dark';
@@ -66,7 +66,18 @@ onUnmounted(async () => {
 
 <style>
 #app {
-  font-family: BlinkMacSystemFont, 'SF PRO DISPLAY', 'Roboto', 'Segoe UI';
+  font-family:
+    ui-sans-serif,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    'Inter',
+    'Apple Color Emoji',
+    'Segoe UI Emoji',
+    'Segoe UI Symbol',
+    'Microsoft YaHei Light',
+    sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 

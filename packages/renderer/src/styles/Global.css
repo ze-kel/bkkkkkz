@@ -4,15 +4,30 @@
 
 ::-webkit-scrollbar {
   -webkit-appearance: none;
-  @apply w-1;
+  @apply w-3;
 }
 ::-webkit-scrollbar-thumb {
-  @apply bg-neutral-50;
+  @apply bg-neutral-400;
 }
+
 ::-webkit-scrollbar-thumb:hover {
   @apply bg-neutral-500;
 }
+
 ::-webkit-scrollbar-track {
+  @apply bg-neutral-200;
+}
+
+.dark ::-webkit-scrollbar-track {
+  @apply bg-neutral-900;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  @apply bg-neutral-700;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  @apply bg-neutral-600;
 }
 
 input::-webkit-outer-spin-button,

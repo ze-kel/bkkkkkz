@@ -1,7 +1,7 @@
 <template>
   <div
     ref="widgetDiv"
-    class="h-10 relative overflow-hidden pr-24"
+    class="relative h-10 overflow-hidden pr-24"
     @drop="onDrop($event)"
     @dragenter.prevent="dragEnter"
     @dragleave.prevent="dragLeave"
@@ -12,7 +12,7 @@
       <div
         v-for="item in store.openedTabs"
         :key="item.id"
-        class="absolute select-none left-0 top-0 px-2 py-1 h-10"
+        class="absolute left-0 top-0 h-10 select-none px-2 py-1"
         :style="{
           width: TAB_WIDTH_PX + 'px',
           transform: `translateX(${getXPosition(item.id)}px)`,
@@ -22,7 +22,7 @@
         @dragover="dragOverHandler(item.id)"
       ></div>
       <div
-        class="absolute select-none left-0 top-0 px-2 py-1 h-10"
+        class="absolute left-0 top-0 h-10 select-none px-2 py-1"
         :style="{
           width: `calc(100% - ${TAB_WIDTH_PX * store.openedTabs.length}px)`,
           transform: `translateX(${TAB_WIDTH_PX * store.openedTabs.length}px)`,
@@ -34,9 +34,12 @@
     <div
       v-for="(item, index) in store.openedTabs"
       :key="item.id"
-      v-test-class="['T-view-tab', item.id === store.openedTabsActiveId && 'T-view-tab-opened']"
+      v-test-class="[
+        testClasses.tab,
+        item.id === store.openedTabsActiveId && testClasses.openedTab,
+      ]"
       :class="[
-        'absolute select-none left-0 top-0',
+        'absolute left-0 top-0 select-none',
         item.id !== store.openedTabsActiveId && 'cursor-pointer',
         item.id === store.openedTabsActiveId && (isDragging ? 'cursor-grabbing' : 'cursor-grab'),
       ]"
@@ -59,7 +62,7 @@
       />
     </div>
     <div
-      class="absolute select-none left-0 top-0 h-10 dragApp bg-neutral-200 dark:bg-neutral-900"
+      class="dragApp absolute left-0 top-0 h-10 select-none bg-neutral-200 dark:bg-neutral-900"
       :style="{
         width: `calc(100% - ${TAB_WIDTH_PX * store.openedTabs.length}px)`,
         transform: `translateX(${TAB_WIDTH_PX * store.openedTabs.length}px)`,
@@ -80,6 +83,7 @@ import { clamp } from 'lodash';
 
 import { useElementSize, useMouse } from '@vueuse/core';
 import type { IOpened } from '/@main/services/openedTabs';
+import { testClasses } from '/@/utils/testClassBinds';
 
 const store = useStore();
 

@@ -3,6 +3,7 @@ import * as fs from 'fs-extra';
 import type { ElectronApplication } from 'playwright';
 import { afterEach, beforeEach, expect, test } from 'vitest';
 import { setupTest, afterTest, sleep, getLocators, LOAD_TIMEOUT } from './helpers';
+import { testClasses } from '../packages/renderer/src/utils/testClassBinds';
 
 let electronApp: ElectronApplication;
 
@@ -18,12 +19,12 @@ afterEach(async () => await afterTest(electronApp, workingPath));
 test('File tree watcher', async () => {
   const page = await electronApp.firstWindow();
   const L = getLocators(page);
-  
+
   await sleep(LOAD_TIMEOUT);
   expect(await L.fileTreeItems.count(), 'Number of folders seen is correct').toBe(3);
 
-  const folderOneName = await L.fileTreeItems.nth(1).locator('.T-label');
-  const folderTwoName = await L.fileTreeItems.nth(2).locator('.T-label');
+  const folderOneName = await L.fileTreeItems.nth(1).locator('.' + testClasses.label);
+  const folderTwoName = await L.fileTreeItems.nth(2).locator('.' + testClasses.label);
   expect(await folderOneName.innerText(), 'Folder 1 name is shown correctly').toBe('1wbkk');
   expect(await folderTwoName.innerText(), 'Folder 2 name is shown correctly').toBe('2empt');
 
@@ -56,7 +57,10 @@ test('Folder watcher', async () => {
   await sleep(LOAD_TIMEOUT);
 
   expect(
-    await L.openedTab.first().locator('.T-label').innerText(),
+    await L.openedTab
+      .first()
+      .locator('.' + testClasses.label)
+      .innerText(),
     'After clicking first folder, a tab opened with right label',
   ).toBe('1wbkk');
 
@@ -82,7 +86,10 @@ test('Folder watcher', async () => {
   //
   await L.fileTreeItems.first().click();
   expect(
-    await L.openedTab.first().locator('.T-label').innerText(),
+    await L.openedTab
+      .first()
+      .locator('.' + testClasses.label)
+      .innerText(),
     'After clicking all books, a tab opened with right label',
   ).toBe('All Books');
 

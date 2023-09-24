@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import BasicButton from '/@/components/_UI/BasicButton.vue';
+import BasicButton from '/@/components/_UI/BasicButton/BasicButton.vue';
 import { useStore } from '/@/use/store';
 import { format, parse } from 'date-fns';
 import BasicCalendar from '/@/components/_UI/Calendar/BasicCalendar.vue';
@@ -43,7 +43,7 @@ const formattedDate = computed(() => {
         <ChevronDown class="w-4 opacity-50" />
       </BasicButton>
     </DropdownTrigger>
-    <DropdownContent>
+    <DropdownContent styled>
       <BasicCalendar
         :model-value="props.modelValue"
         @update:model-value="(v) => emits('update:modelValue', v)"

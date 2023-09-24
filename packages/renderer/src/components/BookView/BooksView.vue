@@ -1,20 +1,19 @@
 <template>
-  <div class="flex h-full w-full flex-col px-2 py-2">
-    <ViewConrols class="" />
+  <div ref="scrollRoot" class="flex h-full w-full flex-col overflow-y-scroll px-2 pb-4">
+    <ViewConrols class="sticky top-0 z-10 bg-neutral-950 pt-2" />
 
-    <!--Table Header -->
     <div
-      ref="scrollRoot"
       :class="[
-        'box-border border rounded-md h-full w-full items-start overflow-x-hidden overflow-y-scroll',
+        'box-border w-full items-start rounded-md border',
         opened.settings.viewStyle === 'Lines'
           ? 'border-neutral-400 dark:border-neutral-800'
           : 'border-transparent',
       ]"
     >
+      <!--Table Header -->
       <div
         v-if="opened.settings.viewStyle === 'Lines'"
-        class="grid grid-cols-5 gap-5 font-semibold py-1 px-3"
+        class="grid grid-cols-5 gap-5 px-3 py-1 font-semibold"
       >
         <div class="">Title</div>
         <div class="">Author</div>
