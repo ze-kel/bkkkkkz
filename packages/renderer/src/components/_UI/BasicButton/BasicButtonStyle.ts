@@ -1,5 +1,5 @@
 import { cva } from 'class-variance-authority';
-import classMerge from '/@/utils/classMerge';
+import cls from '/@/utils/cls';
 
 export const buttonVariants = cva(
   'inline-flex cursor-pointer disabled:cursor-default items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-neutral-950 disabled:pointer-events-none disabled:opacity-50 dark:focus-visible:ring-neutral-300',

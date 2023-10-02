@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { cva } from 'class-variance-authority';
-import classMerge from '/@/utils/classMerge';
+import cls from '/@/utils/cls';
 import { useVModel } from '@vueuse/core';
 import { computed, ref, watch } from 'vue';
 import { NUMBERS_REGEX } from '/@main/helpers/utils';
@@ -66,6 +66,6 @@ watch(
     v-model="innerValue"
     v-bind="$attrs"
     :type="props.type || 'text'"
-    :class="classMerge(inputVariants({ theme }), $attrs.class as string)"
+    :class="cls(inputVariants({ theme }), $attrs.class as string)"
   />
 </template>

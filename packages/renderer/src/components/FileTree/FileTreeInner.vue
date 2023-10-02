@@ -6,7 +6,7 @@
         v-test-class="testClasses.fileTreeItems"
         :draggable="!isRoot"
         :class="
-          classMerge(
+          cls(
             'border border-transparent',
             buttonVariants({
               variant: canDropHere ? 'outline' : isOpened ? 'default' : 'ghost',
@@ -101,7 +101,7 @@ import { trpcApi } from '/@/utils/trpc';
 import type { OpenNewOneParams } from '/@/use/store';
 import { useStore } from '/@/use/store';
 import { testClasses } from '/@/utils/testClassBinds';
-import classMerge from '/@/utils/classMerge';
+import cls from '/@/utils/cls';
 import { buttonVariants } from '/@/components/_UI/BasicButton/BasicButtonStyle';
 
 import {

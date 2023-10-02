@@ -1,7 +1,7 @@
 <template>
   <div
     :class="
-      classMerge(
+      cls(
         'min-w-5 relative z-50 overflow-hidden rounded-md border border-neutral-100 bg-neutral-50 p-1 shadow-md dark:border-neutral-900 dark:bg-neutral-950',
         $attrs.class as string,
       )
@@ -12,5 +12,5 @@
 </template>
 
 <script setup lang="ts">
-import classMerge from '/@/utils/classMerge';
+import cls from '/@/utils/cls';
 </script>

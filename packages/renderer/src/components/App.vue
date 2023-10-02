@@ -1,6 +1,7 @@
 <template>
   <div class="" :class="darkModeClass">
     <div
+      v-if="loaded"
       class="flex h-screen flex-col bg-neutral-50 text-neutral-950 dark:bg-neutral-950 dark:text-neutral-50"
     >
       <ViewCore v-if="hasRootPath" />
@@ -27,10 +28,13 @@ const hasRootPath = computed(() => {
   return typeof store.rootPath === 'string';
 });
 
-onBeforeMount(() => {
-  store.fetchRootPath();
-  store.fetchSetting();
-  store.fetchOpened();
+const loaded = ref(false);
+
+onBeforeMount(async () => {
+  await store.fetchRootPath();
+  await store.fetchSetting();
+  await store.fetchOpened();
+  loaded.value = true;
 });
 
 onMounted(async () => {

@@ -280,7 +280,7 @@ onUnmounted(() => {
 
 <style scoped>
 .cards {
-  grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   grid-auto-rows: max-content;
 }
 </style>

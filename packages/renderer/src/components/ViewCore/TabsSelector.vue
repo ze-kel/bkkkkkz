@@ -44,7 +44,7 @@
         item.id === store.openedTabsActiveId && (isDragging ? 'cursor-grabbing' : 'cursor-grab'),
       ]"
       :style="{
-        transitionProperty: 'transform ',
+        transitionProperty: isInitialMount ? 'none' : 'transform',
         transitionDuration:
           draggingTab === item.id && isDragging ? '0s' : `${TAB_MOVE_DURATION_MS / 1000}s`,
         width: TAB_WIDTH_PX + 'px',
@@ -56,7 +56,7 @@
       <TabVisual
         :width-awailable="TAB_WIDTH_PX"
         :is-active="store.openedTabsActiveId === item.id"
-        :text="formatHeader(item, store.rootPath as string)"
+        :item="item"
         :is-new-and-animating="animatingNewTabs.has(item.id)"
         @close="store.closeOpened(index)"
       />
@@ -73,8 +73,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, ref, watch } from 'vue';
-import formatHeader from '/@/utils/formatHeader';
+import { computed, nextTick, onMounted, onUpdated, ref, watch } from 'vue';
 import { getDefaultViewSettings } from '/@/utils/getDefaultViewSettings';
 import { useStore } from '/@/use/store';
 import { setupTabsHotkeys } from './tabsHotkeys';
@@ -87,8 +86,9 @@ import { testClasses } from '/@/utils/testClassBinds';
 
 const store = useStore();
 
+//
 // Style helpers
-
+//
 const getZIndex = (id: string) => {
   if (draggingTab.value === id) return 3;
   if (store.openedTabsActiveId === id) return 2;
@@ -115,6 +115,16 @@ const baseXTab = ref(0);
 const { x } = useMouse({ touch: false });
 
 const xOffset = computed(() => (isDragging.value ? x.value - baseXMouse.value : 0));
+
+const isInitialMount = ref(true);
+
+onMounted(() => {
+  // To prevent tabs animation on initial load
+  // Next tick(even multiple) not working here for some reason
+  setTimeout(() => {
+    isInitialMount.value = false;
+  });
+});
 
 const virtualizedOrder = computed(() => {
   const order = [...store.openedTabs];

@@ -3,7 +3,7 @@
     v-if="isOpened"
     :ref="(v) => setFloatingRef(v)"
     :class="
-      classMerge(
+      cls(
         'z-50',
         styled &&
           'rounded-md border border-neutral-100 bg-neutral-50 p-1 shadow-md dark:border-neutral-900 dark:bg-neutral-950',
@@ -21,7 +21,7 @@ import { PROVIDE_KEY } from './';
 import { computed, inject } from 'vue';
 import type { DROPDOWN_PROVIDE } from './DropdownRoot.vue';
 
-import classMerge from '/@/utils/classMerge';
+import cls from '/@/utils/cls';
 
 const props = defineProps({
   styled: {
