@@ -3,7 +3,7 @@
     v-if="isOpened"
     :ref="
       (el) => {
-        setFloatingRef(el);
+        setFloatingRef(el as HTMLDivElement);
       }
     "
     :style="floatingStyles"

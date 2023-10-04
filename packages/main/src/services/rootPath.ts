@@ -35,6 +35,7 @@ export const getRootPathSafe = (): string => {
   if (path === null) {
     throw new Error('Trying to do operation that requires root path, but it is not set yet');
   }
+
   return path;
 };
 

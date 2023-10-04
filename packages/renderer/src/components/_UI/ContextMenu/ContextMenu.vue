@@ -3,26 +3,34 @@
 </template>
 
 <script lang="ts" setup>
-import type { VNodeRef } from 'vue';
-import { InjectionKey, onMounted, ref } from 'vue';
+import type { Ref } from 'vue';
+import {  onMounted, ref } from 'vue';
+import type { MaybeElement } from '@floating-ui/vue';
 import { useFloating, flip, shift } from '@floating-ui/vue';
 import { provide } from 'vue';
 import { PROVIDE_KEY } from '/@/components/_UI/ContextMenu';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const reference = ref<any>(null);
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const floatingRef = ref<any>();
+const reference = ref<unknown>(null);
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const setFloatingRef = (el: any) => {
+const floatingRef = ref<Element | null>(null);
+const triggerRef = ref<Element | null>(null);
+
+const setFloatingRef = (el: typeof floatingRef.value) => {
   floatingRef.value = el;
 };
 
-const { floatingStyles, update } = useFloating(reference, floatingRef, {
-  middleware: [flip(), shift()],
-  placement: 'bottom-start',
-});
+const setTriggerRef = (el: typeof triggerRef.value) => {
+  triggerRef.value = el;
+};
+
+const { floatingStyles, update } = useFloating(
+  reference as Ref<MaybeElement<HTMLElement>>,
+  floatingRef as Ref<MaybeElement<HTMLElement>>,
+  {
+    middleware: [flip(), shift()],
+    placement: 'bottom-start',
+  },
+);
 
 const isOpened = ref(false);
 
@@ -46,7 +54,15 @@ onMounted(() => {
 });
 
 const outsideClickHandler = (e: MouseEvent) => {
+  // If we've clicked on the same element it will just rerun openMenu and update position
+  // Looking at target not isOpened to prevent instant closing from event bubbling
+  // (stopping propagation for rightclick is bad becuase then we'll be able to open multiple context menus)
+  if (triggerRef.value instanceof Element && e.target instanceof Element) {
+    if (triggerRef.value.contains(e.target)) return;
+  }
+
   removeEventListener('click', outsideClickHandler);
+  removeEventListener('contextmenu', outsideClickHandler);
   closeMenu();
 };
 
@@ -67,6 +83,7 @@ const openMenu = (e: MouseEvent) => {
   if (!isOpened.value) {
     isOpened.value = true;
     addEventListener('click', outsideClickHandler);
+    addEventListener('contextmenu', outsideClickHandler);
   } else {
     update();
   }
@@ -82,6 +99,8 @@ export type CONTEXT_MENU_PROVIDE = {
   isOpened: typeof isOpened;
   floatingStyles: typeof floatingStyles;
   setFloatingRef: typeof setFloatingRef;
+  triggerRef: typeof triggerRef;
+  setTriggerRef: typeof setTriggerRef;
 };
 
 provide<CONTEXT_MENU_PROVIDE>(PROVIDE_KEY, {
@@ -90,5 +109,7 @@ provide<CONTEXT_MENU_PROVIDE>(PROVIDE_KEY, {
   isOpened,
   floatingStyles,
   setFloatingRef,
+  triggerRef,
+  setTriggerRef,
 });
 </script>

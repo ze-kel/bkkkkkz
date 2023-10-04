@@ -1,20 +1,16 @@
 <template>
   <ContextMenu>
     <ContextMenuTrigger>
-      <div
-        ref="treeEl"
+      <TreeCell
         v-test-class="testClasses.fileTreeItems"
         :draggable="!isRoot"
-        :class="
-          cls(
-            'border border-transparent',
-            buttonVariants({
-              variant: canDropHere ? 'outline' : isOpened ? 'default' : 'ghost',
-              size: 'compact',
-            }),
-            'w-full justify-start truncate',
-          )
-        "
+        :is-root="isRoot"
+        :can-be-folded="foldable"
+        :can-drop-here="dragCounter > 0"
+        :name="isRoot ? 'All Books' : content.name"
+        :is-folded="isFolded"
+        :selected="isOpened"
+        :is-renaming="isRenaming"
         @dragstart="startDrag($event, content.path)"
         @drop="onDrop($event, content.path)"
         @dragenter="dragEnter"
@@ -23,63 +19,16 @@
         @click.exact="makeNewOpenedAndSelect({ place: 'current', focus: true })"
         @click.alt.exact="makeNewOpenedAndSelect({ place: 'last' })"
         @click.middle.exact="makeNewOpenedAndSelect({ place: 'last' })"
-      >
-        <div
-          v-if="foldable"
-          class="flex cursor-pointer items-center justify-center pr-1"
-          @click.stop="
-            () => {
-              isFolded = !isFolded;
-            }
-          "
-        >
-          <ChevronDown
-            :class="['h-3 w-3', isFolded && '-rotate-90']"
-            class="cursor-poiner pointer-events-none"
-          />
-        </div>
-        <template v-if="isRoot">
-          <span v-test-class="testClasses.label" class="pointer-events-none"> All Books </span>
-        </template>
-        <template v-else>
-          <span
-            v-if="!isRenaming"
-            v-test-class="testClasses.label"
-            class="pointer-events-none truncate"
-          >
-            {{ content.name }}
-          </span>
-          <input
-            v-else
-            ref="inputName"
-            v-model="newName"
-            :class="['w-full bg-transparent outline-none', 'border-neutral-500']"
-            @blur="saveName"
-            @keyup.enter="removeFocus"
-          />
-        </template>
-      </div>
-      <div v-if="!isFolded || isCreating" :class="(foldable || isCreating) && 'pl-5'">
-        <FileTreeInner
-          v-for="item in content.content"
-          :key="item.path"
-          :content="item"
-          :depth="depth + 10"
-        />
-        <div v-if="isCreating" class="mt-[1px] px-2 py-0.5">
-          <input
-            ref="inputName"
-            v-model="newName"
-            class="w-full border-none bg-transparent outline-none"
-            @blur="saveFolder"
-            @keyup.enter="removeFocus"
-          />
-        </div>
-      </div>
+        @fold-click="
+          () => {
+            isFolded = !isFolded;
+          }
+        "
+        @save-name="saveName"
+      />
     </ContextMenuTrigger>
     <ContextMenuContent>
       <ContextMenuItem @click="startCreating"> Create folder </ContextMenuItem>
-
       <template v-if="!isRoot">
         <ContextMenuItem @click="startRenaming"> Rename folder </ContextMenuItem>
 
@@ -87,6 +36,16 @@
       </template>
     </ContextMenuContent>
   </ContextMenu>
+
+  <div v-if="!isFolded || isCreating" :class="(foldable || isCreating) && 'pl-5'">
+    <FileTreeInner
+      v-for="item in content.content"
+      :key="item.path"
+      :content="item"
+      :depth="depth + 10"
+    />
+    <TreeCell v-if="isCreating" :name="''" :is-renaming="true" @save-name="saveNewFolder" />
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -94,15 +53,14 @@ import { computed, onUpdated, ref, watchEffect, nextTick } from 'vue';
 
 import { cloneDeep as _cloneDeep } from 'lodash';
 import { getDefaultViewSettings } from '/@/utils/getDefaultViewSettings';
-import { ChevronDown } from 'lucide-vue-next';
 import type { PropType } from 'vue';
 import type { IFolderTree } from '/@main/services/files';
 import { trpcApi } from '/@/utils/trpc';
 import type { OpenNewOneParams } from '/@/use/store';
 import { useStore } from '/@/use/store';
 import { testClasses } from '/@/utils/testClassBinds';
-import cls from '/@/utils/cls';
-import { buttonVariants } from '/@/components/_UI/BasicButton/BasicButtonStyle';
+import TreeCell from './TreeCell.vue';
+import type { Unsubscribable } from '@trpc/server/observable';
 
 import {
   ContextMenu,
@@ -125,11 +83,22 @@ const props = defineProps({
 });
 
 const isRoot = props.depth < 0;
-const isFolded = ref<boolean>(false);
-const isOpened = computed(() => {
-  if (!store.openedItem) return false;
+const isFolded = ref(false);
+const isOpened = ref(false);
+// Used to prevent isOpened from going to false when renaming selected item
+const renameLock = ref(false);
 
-  return store.openedItem.type === 'folder' && store.openedItem.thing === props.content.path;
+watchEffect(() => {
+  if (renameLock.value) {
+    return;
+  }
+  if (!store.openedItem) {
+    isOpened.value = false;
+    return;
+  }
+
+  isOpened.value =
+    store.openedItem.type === 'folder' && store.openedItem.thing === props.content.path;
 });
 
 const foldable = computed(() => Object.keys(props.content.content).length > 0 && !isRoot);
@@ -151,7 +120,21 @@ const makeNewOpenedAndSelect = (params: OpenNewOneParams) => {
 ///
 /// Drag and drop
 ///
-const canDropHere = ref<boolean>(false);
+
+const dragCounter = ref(0);
+
+const dragEnter = (e: DragEvent) => {
+  console.log('e');
+  e.preventDefault();
+  dragCounter.value++;
+  //canDropHere.value = true;
+};
+
+const dragLeave = (e: DragEvent) => {
+  e.preventDefault();
+  dragCounter.value--;
+  //canDropHere.value = false;
+};
 
 const startDrag = (devt: DragEvent, path: string) => {
   if (devt.dataTransfer === null) {
@@ -176,7 +159,7 @@ const startDrag = (devt: DragEvent, path: string) => {
 };
 
 const onDrop = async (e: DragEvent, targetPath: string) => {
-  canDropHere.value = false;
+  dragCounter.value = 0;
 
   const type = e.dataTransfer?.getData('type');
 
@@ -202,16 +185,6 @@ const onDrop = async (e: DragEvent, targetPath: string) => {
   }
 };
 
-const dragEnter = (e: DragEvent) => {
-  e.preventDefault();
-  canDropHere.value = true;
-};
-
-const dragLeave = (e: DragEvent) => {
-  e.preventDefault();
-  canDropHere.value = false;
-};
-
 ///
 /// Renaming
 ///
@@ -225,34 +198,30 @@ onUpdated(() => {
 });
 
 const isRenaming = ref(false);
-const newName = ref('');
-
-const inputName = ref<HTMLElement | null>(null);
-
-watchEffect(
-  () => {
-    inputName.value?.focus();
-  },
-  {
-    flush: 'post',
-  },
-);
-
-const removeFocus = () => {
-  inputName.value?.blur();
-};
 
 const startRenaming = () => {
   isRenaming.value = true;
-  newName.value = props.content.name;
 };
 
-const saveName = async () => {
-  if (newName.value && newName.value !== props.content.name) {
+const tempSubscription = ref<Unsubscribable>();
+
+const resetLockFromSubscription = () => {
+  renameLock.value = false;
+  if (tempSubscription.value) {
+    tempSubscription.value.unsubscribe();
+  }
+};
+
+const saveName = async (newName: string) => {
+  isRenaming.value = false;
+  // Locks isOpened value
+  renameLock.value = true;
+
+  if (newName && newName !== props.content.name) {
     const oldPath = props.content.path;
 
     const newPath = await trpcApi.rename.mutate({
-      newName: newName.value,
+      newName: newName,
       srcPath: props.content.path,
     });
 
@@ -271,7 +240,11 @@ const saveName = async () => {
       }
     });
   }
-  isRenaming.value = false;
+
+  // Unlocks isOpened value when our fs watcher sends updated FileTree data
+  tempSubscription.value = trpcApi.treeUpdate.subscribe(undefined, {
+    onComplete: resetLockFromSubscription,
+  });
 };
 
 ///
@@ -281,14 +254,13 @@ const isCreating = ref(false);
 
 const startCreating = () => {
   isCreating.value = true;
-  newName.value = '';
 };
 
-const saveFolder = () => {
-  if (!newName.value) {
+const saveNewFolder = (name: string) => {
+  if (!name) {
     isCreating.value = false;
   } else {
-    trpcApi.createFolder.mutate({ name: newName.value, pathToFolder: props.content.path });
+    trpcApi.createFolder.mutate({ name, pathToFolder: props.content.path });
     flipOnNext.value = true;
   }
 };

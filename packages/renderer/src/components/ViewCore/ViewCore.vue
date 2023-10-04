@@ -1,8 +1,17 @@
 <template>
-  <div class="flex h-full max-h-full overflow-hidden">
-    <div class="box-border flex-auto overflow-hidden" :style="{ width: `${fileTreeSize}px` }">
-      <div class="dragApp h-10 bg-neutral-200 dark:bg-neutral-900"></div>
-      <div class="z-2 h-full border-r border-neutral-100 px-2 dark:border-neutral-900">
+  <div class="customCols grid h-full max-h-full items-start overflow-hidden">
+    <!-- Empty space to drag window around -->
+    <div class="dragApp col-span-2 h-10 bg-neutral-200 dark:bg-neutral-900"></div>
+
+    <!-- Tabs -->
+    <TabsSelector class="bg-neutral-200 dark:bg-neutral-900" />
+
+    <!-- Left menu -->
+    <div
+      class="box-border flex-auto shrink-0 overflow-hidden pl-2"
+      :style="{ width: `${fileTreeSize}px` }"
+    >
+      <div class="z-2 h-full">
         <IconsMenu />
 
         <div class="overflow-y-auto overflow-x-hidden">
@@ -16,14 +25,18 @@
       </div>
     </div>
 
-    <div class="flex max-h-full w-full overflow-hidden">
+    <!-- Resizer -->
+    <div ref="resizeHandle" class="flex h-full w-3 cursor-col-resize items-center justify-center">
+      <div
+        class="box-border h-full transition-all"
+        :class="isResizing ? 'w-1 dark:bg-neutral-700' : 'w-[1px]  dark:bg-neutral-900'"
+      ></div>
+    </div>
+
+    <!-- Core view -->
+    <div class="flex h-full max-h-full w-full overflow-hidden">
       <div class="flex h-full w-full flex-col">
-        <TabsSelector class="bg-neutral-200 dark:bg-neutral-900" />
-        <div
-          v-if="store.openedItem"
-          :key="store.openedItem.thing"
-          class="h-[calc(100%_-_40px)] w-full"
-        >
+        <div v-if="store.openedItem" :key="store.openedItem.thing" class="h-full w-full">
           <template v-if="store.openedItem.type === 'innerPage'">
             <HomePage v-if="store.openedItem.thing === 'home'" />
           </template>
@@ -47,7 +60,7 @@ import { debounce as _debounce } from 'lodash';
 
 import IconsMenu from '/@/components/IconsMenu/IconsMenu.vue';
 import FileTree from '/@/components/FileTree/FileTree.vue';
-import TagsTree from '/@/components/TagsTree/TagsTree.vue';
+import TagsTree from '/@/components/FileTree/TagsTree.vue';
 import HomePage from '/@/components/HomePage/HomePage.vue';
 import BookEditor from '/@/components/Editor/BookEditor.vue';
 import BookView from '/@/components/BookView/BooksView.vue';
@@ -58,28 +71,37 @@ const store = useStore();
 
 const fileTreeSize = ref<number>(200);
 
-const resizeHandle = ref<Element | null>(null);
-const rootElement = ref<Element | null>(null);
+const resizeHandle = ref<HTMLDivElement | null>(null);
 
 const isResizing = ref<boolean>(false);
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const changeFileTreeSize = (ev: any) => {
-  const newVal = ev.clientX;
+const startResizeAt = ref<number>(0);
+const changeFileTreeSize = (e: MouseEvent) => {
+  console.log('changesize');
+  e.preventDefault();
+  const newVal = fileTreeSize.value + e.screenX - startResizeAt.value;
   if (newVal < 500 && newVal > 150) {
-    fileTreeSize.value = ev.clientX;
+    fileTreeSize.value = e.clientX;
   }
 };
 
 onMounted(async () => {
-  resizeHandle.value?.addEventListener('mousedown', () => {
+  if (!resizeHandle.value) return;
+  resizeHandle.value.addEventListener('mousedown', (e) => {
+    startResizeAt.value = e.screenX;
     isResizing.value = true;
-    rootElement.value?.addEventListener('mousemove', changeFileTreeSize);
-    rootElement.value?.addEventListener('mouseup', () => {
+    window.addEventListener('mousemove', changeFileTreeSize);
+    window.addEventListener('mouseup', () => {
+      window.removeEventListener('mousemove', changeFileTreeSize);
+      startResizeAt.value = 0;
       isResizing.value = false;
-      rootElement.value?.removeEventListener('mousemove', changeFileTreeSize);
     });
   });
 });
 </script>
 
-<style></style>
+<style scoped>
+.customCols {
+  grid-template-columns: min-content min-content 1fr;
+  grid-template-rows: min-content 100%;
+}
+</style>

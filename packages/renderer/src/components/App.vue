@@ -12,7 +12,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, watch, onMounted, onUnmounted, ref, onBeforeMount } from 'vue';
+import { computed, onMounted, onUnmounted, ref, onBeforeMount } from 'vue';
 
 import { debounce as _debounce } from 'lodash';
 
