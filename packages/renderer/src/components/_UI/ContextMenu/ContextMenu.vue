@@ -4,7 +4,7 @@
 
 <script lang="ts" setup>
 import type { Ref } from 'vue';
-import {  onMounted, ref } from 'vue';
+import { onMounted, ref } from 'vue';
 import type { MaybeElement } from '@floating-ui/vue';
 import { useFloating, flip, shift } from '@floating-ui/vue';
 import { provide } from 'vue';

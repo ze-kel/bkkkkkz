@@ -28,6 +28,6 @@ export const dateReducerAllYears = (format: string) => {
     acc.push(finishedDate.getFullYear());
     return acc;
   };
-  
+
   return f;
 };

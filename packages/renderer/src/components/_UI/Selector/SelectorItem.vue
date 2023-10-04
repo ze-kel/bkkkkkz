@@ -1,6 +1,6 @@
 <template>
   <MenuItem @click="clickHandler">
-    <div class="w-8 flex items-center">
+    <div class="flex w-8 items-center">
       <CheckIcon v-if="isSelected" class="w-4"></CheckIcon>
     </div>
     <slot></slot>

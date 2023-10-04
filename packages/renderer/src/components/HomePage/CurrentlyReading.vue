@@ -7,7 +7,7 @@
       }}
     </button>
   </div>
-  <div class="mt-3 grid cards gap-4" :class="currentlyReadingCollapsed && 'hideFull'">
+  <div class="cards mt-3 grid gap-4" :class="currentlyReadingCollapsed && 'hideFull'">
     <BookItem
       v-for="item in currentlyReadingArray"
       :key="item.path"

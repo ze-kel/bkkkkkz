@@ -3,6 +3,7 @@
     <TreeCell
       v-for="tag in dataSorted"
       :key="tag"
+      v-test-class="[testClasses.tagTreeItem]"
       :name="tag"
       :is-tag="true"
       :selected="openedTag === tag"
@@ -22,6 +23,7 @@ import type { OpenNewOneParams } from '/@/use/store';
 import { useStore } from '/@/use/store';
 import TreeCell from '/@/components/FileTree/TreeCell.vue';
 import { getDefaultViewSettings } from '/@/utils/getDefaultViewSettings';
+import { testClasses } from '/@/utils/testClassBinds';
 
 const store = useStore();
 

@@ -2,7 +2,6 @@ import type { App, Directive } from 'vue';
 import { trpcApi } from './trpc';
 import { testClassPrefix } from '/@/utils/testClassBinds';
 
-
 type IBinding = { value: string | string[] };
 
 const testIdDirective: Directive = (el: HTMLElement, binding: IBinding) => {

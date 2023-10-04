@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { cva } from 'class-variance-authority';
 import cls from '/@/utils/cls';
 import { buttonVariants } from '/@/components/_UI/BasicButton/BasicButtonStyle';
 

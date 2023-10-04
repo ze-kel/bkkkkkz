@@ -1,6 +1,6 @@
 <template>
   <div
-    class="px-3 grid cursor-pointer grid-cols-5 gap-5 rounded-sm h-9 items-center transition-colors hover:bg-neutral-100 hover:dark:bg-neutral-900"
+    class="grid h-9 cursor-pointer grid-cols-5 items-center gap-5 rounded-sm px-3 transition-colors hover:bg-neutral-100 hover:dark:bg-neutral-900"
   >
     <template v-if="isVisible">
       <div class="truncate">

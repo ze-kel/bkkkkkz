@@ -1,4 +1,4 @@
-import {resolve, sep} from 'path';
+import { resolve, sep } from 'path';
 
 export default {
   '*.{js,mjs,cjs,ts,mts,cts,vue}': 'eslint --cache --fix',
@@ -8,17 +8,17 @@ export default {
    * @param {string[]} filenames
    * @return {string[]}
    */
-  '{package-lock.json,packages/**/{*.ts,*.vue,tsconfig.json}}': ({filenames}) => {
+  '{package-lock.json,packages/**/{*.ts,*.vue,tsconfig.json}}': ({ filenames }) => {
     // if dependencies was changed run type checking for all packages
-    if (filenames.some(f => f.endsWith('package-lock.json'))) {
+    if (filenames.some((f) => f.endsWith('package-lock.json'))) {
       return ['npm run typecheck --if-present'];
     }
 
     // else run type checking for staged packages
-    const fileNameToPackageName = filename =>
+    const fileNameToPackageName = (filename) =>
       filename.replace(resolve(process.cwd(), 'packages') + sep, '').split(sep)[0];
     return [...new Set(filenames.map(fileNameToPackageName))].map(
-      p => `npm run typecheck:${p} --if-present`,
+      (p) => `npm run typecheck:${p} --if-present`,
     );
   },
 };

@@ -99,8 +99,11 @@ const parseBook = (rootElement: Element, dateFormat: string): IUnsavedFile => {
   return book;
 };
 
-export const importGoodReadsHTML = (event: any) => {
-  if (!event.target?.files) {
+export const importGoodReadsHTML = (event: Event) => {
+  if (!event.target) return;
+  const target = event.target as HTMLInputElement;
+
+  if (!target.files) {
     return;
   }
 
@@ -108,7 +111,7 @@ export const importGoodReadsHTML = (event: any) => {
 
   const fr = new FileReader();
   const parser = new DOMParser();
-  fr.readAsText(event.target.files[0]);
+  fr.readAsText(target.files[0]);
   fr.onload = async function () {
     if (typeof fr.result === 'string') {
       const html = parser.parseFromString(fr.result, 'text/html');
