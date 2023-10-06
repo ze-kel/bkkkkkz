@@ -1,11 +1,11 @@
 <template>
   <div
     v-if="opened"
-    class="absolute left-0 top-0 z-10 flex h-full w-full items-center justify-center bg-neutral-800 bg-opacity-75"
+    class="absolute left-0 top-0 z-50 flex h-full w-full items-center justify-center bg-neutral-800 bg-opacity-75"
     @mousedown.self="close"
   >
     <div
-      class="popup flex items-center justify-center rounded bg-neutral-50 p-8 dark:bg-neutral-900"
+      class="popup flex items-center justify-center rounded-lg bg-neutral-50 p-8 shadow-md dark:bg-neutral-900"
       @click.stop=""
     >
       <slot></slot>

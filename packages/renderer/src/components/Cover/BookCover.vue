@@ -2,7 +2,7 @@
   <div class="relative h-full w-full overflow-hidden">
     <div
       v-if="!showImage"
-      class="absolute left-0 top-0 flex h-full w-full flex-col rounded-md border border-neutral-400 p-3 transition-opacity dark:border-neutral-800"
+      class="absolute left-0 top-0 flex h-full w-full flex-col rounded-md border border-neutral-200 p-3 shadow-lg transition-opacity dark:border-neutral-800"
     >
       <div
         class="title overflow-hiddenalign-middle h-1/2 shrink overflow-hidden text-xl leading-tight"

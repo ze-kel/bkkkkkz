@@ -1,6 +1,6 @@
 <template>
   <div ref="scrollRoot" class="flex h-full w-full flex-col overflow-y-scroll px-2 pb-4">
-    <ViewConrols class="sticky top-0 z-10 bg-neutral-950 pt-2" />
+    <ViewConrols class="sticky top-0 z-10 bg-neutral-50 pt-2 dark:bg-neutral-950" />
 
     <div
       :class="[

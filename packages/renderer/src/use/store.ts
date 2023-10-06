@@ -156,7 +156,6 @@ export const useStore = defineStore('main', {
     },
     updateOpened(data: IOpenedTabs['tabs']) {
       this.openedTabs = data;
-      //this.saveOpened();
     },
 
     //

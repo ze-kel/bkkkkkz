@@ -58,10 +58,14 @@ const darkMode = computed({
   get: () => {
     return store.settings?.darkMode || 'System';
   },
-  set: (val) => {
+  set: async (val) => {
     if (!store.settings) return;
 
-    store.updateSettings({ ...store.settings, darkMode: val });
+    const s = { ...store.settings, darkMode: val };
+
+    await trpcApi.saveSettings.mutate(s);
+
+    store.updateSettings(s);
   },
 });
 
