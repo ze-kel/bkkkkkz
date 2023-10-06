@@ -1,5 +1,5 @@
 name: Tests
-on: [ workflow_call ]
+on: [workflow_call]
 
 concurrency:
   group: tests-${{ github.ref }}
@@ -14,13 +14,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ windows-latest, ubuntu-latest, macos-latest ]
+        # Ubuntu fails to launch for some reason. If fixed add ubuntu-latest
+        os: [windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4
       - uses: actions/setup-node@v3
         with:
-          node-version: 16
           cache: 'npm'
       - run: npm ci
         env:

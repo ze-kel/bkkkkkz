@@ -23,6 +23,7 @@ test('App loads and vue mounts correctly', async () => {
 test('Files are seen', async () => {
   const page = await electronApp.firstWindow();
   const L = getLocators(page);
+  await sleep(LOAD_TIMEOUT);
   expect(await L.fileTreeItems.count(), 'Number of folders seen is correct').toBe(3);
 
   await L.fileTreeItems.first().click();

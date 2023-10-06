@@ -11,6 +11,7 @@ export const setupTest = async (originalPath: string, workingPath: string) => {
     env: {
       FORCE_ROOT_PATH: workingPath,
       TEST_MODE: 'true',
+      NODE_ENV: 'development',
     },
     args: ['.'],
   });
@@ -25,8 +26,8 @@ export const afterTest = async (electronApp: ElectronApplication, workingPath: s
   fs.removeSync(workingPath);
 };
 
-// Main editor save is debounced at 300ms, 500 should be enough for modern computers
-export const LOAD_TIMEOUT = 500;
+// Main editor save is debounced at 300ms, 500 should be enough for modern computers. 1000 is for CI
+export const LOAD_TIMEOUT = 1000;
 
 export const sleep = (ms: number) => {
   return new Promise((resolve) => {
