@@ -37,6 +37,8 @@ test('Tag editing', async () => {
 
   let tags = await getTagsInLeftMenu(L.tagTreeItem);
 
+  await sleep(LOAD_TIMEOUT);
+
   expect(tags, 'Initial tags loaded correctly').toEqual(['tag1', 'tag2', 'tag3']);
 
   fs.renameSync(path.join(fol, 'g.txt'), path.join(fol, 'g.md'));

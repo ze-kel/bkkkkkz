@@ -26,7 +26,7 @@ export const afterTest = async (electronApp: ElectronApplication, workingPath: s
   fs.removeSync(workingPath);
 };
 
-// Main editor save is debounced at 300ms, 500 should be enough for modern computers. 1000 is for CI
+// Main editor save is debounced at 300ms, 500 should be enough for modern computers. 500
 export const LOAD_TIMEOUT = 1000;
 
 export const sleep = (ms: number) => {
