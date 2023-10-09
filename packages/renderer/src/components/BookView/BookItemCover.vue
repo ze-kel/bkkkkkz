@@ -1,5 +1,5 @@
 <template>
-  <div class="aspect-[6/9] min-w-[150px] bg-transparent">
+  <div class="aspect-[6/9] bg-transparent">
     <BookCover v-if="isVisible" :file="currentFile"></BookCover>
   </div>
 </template>

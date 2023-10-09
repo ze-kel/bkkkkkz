@@ -1,57 +1,61 @@
 <template>
   <div v-if="data">
-    <div class="text-2xl font-semibold">Reading Challenge</div>
+    <div class="flex items-center justify-between gap-3">
+      <div class="text-xl font-semibold">Reading Challenge</div>
+      <BasicButton
+        v-if="allYearsThatHaveChallengeButTheCurrent.length"
+        variant="ghost"
+        size="sm"
+        class="gap-3"
+        @click="flipExpanded"
+      >
+        <template v-if="!expanded"
+          >Show All (+{{ allYearsThatHaveChallengeButTheCurrent.length }})</template
+        >
+        <template v-else>Collapse</template>
+      </BasicButton>
+    </div>
     <div class="mt-2">
       <ChallengeYear
+        v-if="currentYearChallenge"
         :books-for-that-year="sortedByYear[currentYear] || []"
         :year="currentYear"
-        :challenge="currentYearChallenge"
+        :challenge="currentYearChallenge.books"
         @delete="deleteYear(currentYear)"
         @change="(books: number) => changeBooks(currentYear, books)"
       />
     </div>
 
     <template v-if="expanded">
-      <div v-for="year in allYearsThatHaveChallengeButTheCurrent" :key="year.year">
-        <hr class="h-[1px] w-full border-0 bg-neutral-200 dark:bg-neutral-700" />
+      <div v-for="year in allYearsThatHaveChallengeButTheCurrent" :key="year[0]">
         <ChallengeYear
-          :books-for-that-year="sortedByYear[year.year] || []"
-          :year="year.year"
-          :challenge="year.books"
-          @delete="deleteYear(year.year)"
-          @change="(books: number) => changeBooks(year.year, books)"
+          :books-for-that-year="sortedByYear[year[0]] || []"
+          :year="Number(year[0])"
+          :challenge="year[1].books"
+          @delete="deleteYear(year[0])"
+          @change="(books: number) => changeBooks(year[0], books)"
         />
       </div>
     </template>
 
-    <div v-if="expanded || !allYearsThatHaveChallengeButTheCurrent.length" class="my-1 flex">
-      <input v-model="yearInput" class="" placeholder="Year" type="number" />
-      <input v-model="booksInput" class="ml-2" placeholder="Books" type="number" />
-      <button class="ml-2" @click="addYear">Add Year</button>
-    </div>
-
-    <div
-      v-if="allYearsThatHaveChallengeButTheCurrent.length"
-      class="mb-2 mt-3 flex w-full cursor-pointer justify-center fill-neutral-900 text-center dark:fill-neutral-50"
-      @click="flipExpanded"
-    >
-      <ChevronDown class="mr-2 w-6" :class="[expanded && 'rotate-180']" />
-
-      <template v-if="!expanded">Show All Years</template>
-      <template v-else>Show Only Current Year</template>
+    <div class="my-2 flex">
+      <BasicInput v-model="yearInput" class="" placeholder="Year" type="number" />
+      <BasicInput v-model="booksInput" class="ml-2" placeholder="Books" type="number" />
+      <BasicButton class="ml-2 shrink-0" variant="outline" @click="addYear">Add Year</BasicButton>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { computed, onBeforeMount, ref } from 'vue';
+import { computed, onBeforeMount, ref, watch } from 'vue';
 
 import ChallengeYear from './ChallengeYear.vue';
 
 import getSortFunction from '/@/components/BookView/getSortFunction';
 import { dateReducerAllYears } from '/@/components/BookView/getDateReducer';
 import { cloneDeep, cloneDeep as _cloneDeep, findIndex } from 'lodash';
-import { ChevronDown } from 'lucide-vue-next';
+import BasicButton from '/@/components/_UI/BasicButton/BasicButton.vue';
+import BasicInput from '/@/components/_UI/BasicInput.vue';
 
 import type { IFiles, ISavedFile } from '/@main/services/files';
 import { trpcApi } from '/@/utils/trpc';
@@ -67,9 +71,9 @@ onBeforeMount(async () => {
   data.value = await trpcApi.getReadChallenge.query();
 });
 
-const update = async (update: IReadChallengeData) => {
-  await trpcApi.saveReadChallenge.mutate(update);
-  data.value = update;
+const save = async () => {
+  if (!data.value) return;
+  await trpcApi.saveReadChallenge.mutate(_cloneDeep(data.value) || {});
 };
 
 const load = async () => {
@@ -91,7 +95,7 @@ const sortedByYear = computed(() => {
 
   const array = Object.values(read.value);
 
-  const sorted: Record<number, ISavedFile[]> = {};
+  const sorted: Record<string, ISavedFile[]> = {};
 
   array.forEach((book) => {
     if (!book.read || !store.settings) return;
@@ -103,12 +107,11 @@ const sortedByYear = computed(() => {
     });
   });
 
-  //@ts-expect-error Typescript is wrong here, this is correct and safe.
   const allYears = Object.keys(sorted) as Array<keyof typeof sorted>;
 
   const sortFunction = getSortFunction('First Read', store.settings.dateFormat);
 
-  allYears.forEach((key: number) => {
+  allYears.forEach((key: string) => {
     sorted[key].sort((a, b) => sortFunction(a, b, 1));
   });
 
@@ -116,14 +119,17 @@ const sortedByYear = computed(() => {
 });
 
 const currentYearChallenge = computed(() => {
-  return data.value?.find((v) => v.year === currentYear.value)?.books;
+  if (!data.value || !(currentYear.value in data.value)) return { books: 1 };
+  console.log(currentYearChallenge);
+  return data.value[currentYear.value];
 });
 
 const allYearsThatHaveChallengeButTheCurrent = computed(() => {
-  const years = _cloneDeep(data.value) || [];
+  if (!data.value) return [];
+  const years = Object.entries(data.value);
 
-  years.sort((a, b) => b.year - a.year);
-  return years.filter((v) => v.year !== currentYear.value);
+  years.sort((a, b) => Number(b[0]) - Number(a[0]));
+  return years.filter((v) => Number(v[0]) !== currentYear.value);
 });
 
 // Show Hide
@@ -139,38 +145,30 @@ const booksInput = ref<number>();
 const addYear = () => {
   if (!yearInput.value || !booksInput.value) return;
 
-  if (!data.value) return;
+  if (!data.value) {
+    data.value = {};
+  }
 
-  const newData = cloneDeep(data.value);
+  data.value[Number(yearInput.value)] = { books: booksInput.value };
 
-  update([
-    ...newData,
-    {
-      books: booksInput.value,
-      year: yearInput.value,
-    },
-  ]);
   yearInput.value = undefined;
   booksInput.value = undefined;
+  save();
 };
 
 // Interaction
-const deleteYear = (year: number) => {
+const deleteYear = (year: number | string) => {
   if (!data.value) return;
-  const newData = data.value.filter((v) => v.year !== year);
-  update(newData);
+  delete data.value[year];
+  save();
 };
 
-const changeBooks = (year: number, books: number) => {
-  const newData = cloneDeep(data.value);
-  if (!newData) return;
-  const i = newData.findIndex((v) => v.year === year);
-  if (i > 0) {
-    newData[i] = { year, books };
-  } else {
-    newData.push({ year, books });
+const changeBooks = (year: number | string, books: number) => {
+  if (!data.value) {
+    data.value = {};
   }
-  update(newData);
+  data.value[year] = { books };
+  save();
 };
 
 load();

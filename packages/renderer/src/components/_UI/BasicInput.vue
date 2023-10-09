@@ -30,6 +30,7 @@ const props = defineProps<{
   modelValue: string | number | undefined;
   theme?: NonNullable<Parameters<typeof inputVariants>[0]>['theme'];
   type?: HTMLInputElement['type'];
+  placeholder?: string;
 }>();
 
 const emits = defineEmits<{
@@ -65,6 +66,7 @@ watch(
   <input
     v-model="innerValue"
     v-bind="$attrs"
+    :placeholder="placeholder"
     :type="props.type || 'text'"
     :class="cls(inputVariants({ theme }), $attrs.class as string)"
   />

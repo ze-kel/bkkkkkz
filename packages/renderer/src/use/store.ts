@@ -13,6 +13,10 @@ import type { INotification } from '/@main/ipc/api';
 
 const uid = new ShortUniqueId({ length: 10 });
 
+interface INotificationWithId extends INotification {
+  id: string;
+}
+
 export type StateType = {
   rootPath: string | null;
   openedTabs: IOpenedTabs['tabs'];
@@ -20,7 +24,7 @@ export type StateType = {
   folderTree: IFolderTree | null;
   settings: ISettings | null;
   tagsTree: ITags;
-  notifications: INotification[];
+  notifications: INotificationWithId[];
 };
 
 export type OpenNewOneParams =
@@ -56,7 +60,7 @@ export const useStore = defineStore('main', {
     },
 
     openNewOne(item: IOpened, params: OpenNewOneParams) {
-      // Place: 'last' or  is covered here
+      // Place: 'last' is covered here
       let indexToSet = this.openedTabs.length;
 
       if (params.place === 'insert' || params.place === 'replace') {
@@ -162,12 +166,15 @@ export const useStore = defineStore('main', {
     // Notifications
     //
     showNotification(notif: INotification) {
-      this.notifications.push(notif);
+      const id = uid.randomUUID();
+      this.notifications.push({ ...notif, id });
 
-      setTimeout(this.shiftNotification, 5000);
+      if (notif.ttlSeconds !== Infinity) {
+        setTimeout(() => this.removeNotifcation(id), notif.ttlSeconds || 5000);
+      }
     },
-    shiftNotification() {
-      this.notifications.shift();
+    removeNotifcation(id: string) {
+      this.notifications = this.notifications.filter((v) => v.id !== id);
     },
   },
   getters: {

@@ -3,10 +3,11 @@ import * as fs from 'fs-extra';
 import { getRootPath } from './rootPath';
 
 import { z } from 'zod';
+import { sendNotificationToUser } from '../ipc/api';
 
-export const zReadChallenge = z.array(
+export const zReadChallenge = z.record(
+  z.string().length(4),
   z.object({
-    year: z.number().min(1),
     books: z.number().min(1),
   }),
 );
@@ -27,10 +28,23 @@ export const getReadChallenge = () => {
 
   fs.ensureDirSync(targetFolder);
 
-  const f = fs.existsSync(targetFile) ? JSON.parse(fs.readFileSync(targetFile).toString()) : [];
+  const f = fs.existsSync(targetFile) ? JSON.parse(fs.readFileSync(targetFile).toString()) : {};
 
-  const parsed = zReadChallenge.parse(f);
-  return parsed;
+  try {
+    const parsed = zReadChallenge.parse(f);
+    return parsed;
+  } catch (e) {
+    sendNotificationToUser({
+      title: 'Error when parsing Read Challenge data file',
+      text: [
+        'There might be your data. Please check it.',
+        'It will be lost on next iteraction with «Currently Reading» panel.',
+      ],
+      ttlSeconds: Infinity,
+      subtext: targetFile,
+    });
+    return {};
+  }
 };
 
 export const saveReadChallenge = (settings: IReadChallengeData) => {

@@ -57,7 +57,7 @@
         tag="div"
         name="list"
         class="grid"
-        :class="opened.settings.viewStyle === 'Lines' ? 'grid-cols-1' : 'cards gap-4'"
+        :class="opened.settings.viewStyle === 'Lines' ? 'grid-cols-1' : 'cards gap-3'"
       >
         <BookItem
           v-for="item in sortedFiles"
@@ -280,7 +280,7 @@ onUnmounted(() => {
 
 <style scoped>
 .cards {
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   grid-auto-rows: max-content;
 }
 </style>

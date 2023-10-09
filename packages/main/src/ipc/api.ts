@@ -14,7 +14,10 @@ import { getReadChallenge, saveReadChallenge, zReadChallenge } from '../services
 
 export type INotification = {
   title: string;
-  text: string;
+  text: string | string[];
+  subtext?: string;
+  variant?: 'default' | 'destructive';
+  ttlSeconds?: number;
 };
 
 const t = initTRPC.create({ isServer: true });

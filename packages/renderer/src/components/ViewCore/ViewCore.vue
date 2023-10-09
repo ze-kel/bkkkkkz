@@ -36,7 +36,7 @@
     <!-- Core view -->
     <div class="flex h-full max-h-full w-full overflow-hidden">
       <div class="flex h-full w-full flex-col">
-        <div v-if="store.openedItem" :key="store.openedItem.thing" class="h-full w-full">
+        <div v-if="store.openedItem" :key="store.openedItem.id" class="h-full w-full">
           <template v-if="store.openedItem.type === 'innerPage'">
             <HomePage v-if="store.openedItem.thing === 'home'" />
           </template>
