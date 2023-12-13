@@ -56,7 +56,7 @@ const addBook = () => {
         thing: store.rootPath,
         scrollPosition: 0,
       },
-      { place: 'last' },
+      { place: 'last', focus: true },
     );
   } else {
     store.openNewOne(
@@ -66,7 +66,7 @@ const addBook = () => {
         thing: store.openedItem.thing,
         scrollPosition: 0,
       },
-      { place: 'last' },
+      { place: 'current', focus: true },
     );
   }
 };

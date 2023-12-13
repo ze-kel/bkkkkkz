@@ -12,7 +12,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, onBeforeMount } from 'vue';
+import { computed, onMounted, onUnmounted, ref, onBeforeMount, watch } from 'vue';
 
 import { debounce as _debounce } from 'lodash';
 
@@ -28,12 +28,23 @@ const hasRootPath = computed(() => {
   return typeof store.rootPath === 'string';
 });
 
+watch(
+  hasRootPath,
+  async () => {
+    await store.fetchSetting();
+    await store.fetchOpened();
+  },
+  { immediate: false },
+);
+
 const loaded = ref(false);
 
 onBeforeMount(async () => {
   await store.fetchRootPath();
-  await store.fetchSetting();
-  await store.fetchOpened();
+  if (typeof store.rootPath === 'string') {
+    await store.fetchSetting();
+    await store.fetchOpened();
+  }
   loaded.value = true;
 });
 

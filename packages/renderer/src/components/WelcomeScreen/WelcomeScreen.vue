@@ -7,10 +7,17 @@
 </template>
 
 <script lang="ts" setup>
+import { useStore } from '/@/use/store';
 import { trpcApi } from '/@/utils/trpc';
 
-const clickHandler = () => {
-  trpcApi.setRootPath.mutate();
+const store = useStore();
+
+const clickHandler = async () => {
+  const res = await trpcApi.setRootPath.mutate();
+
+  if (res) {
+    store.fetchRootPath();
+  }
 };
 </script>
 
