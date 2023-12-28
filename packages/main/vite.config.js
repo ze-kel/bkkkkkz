@@ -1,5 +1,5 @@
 import { node } from '../../.electron-vendors.cache.json';
-import { join } from 'path';
+import { join } from 'node:path';
 import { injectAppVersion } from '../../version/inject-app-version-plugin.mjs';
 
 const PACKAGE_ROOT = __dirname;
@@ -16,8 +16,6 @@ const config = {
   resolve: {
     alias: {
       '/@/': join(PACKAGE_ROOT, 'src') + '/',
-      '/@preload/': join(PACKAGE_ROOT, '../preload/src') + '/',
-      '/@renderer/': join(PACKAGE_ROOT, '../renderer/src') + '/',
     },
   },
   build: {
