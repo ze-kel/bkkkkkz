@@ -10,7 +10,7 @@ const originalPath = path.join(process.cwd(), 'tests', 'testfiles_packs', '3. Ta
 const workingPath = path.join(process.cwd(), 'tests', 'tagswatcher');
 
 beforeEach(async () => {
-  electronApp = await setupTest(originalPath, workingPath);
+  electronApp = await setupTest({ originalPath, FORCE_ROOT_PATH: workingPath });
 });
 
 afterEach(async () => await afterTest(electronApp, workingPath));

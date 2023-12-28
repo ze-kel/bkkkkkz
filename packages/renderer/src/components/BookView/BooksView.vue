@@ -2,6 +2,9 @@
   <div ref="scrollRoot" class="flex h-full w-full flex-col overflow-y-scroll px-2 pb-4">
     <ViewConrols class="sticky top-0 z-10 bg-neutral-50 pt-2 dark:bg-neutral-950" />
 
+    <!--When looking at All Books and we have zero books show placeholder-->
+    <EmptyBooksPlaceholder v-if="Object.values(files).length === 0 && !loading" />
+
     <div
       :class="[
         'box-border w-full items-start rounded-md border',
@@ -99,10 +102,13 @@ import ViewConrols from './ViewConrols.vue';
 import type { IFile, IFiles } from '/@main/services/files';
 import type { PropType } from 'vue';
 import type { IOpenedPath, IOpenedTag } from '/@main/services/openedTabs';
+import EmptyBooksPlaceholder from '/@/components/Placeholders/EmptyBooksPlaceholder.vue';
 
 const store = useStore();
 
 const files = ref<IFiles>({});
+
+const loading = ref(true);
 
 const props = defineProps({
   opened: {
@@ -116,6 +122,7 @@ const props = defineProps({
 });
 
 const loadContent = async () => {
+  loading.value = true;
   if (props.opened.type === 'folder') {
     files.value = await trpcApi.loadFilesFromFolder.query({
       path: props.opened.thing,
@@ -125,6 +132,9 @@ const loadContent = async () => {
   if (props.opened.type === 'tag') {
     files.value = await trpcApi.loadFilesFromTag.query(props.opened.thing);
   }
+  nextTick(() => {
+    loading.value = false;
+  });
   nextTick(setScrollPositionFromSaved);
 };
 

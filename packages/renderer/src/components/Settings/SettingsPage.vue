@@ -2,7 +2,7 @@
   <div v-if="store.settings" class="w-full">
     <PathControllerVue
       v-if="store.rootPath"
-      title="Root Path"
+      title="Working Directory"
       :path="store.rootPath"
       @change="trpcApi.setRootPath.mutate"
     />

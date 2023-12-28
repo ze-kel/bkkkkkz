@@ -19,7 +19,7 @@ const originalPath = path.join(process.cwd(), 'tests', 'testfiles_packs', '2. Si
 const workingPath = path.join(process.cwd(), 'tests', 'file editing');
 
 beforeAll(async () => {
-  electronApp = await setupTest(originalPath, workingPath);
+  electronApp = await setupTest({ originalPath, FORCE_ROOT_PATH: workingPath });
 });
 
 afterAll(async () => await afterTest(electronApp, workingPath));

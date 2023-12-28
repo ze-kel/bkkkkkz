@@ -3,7 +3,9 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import TheWatcher from '../watcher/watcherCore';
 
-const folderPath = app.getPath('userData');
+const folderPath = process.env['FORCE_USER_PATH']
+  ? process.env['FORCE_USER_PATH']
+  : app.getPath('userData');
 const jsonPath = path.join(folderPath, 'path.json');
 
 export const getRootPath = (): string | null => {
@@ -39,14 +41,26 @@ export const getRootPathSafe = (): string => {
   return path;
 };
 
-export const setRootPath = async () => {
+const getSelectedPath = async () => {
+  if (process.env['FAKE_SET_ROOT_DIR']) {
+    return process.env['FAKE_SET_ROOT_DIR'];
+  }
+
   const folder = await dialog.showOpenDialog({
     properties: ['openDirectory'],
   });
 
   if (folder.filePaths.length) {
+    return folder.filePaths[0];
+  }
+};
+
+export const setRootPath = async () => {
+  const path = await getSelectedPath();
+
+  if (path) {
     fs.ensureDirSync(folderPath);
-    const toSave = JSON.stringify({ path: folder.filePaths[0] });
+    const toSave = JSON.stringify({ path });
     await fs.writeFile(jsonPath, toSave);
     const w = await TheWatcher.init();
     if (!w) {

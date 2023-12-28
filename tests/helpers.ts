@@ -3,13 +3,35 @@ import type { ElectronApplication, Locator, Page } from 'playwright';
 import { _electron as electron } from 'playwright';
 import { testClasses } from '../packages/renderer/src/utils/testClassBinds';
 
-export const setupTest = async (originalPath: string, workingPath: string) => {
-  fs.removeSync(workingPath);
-  fs.copySync(originalPath, workingPath);
+export const setupTest = async ({
+  originalPath,
+  FORCE_ROOT_PATH,
+  FORCE_USER_PATH,
+  FAKE_SET_ROOT_DIR,
+}: {
+  originalPath: string;
+  FORCE_ROOT_PATH?: string;
+  FORCE_USER_PATH?: string;
+  FAKE_SET_ROOT_DIR?: string;
+}) => {
+  const env: Record<string, string> = {};
+
+  if (FORCE_ROOT_PATH) {
+    env.FORCE_ROOT_PATH = FORCE_ROOT_PATH;
+    fs.removeSync(FORCE_ROOT_PATH);
+    fs.copySync(originalPath, FORCE_ROOT_PATH);
+  }
+
+  if (FORCE_USER_PATH) {
+    env.FORCE_USER_PATH = FORCE_USER_PATH;
+  }
+  if (FAKE_SET_ROOT_DIR) {
+    env.FAKE_SET_ROOT_DIR = FAKE_SET_ROOT_DIR;
+  }
 
   const electronApp = await electron.launch({
     env: {
-      FORCE_ROOT_PATH: workingPath,
+      ...env,
       TEST_MODE: 'true',
       NODE_ENV: 'development',
     },
@@ -22,11 +44,13 @@ export const setupTest = async (originalPath: string, workingPath: string) => {
 
 export const afterTest = async (electronApp: ElectronApplication, workingPath: string) => {
   await sleep(LOAD_TIMEOUT);
+  console.log('closing');
   await electronApp.close();
+  console.log('removing working path');
   fs.removeSync(workingPath);
 };
 
-// Main editor save is debounced at 300ms, 500 should be enough for modern computers. 500
+// Main editor save is debounced at 300ms, 500 should be enough for modern computers
 export const LOAD_TIMEOUT = 1000;
 
 export const sleep = (ms: number) => {
@@ -42,7 +66,7 @@ export const getLocators = (page: Page) => {
     locators[el[0]] = page.locator('.' + el[1]);
   });
 
-  return locators;
+  return locators as Record<keyof typeof testClasses, Locator>;
 };
 
 type TestBookDate = { from: string | null; to: string | null };

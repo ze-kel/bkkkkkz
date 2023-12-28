@@ -34,7 +34,7 @@
     </div>
 
     <!-- Core view -->
-    <div class="flex h-full max-h-full w-full overflow-hidden">
+    <div class="flex h-[calc(100%_-_40px)] max-h-full w-full overflow-hidden">
       <div class="flex h-full w-full flex-col">
         <div v-if="store.openedItem" :key="store.openedItem.id" class="h-full w-full">
           <template v-if="store.openedItem.type === 'innerPage'">
@@ -48,6 +48,8 @@
             <BookView v-else :opened="store.openedItem" :index="store.openedTabsActiveIndex || 0" />
           </template>
         </div>
+
+        <NoTabPlaceholder v-else />
       </div>
     </div>
   </div>
@@ -66,6 +68,7 @@ import BookEditor from '/@/components/Editor/BookEditor.vue';
 import BookView from '/@/components/BookView/BooksView.vue';
 import TabsSelector from './TabsSelector.vue';
 import { useStore } from '/@/use/store';
+import NoTabPlaceholder from '/@/components/Placeholders/NoTabPlaceholder.vue';
 
 const store = useStore();
 

@@ -1,12 +1,18 @@
 <template>
+  <!-- Empty space to drag window around -->
+  <div class="dragApp col-span-2 h-10"></div>
+
   <div class="flex h-full flex-col items-center justify-center p-10">
-    <div class="text-4xl">Welcome!</div>
-    <div class="mt-2">Please select your root directory</div>
-    <button class="mt-2" @click="clickHandler">Select</button>
+    <div class="text-2xl">To begin please set working directory</div>
+    <div class="text-xs">Your files & settings will be store there.</div>
+    <BasicButton variant="default" class="mt-4" @click="clickHandler">
+      Set Working Directory
+    </BasicButton>
   </div>
 </template>
 
 <script lang="ts" setup>
+import BasicButton from '/@/components/_UI/BasicButton/BasicButton.vue';
 import { useStore } from '/@/use/store';
 import { trpcApi } from '/@/utils/trpc';
 

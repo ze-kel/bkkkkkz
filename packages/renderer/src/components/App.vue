@@ -57,12 +57,12 @@ onMounted(async () => {
 //
 // Dark mode class
 //
-
 const darkModeClass = computed(() => {
-  if (!store.settings || store.settings.darkMode === 'Light') return '';
-  if (store.settings.darkMode === 'System') {
+  if (!store.settings || store.settings.darkMode === 'System') {
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : '';
   }
+  if (store.settings.darkMode === 'Light') return '';
+
   return 'dark';
 });
 
