@@ -2,7 +2,7 @@
   <div
     :class="
       cls(
-        'min-w-5 relative z-50 overflow-hidden rounded-md border border-neutral-100 bg-neutral-50 p-1 shadow-md dark:border-neutral-900 dark:bg-neutral-950',
+        'relative z-50 min-w-5 overflow-hidden rounded-md border border-neutral-100 bg-neutral-50 p-1 shadow-md dark:border-neutral-900 dark:bg-neutral-950',
         $attrs.class as string,
       )
     "

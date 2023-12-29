@@ -15,7 +15,7 @@ jobs:
       fail-fast: false
       matrix:
         # Ubuntu fails to launch for some reason. If fixed add ubuntu-latest
-        os: [windows-latest, macos-latestm, ubuntu-latest]
+        os: [windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4
@@ -26,8 +26,7 @@ jobs:
         env:
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
 
-      # I ran into problems trying to run an electron window in ubuntu due to a missing graphics server.
-      # That's why this special command for Ubuntu is here
+      # This should fix ubuntu testing, but it doesnt for me
       - run: xvfb-run --auto-servernum --server-args="-screen 0 1280x960x24" -- npm run test --if-present
         if: matrix.os == 'ubuntu-latest'
 

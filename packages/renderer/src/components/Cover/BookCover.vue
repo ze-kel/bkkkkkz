@@ -1,11 +1,11 @@
 <template>
-  <div class="@container relative h-full w-full overflow-hidden">
+  <div class="relative h-full w-full overflow-hidden @container">
     <div
       v-if="!showImage"
       class="absolute left-0 top-0 flex h-full w-full flex-col rounded-md border border-neutral-200 p-3 shadow-lg transition-opacity dark:border-neutral-800"
     >
       <div
-        class="title overflow-hiddenalign-middle @[10rem]:text-lg h-1/2 shrink overflow-hidden text-xs leading-tight"
+        class="title overflow-hiddenalign-middle h-1/2 shrink overflow-hidden text-xs leading-tight @[10rem]:text-lg"
       >
         {{ mainTitle }}
       </div>
@@ -13,7 +13,7 @@
       <div class="author @[10rem]:text-md flex-grow text-xs font-semibold">
         {{ file.author || 'Unknown' }}
       </div>
-      <div v-if="file.year" class="@[10rem]:text-lg @[5rem]:block hidden text-xs">
+      <div v-if="file.year" class="hidden text-xs @[5rem]:block @[10rem]:text-lg">
         {{ file.year }}
       </div>
     </div>
