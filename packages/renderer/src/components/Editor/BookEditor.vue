@@ -102,10 +102,8 @@
 
 <script lang="ts" setup>
 import { ref, onMounted, watchEffect, onUnmounted, watch, nextTick, computed } from 'vue';
-import ContentEditable from '../_UI/ContentEditable.vue';
 import ReadDetails from '../ReadDetails/ReadDetails.vue';
 import Rating from '../Rating/RatingStars.vue';
-import Milkdown from './MdMikdown.vue';
 import Tags from '../Tags/TagsEditor.vue';
 import DragDisplay from '/@/components/_UI/DragDisplay.vue';
 import Cover from '../Cover/BookCover.vue';
@@ -116,7 +114,6 @@ import { MilkdownProvider } from '@milkdown/vue';
 
 import { cloneDeep as _cloneDeep } from 'lodash';
 import { debounce as _debounce } from 'lodash';
-import { ISBN10to13 } from '/@main/helpers/utils';
 
 import {
   ContextMenu,

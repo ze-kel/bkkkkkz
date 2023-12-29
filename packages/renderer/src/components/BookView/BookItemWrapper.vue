@@ -51,7 +51,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref } from 'vue';
+import { nextTick, onMounted, ref } from 'vue';
 
 import { debounce as _debounce } from 'lodash';
 
