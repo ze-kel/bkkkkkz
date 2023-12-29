@@ -1,42 +1,39 @@
 import * as path from 'path';
 import * as fs from 'fs-extra';
 import type { ElectronApplication } from 'playwright';
-import { afterAll, beforeAll, expect, test } from 'vitest';
+import { expect, test } from '@playwright/test';
 import {
   setupTest,
   afterTest,
-  sleep,
   getLocators,
-  getBookFromEditor,
+  expectBookInEditor,
   removeLineTerminators,
-  LOAD_TIMEOUT,
 } from './helpers';
-import type { TestBookFromEditor } from './helpers';
+import type { ExpectedBook } from './helpers';
 
 let electronApp: ElectronApplication;
 
 const originalPath = path.join(process.cwd(), 'tests', 'testfiles_packs', '2. Single File');
-const workingPath = path.join(process.cwd(), 'tests', 'file editing');
+const workingPath = path.join(process.cwd(), 'tests', 'working', 'file editing');
 
-beforeAll(async () => {
+test.beforeAll(async () => {
   electronApp = await setupTest({ originalPath, FORCE_ROOT_PATH: workingPath });
 });
 
-afterAll(async () => await afterTest(electronApp, workingPath));
+test.afterAll(async () => await afterTest(electronApp, workingPath));
 
 test('Changes on disk are reflected in the interface', async () => {
   const page = await electronApp.firstWindow();
   const L = getLocators(page);
 
   await L.fileTreeItems.first().click();
-  await sleep(LOAD_TIMEOUT);
-  expect(await L.openedTab.count(), 'After clicking All Books we have an open tab').toBe(1);
-  expect(await L.bookItems.count(), 'Number of books we see in all books is correct').toBe(1);
+
+  await expect(L.openedTab, 'After clicking All Books we have an open tab').toHaveCount(1);
+  await expect(L.bookItems, 'Number of books we see in all books is correct').toHaveCount(1);
 
   await L.bookItems.first().click();
-  await sleep(LOAD_TIMEOUT);
 
-  const expected: TestBookFromEditor = {
+  const expected: ExpectedBook = {
     title: 'The 48 Laws of Power',
     author: 'Greene, Robert',
     year: '1998',
@@ -46,15 +43,12 @@ test('Changes on disk are reflected in the interface', async () => {
     rating: 4,
   };
 
-  let bookInEditor = await getBookFromEditor(L);
-
-  expect(bookInEditor).toEqual(expected);
+  await expectBookInEditor(L, expected, 'Initial book:');
 
   const newContent = fs.readFileSync(path.join(workingPath, 'diskChange.txt'));
   fs.writeFileSync(path.join(workingPath, '48.md'), newContent.toString());
-  await sleep(LOAD_TIMEOUT);
 
-  const expectedAfter: TestBookFromEditor = {
+  const expectedAfter: ExpectedBook = {
     title: 'Meditations',
     author: 'Marcus Aurelius',
     year: '180',
@@ -67,16 +61,12 @@ test('Changes on disk are reflected in the interface', async () => {
     rating: 3.5,
   };
 
-  bookInEditor = await getBookFromEditor(L);
-
-  expect(bookInEditor).toEqual(expectedAfter);
+  await expectBookInEditor(L, expectedAfter, 'Book after update on disk:');
 });
 
 test('Editing book works and saves correctly', async () => {
   const page = await electronApp.firstWindow();
   const L = getLocators(page);
-
-  await sleep(LOAD_TIMEOUT);
 
   await L.editorAuthor.click();
   await L.editorAuthor.fill('Branden, Nathaniel');
@@ -98,32 +88,26 @@ test('Editing book works and saves correctly', async () => {
   //01/01/2021
   await L.editorDateFrom.last().click();
   await L.editorCalendarYearInput.fill('2021');
-
   await L.editorCalendarMonthSelectorButton.click();
   await L.editorCalendarMonthSelectorMonth.first().click();
-  await sleep(LOAD_TIMEOUT);
   await L.editorCalendarDay.first().click();
 
   //07/01/2021
   await L.editorDateTo.last().click();
   await L.editorCalendarYearInput.fill('2021');
-
   await L.editorCalendarMonthSelectorButton.click();
   await L.editorCalendarMonthSelectorMonth.first().click();
-  await sleep(LOAD_TIMEOUT);
   await L.editorCalendarDay.nth(6).click();
 
   await L.editorMarkdown.click();
-  await L.editorMarkdown.type(' and some more');
+  await L.editorMarkdown.pressSequentially(' and some more');
 
   await L.editorTag.first().click();
   await L.editorTag.first().fill('');
 
   await L.editorAddTag.first().click();
 
-  await sleep(LOAD_TIMEOUT);
-
-  const expected: TestBookFromEditor = {
+  const expected: ExpectedBook = {
     title: 'Six Pillars of Self-Esteem',
     author: 'Branden, Nathaniel',
     year: '1994',
@@ -136,20 +120,21 @@ test('Editing book works and saves correctly', async () => {
     rating: 5,
   };
 
-  const bookInEditor = await getBookFromEditor(L);
-
-  expect(bookInEditor).toEqual(expected);
+  await expectBookInEditor(L, expected, 'Final Book:');
 });
 
 test('Changes made in edtior are saved to disk', async () => {
-  await sleep(LOAD_TIMEOUT);
+  const page = await electronApp.firstWindow();
+
+  await page.waitForTimeout(1000);
+
   const expected = fs.readFileSync(path.join(workingPath, 'editorChange.txt'));
   const onDisk = fs.readFileSync(path.join(workingPath, '48.md'));
 
-  fs.writeFileSync(path.join(originalPath, 'salkdasd.txt'), onDisk.toString());
+  //  fs.writeFileSync(path.join(originalPath, 'debug.txt'), onDisk.toString());
 
   const expectedStr = removeLineTerminators(expected.toString());
   const onDiskStr = removeLineTerminators(onDisk.toString());
 
-  expect(expectedStr, 'After editing all changes are saved to disk').toEqual(onDiskStr);
+  await expect(expectedStr, 'After editing all changes are saved to disk').toEqual(onDiskStr);
 });

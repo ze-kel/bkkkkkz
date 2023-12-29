@@ -2,17 +2,17 @@ import * as path from 'path';
 import * as fs from 'fs-extra';
 
 import type { ElectronApplication } from 'playwright';
-import { afterAll, beforeAll, expect, test } from 'vitest';
-import { setupTest, afterTest, sleep, getLocators, LOAD_TIMEOUT } from './helpers';
+import { expect, test } from '@playwright/test';
+import { setupTest, afterTest, getLocators } from './helpers';
 
 let electronApp: ElectronApplication;
 
 const originalPath = path.join(process.cwd(), 'tests', 'testfiles_packs', '5. Initial Setup');
-const basePath = path.join(process.cwd(), 'tests', 'initialsetup');
+const basePath = path.join(process.cwd(), 'tests', 'working', 'initialsetup');
 const workingPath = path.join(basePath, 'files');
 const userPath = path.join(basePath, 'userData');
 
-beforeAll(async () => {
+test.beforeAll(async () => {
   fs.ensureDirSync(userPath);
   fs.ensureDirSync(workingPath);
   electronApp = await setupTest({
@@ -22,21 +22,16 @@ beforeAll(async () => {
   });
 });
 
-afterAll(async () => await afterTest(electronApp, basePath));
+test.afterAll(async () => await afterTest(electronApp, basePath));
 
 test('Test initial setup', async () => {
   const page = await electronApp.firstWindow();
   const L = getLocators(page);
   const initialSetButton = page.getByRole('button', { name: 'Set Working Directory' });
-  await expect(
-    initialSetButton.isVisible(),
-    'Initial Set Working Directory button visible',
-  ).toBeTruthy();
+  await expect(initialSetButton, 'Initial Set Working Directory button visible').toBeVisible();
 
   // This will open native file dialog, which cant be controlled by playwright, so we take it from env variable
   initialSetButton.click();
-
-  await sleep(LOAD_TIMEOUT);
 
   expect(await L.openedTab.count(), 'Initially we have no tabs opened').toBe(0);
 
@@ -46,18 +41,16 @@ test('Test initial setup', async () => {
 
   viewAll.click();
 
-  expect(await L.openedTab.count(), 'After View All Books click, we have one tabs').toBe(0);
+  await expect(L.openedTab, 'After View All Books click, we have one tab').toHaveCount(1);
 
-  expect(await L.bookItems.count(), 'We dont have any books yet').toBe(0);
+  await expect(L.bookItems, 'We dont have any books yet').toHaveCount(0);
 
   const addDemoButtons = page.getByRole('button', {
     name: 'Add Demo Books',
   });
 
-  await expect(initialSetButton.isVisible(), 'Add Demo Books button visible').toBeTruthy();
+  await expect(addDemoButtons, 'Add Demo Books button visible').toBeVisible();
   addDemoButtons.click();
 
-  await sleep(LOAD_TIMEOUT);
-
-  expect(await L.bookItems.count(), 'Demo books added').toBe(3);
+  await expect(L.bookItems, 'Demo books added').toHaveCount(3);
 });

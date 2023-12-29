@@ -2,6 +2,7 @@ import * as fs from 'fs-extra';
 import type { ElectronApplication, Locator, Page } from 'playwright';
 import { _electron as electron } from 'playwright';
 import { testClasses } from '../packages/renderer/src/utils/testClassBinds';
+import { expect } from 'playwright/test';
 
 export const setupTest = async ({
   originalPath,
@@ -38,15 +39,12 @@ export const setupTest = async ({
     args: ['.'],
   });
 
-  await sleep(LOAD_TIMEOUT);
   return electronApp;
 };
 
 export const afterTest = async (electronApp: ElectronApplication, workingPath: string) => {
   await sleep(LOAD_TIMEOUT);
-  console.log('closing');
   await electronApp.close();
-  console.log('removing working path');
   fs.removeSync(workingPath);
 };
 
@@ -59,6 +57,8 @@ export const sleep = (ms: number) => {
   });
 };
 
+type ILocators = Record<keyof typeof testClasses, Locator>;
+
 export const getLocators = (page: Page) => {
   const locators: Record<string, Locator> = {};
 
@@ -66,12 +66,12 @@ export const getLocators = (page: Page) => {
     locators[el[0]] = page.locator('.' + el[1]);
   });
 
-  return locators as Record<keyof typeof testClasses, Locator>;
+  return locators as ILocators;
 };
 
 type TestBookDate = { from: string | null; to: string | null };
 
-export type TestBookFromEditor = {
+export type ExpectedBook = {
   author: string;
   title: string;
   year: string;
@@ -81,48 +81,24 @@ export type TestBookFromEditor = {
   rating: number;
 };
 
-export const getBookFromEditor = async (
-  L: Record<string, Locator>,
-): Promise<TestBookFromEditor> => {
-  const author = await L.editorAuthor.inputValue();
-  const title = await L.editorTitle.inputValue();
-  const year = await L.editorYear.inputValue();
-  const ISBN = await L.editorIsbn.inputValue();
-
-  const numberOfTags = await L.editorTag.count();
-  const tags = [];
-  for (let i = 0; i < numberOfTags; i++) {
-    tags.push(await L.editorTag.nth(i).innerText());
-  }
-
-  const dates: TestBookDate[] = [];
-  const numberFromDates = await L.editorDateFrom.count();
-  const numberToDates = await L.editorDateTo.count();
-
-  for (let i = 0; i < numberFromDates; i++) {
-    if (!dates[i]) dates[i] = { from: '', to: '' };
-    const field = await L.editorDateFrom.nth(i);
-    const content = await field.textContent();
-    if (content !== null) {
-      dates[i]['from'] = content.trim();
-    }
-  }
-  for (let i = 0; i < numberToDates; i++) {
-    if (!dates[i]) dates[i] = { from: '', to: '' };
-    const field = await L.editorDateTo.nth(i);
-
-    const content = await field.textContent();
-    if (content !== null) {
-      dates[i]['to'] = content.trim();
-    }
-  }
-
-  const filledStars = await L.editorStarFilled.count();
-  const halfStars = await L.editorStarHalf.count();
-
-  const rating = filledStars + halfStars * 0.5;
-
-  return { author, title, year, ISBN, tags, dates, rating };
+export const expectBookInEditor = async (
+  L: ILocators,
+  book: ExpectedBook,
+  expectationPrefix = '',
+): Promise<void> => {
+  await expect(L.editorAuthor, expectationPrefix + 'author').toHaveValue(book.author);
+  await expect(L.editorTitle, expectationPrefix + 'title').toHaveValue(book.title);
+  await expect(L.editorYear, expectationPrefix + 'year').toHaveValue(book.year);
+  await expect(L.editorIsbn, expectationPrefix + 'ISBN').toHaveValue(book.ISBN);
+  await expect(L.editorTag).toContainText(book.tags);
+  await expect(L.editorDateFrom).toContainText(
+    book.dates.map((v) => v.from || '').filter((v) => v.length),
+  );
+  await expect(L.editorDateTo).toContainText(
+    book.dates.map((v) => v.to || '').filter((v) => v.length),
+  );
+  await expect(L.editorStarFilled).toHaveCount(Math.floor(book.rating));
+  await expect(L.editorStarHalf).toHaveCount(Math.floor(book.rating) !== book.rating ? 1 : 0);
 };
 
 export const removeLineTerminators = (string: string) => {

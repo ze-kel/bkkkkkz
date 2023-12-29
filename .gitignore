@@ -61,3 +61,6 @@ files
 
 # file to remind myself about stuff
 .todo
+
+# working directory for tests
+tests/working

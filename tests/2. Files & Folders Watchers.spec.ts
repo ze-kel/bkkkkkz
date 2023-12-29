@@ -1,42 +1,41 @@
 import * as path from 'path';
 import * as fs from 'fs-extra';
 import type { ElectronApplication } from 'playwright';
-import { afterEach, beforeEach, expect, test } from 'vitest';
-import { setupTest, afterTest, sleep, getLocators, LOAD_TIMEOUT } from './helpers';
+import { expect, test } from '@playwright/test';
+import { setupTest, afterTest, getLocators } from './helpers';
 import { testClasses } from '../packages/renderer/src/utils/testClassBinds';
 
 let electronApp: ElectronApplication;
 
 const originalPath = path.join(process.cwd(), 'tests', 'testfiles_packs', '1. Basic');
-const workingPath = path.join(process.cwd(), 'tests', 'ffwatchers');
+const workingPath = path.join(process.cwd(), 'tests', 'working', 'ffwatchers');
 
-beforeEach(async () => {
+test.beforeEach(async () => {
   electronApp = await setupTest({ originalPath, FORCE_ROOT_PATH: workingPath });
 });
 
-afterEach(async () => await afterTest(electronApp, workingPath));
+test.afterEach(async () => await afterTest(electronApp, workingPath));
 
 test('File tree watcher', async () => {
   const page = await electronApp.firstWindow();
   const L = getLocators(page);
 
-  await sleep(LOAD_TIMEOUT);
-  expect(await L.fileTreeItems.count(), 'Number of folders seen is correct').toBe(3);
+  await expect(L.fileTreeItems, 'Number of folders seen is correct').toHaveCount(3);
 
   const folderOneName = await L.fileTreeItems.nth(1).locator('.' + testClasses.label);
   const folderTwoName = await L.fileTreeItems.nth(2).locator('.' + testClasses.label);
-  expect(await folderOneName.innerText(), 'Folder 1 name is shown correctly').toBe('1wbkk');
-  expect(await folderTwoName.innerText(), 'Folder 2 name is shown correctly').toBe('2empt');
+  await expect(folderOneName, 'Folder 1 name is shown correctly').toContainText('1wbkk');
+  await expect(folderTwoName, 'Folder 2 name is shown correctly').toContainText('2empt');
 
   fs.moveSync(path.join(workingPath, '1wbkk'), path.join(workingPath, '1renm'));
-  await sleep(LOAD_TIMEOUT);
-  expect(await folderOneName.innerText(), 'Renaming folder on disk is reflected in interface').toBe(
+
+  await expect(folderOneName, 'Renaming folder on disk is reflected in interface').toContainText(
     '1renm',
   );
 
   fs.removeSync(path.join(workingPath, '2empt'));
-  await sleep(LOAD_TIMEOUT);
-  expect(await L.fileTreeItems.count(), 'Removing folder is reflected in interface').toBe(2);
+
+  await expect(L.fileTreeItems, 'Removing folder is reflected in interface').toHaveCount(2);
 
   await Promise.all([
     fs.copy(path.join(workingPath, '1renm'), path.join(workingPath, '1renm2')),
@@ -44,8 +43,7 @@ test('File tree watcher', async () => {
     fs.copy(path.join(workingPath, '1renm'), path.join(workingPath, '1renm4')),
   ]);
 
-  await sleep(LOAD_TIMEOUT);
-  expect(await L.fileTreeItems.count(), 'Adding folders is reflected in interface').toBe(5);
+  await expect(L.fileTreeItems, 'Adding folders is reflected in interface').toHaveCount(5);
 });
 
 test('Folder watcher', async () => {
@@ -54,56 +52,40 @@ test('Folder watcher', async () => {
 
   await L.fileTreeItems.nth(1).click();
 
-  await sleep(LOAD_TIMEOUT);
-
-  expect(
-    await L.openedTab
-      .first()
-      .locator('.' + testClasses.label)
-      .innerText(),
+  await expect(
+    await L.openedTab.first().locator('.' + testClasses.label),
     'After clicking first folder, a tab opened with right label',
-  ).toBe('1wbkk');
+  ).toContainText('1wbkk');
 
-  expect(await L.bookItems.count(), 'We see one book in the first folder').toBe(1);
+  await expect(L.bookItems, 'We see one book in the first folder').toHaveCount(1);
 
   await Promise.all([
     fs.copyFile(path.join(workingPath, '48.md'), path.join(workingPath, '1wbkk', '48-2.md')),
     fs.copyFile(path.join(workingPath, 'med.md'), path.join(workingPath, '1wbkk', 'med-2.md')),
   ]);
 
-  await sleep(LOAD_TIMEOUT);
-
-  expect(await L.bookItems.count(), 'Adding books is reflected in interface').toBe(3);
+  await expect(L.bookItems, 'Adding books is reflected in interface').toHaveCount(3);
 
   await fs.remove(path.join(workingPath, '1wbkk', '48-2.md'));
 
-  await sleep(LOAD_TIMEOUT);
-
-  expect(await L.bookItems.count(), 'Adding books is reflected in interface').toBe(2);
+  await expect(L.bookItems, 'Adding books is reflected in interface').toHaveCount(2);
 
   //
   // We test "All books" page separately because it's "recursive" by default and parses all sub-directories
   //
   await L.fileTreeItems.first().click();
-  expect(
-    await L.openedTab
-      .first()
-      .locator('.' + testClasses.label)
-      .innerText(),
+  await expect(
+    await L.openedTab.first().locator('.' + testClasses.label),
     'After clicking all books, a tab opened with right label',
-  ).toBe('All Books');
+  ).toContainText('All Books');
 
-  await sleep(LOAD_TIMEOUT);
-
-  expect(await L.bookItems.count(), 'All books shows correct number of books').toBe(4);
+  await expect(L.bookItems, 'All books shows correct number of books').toHaveCount(4);
 
   fs.moveSync(path.join(workingPath, '48.md'), path.join(workingPath, '1wbkk', '48-3.md'));
   fs.removeSync(path.join(workingPath, '1wbkk', 'mm.md'));
 
-  await sleep(LOAD_TIMEOUT);
-
-  expect(
-    await L.bookItems.count(),
+  await expect(
+    L.bookItems,
     'All books page watcher handles operating in sub-directory correctly',
-  ).toBe(3);
+  ).toHaveCount(3);
 });
