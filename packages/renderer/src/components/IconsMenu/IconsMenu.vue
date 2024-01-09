@@ -3,15 +3,25 @@
     <Settings />
   </Popup>
   <div class="flex items-center justify-start py-2">
-    <BasicButton variant="ghost" size="icon" @click="openHome">
+    <BasicButton v-test-class="testClasses.menuHome" variant="ghost" size="icon" @click="openHome">
       <HomeIcon stroke-width="1" />
     </BasicButton>
 
-    <BasicButton variant="ghost" size="icon" @click="flipSettings">
+    <BasicButton
+      v-test-class="testClasses.menuSettings"
+      variant="ghost"
+      size="icon"
+      @click="flipSettings"
+    >
       <Settings2Icon stroke-width="1" />
     </BasicButton>
 
-    <BasicButton variant="ghost" size="icon" @click="addBook">
+    <BasicButton
+      v-test-class="testClasses.menuAddBook"
+      variant="ghost"
+      size="icon"
+      @click="addBook"
+    >
       <PlusIcon stroke-width="1" />
     </BasicButton>
   </div>
@@ -22,6 +32,7 @@ import { computed, ref } from 'vue';
 import Popup from '../_UI/PopupComponent.vue';
 import Settings from '../Settings/SettingsPage.vue';
 import { useStore } from '/@/use/store';
+import { testClasses } from '/@/utils/testClassBinds';
 
 import { PlusIcon, Settings2Icon, HomeIcon } from 'lucide-vue-next';
 import BasicButton from '/@/components/_UI/BasicButton/BasicButton.vue';

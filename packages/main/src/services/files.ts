@@ -79,7 +79,10 @@ const getFileContent = async (filePath: string): Promise<ISavedFile> => {
 };
 
 const loadFilesFromFolder = async (basePath: string, recursive?: boolean): Promise<IFiles> => {
-  fs.ensureDirSync(basePath);
+  if (!fs.existsSync) {
+    throw new Error('Directory does not exist');
+  }
+
   const files = fs.readdirSync(basePath);
 
   const result: IFiles = {};

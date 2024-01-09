@@ -5,20 +5,21 @@ import { expect, test } from '@playwright/test';
 import { setupTest, afterTest, getLocators } from './helpers';
 
 let electronApp: ElectronApplication;
+let workingPath: string;
+let booksPath: string;
+let resetFolder: () => void = () => {};
 
 const originalPath = path.join(process.cwd(), 'tests', 'testfiles_packs', '3. Tags');
-const workingPath = path.join(process.cwd(), 'tests', 'working', 'tagswatcher');
-
-test.beforeEach(async () => {
-  electronApp = await setupTest({ originalPath, FORCE_ROOT_PATH: workingPath });
+test.beforeAll(async () => {
+  ({ electronApp, workingPath, booksPath, resetFolder } = await setupTest({ originalPath }));
 });
 
-test.afterEach(async () => await afterTest(electronApp, workingPath));
-
-const fol = path.join(workingPath, 'fol');
-const fol2 = path.join(fol, 'fol2');
+test.afterAll(async () => await afterTest(electronApp, workingPath));
 
 test('Tag editing', async () => {
+  const fol = path.join(booksPath, 'fol');
+  const fol2 = path.join(fol, 'fol2');
+
   const page = await electronApp.firstWindow();
   const L = getLocators(page);
 
@@ -64,8 +65,15 @@ test('Tag editing', async () => {
 });
 
 test('Tag page', async () => {
+  const fol = path.join(booksPath, 'fol');
+  const fol2 = path.join(fol, 'fol2');
+
   const page = await electronApp.firstWindow();
   const L = getLocators(page);
+
+  resetFolder();
+  //wait for reset
+  await expect(L.tagTreeItem).toHaveCount(3);
 
   await L.tagTreeItem.last().click();
 
@@ -75,12 +83,12 @@ test('Tag page', async () => {
 
   await expect(L.bookItems, 'New file on disk with opened tag is shown').toHaveCount(3);
 
-  fs.removeSync(path.join(workingPath, 'r.md'));
+  fs.removeSync(path.join(booksPath, 'r.md'));
 
   await expect(L.bookItems, 'File deleted from disk is removed correctly').toHaveCount(2);
 
   const toUpdate = fs.readFileSync(path.join(fol2, 'i.txt'));
-  fs.writeFileSync(path.join(workingPath, 'r2.md'), toUpdate.toString());
+  fs.writeFileSync(path.join(booksPath, 'r2.md'), toUpdate.toString());
 
   await expect(L.bookItems, 'File updated disk is removed correctly').toHaveCount(1);
 });

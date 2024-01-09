@@ -1,28 +1,28 @@
 import * as path from 'path';
-import * as fs from 'fs-extra';
 
 import type { ElectronApplication } from 'playwright';
 import { expect, test } from '@playwright/test';
 import { setupTest, afterTest, getLocators } from './helpers';
 
 let electronApp: ElectronApplication;
+let workingPath: string;
 
-const originalPath = path.join(process.cwd(), 'tests', 'testfiles_packs', '5. Initial Setup');
-const basePath = path.join(process.cwd(), 'tests', 'working', 'initialsetup');
-const workingPath = path.join(basePath, 'files');
-const userPath = path.join(basePath, 'userData');
+const originalPath = path.join(
+  process.cwd(),
+  'tests',
+  'testfiles_packs',
+  '5. Initial Setup',
+  'first',
+);
 
 test.beforeAll(async () => {
-  fs.ensureDirSync(userPath);
-  fs.ensureDirSync(workingPath);
-  electronApp = await setupTest({
+  ({ electronApp, workingPath } = await setupTest({
     originalPath,
-    FORCE_USER_PATH: userPath,
-    FAKE_SET_ROOT_DIR: workingPath,
-  });
+    noRootPath: true,
+  }));
 });
 
-test.afterAll(async () => await afterTest(electronApp, basePath));
+test.afterAll(async () => await afterTest(electronApp, workingPath));
 
 test('Test initial setup', async () => {
   const page = await electronApp.firstWindow();

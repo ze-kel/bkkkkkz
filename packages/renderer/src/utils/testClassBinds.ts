@@ -27,4 +27,9 @@ export const testClasses = {
   editorCalendarDay: testClassPrefix + 'calendar-day',
   editorCalendarMonthSelectorButton: testClassPrefix + 'calendar-year-month-selector-button',
   editorCalendarMonthSelectorMonth: testClassPrefix + 'calendar-month-selector-month',
+  menuHome: testClassPrefix + 'menu-home',
+  menuSettings: testClassPrefix + 'menu-settings',
+  menuAddBook: testClassPrefix + 'menu-add-book',
+  modalClose: testClassPrefix + 'modal-close',
+  settingsChangeRootPath: testClassPrefix + 'settings-change-root-path',
 };

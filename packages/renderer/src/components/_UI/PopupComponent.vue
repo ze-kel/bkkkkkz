@@ -5,15 +5,28 @@
     @mousedown.self="close"
   >
     <div
-      class="popup flex items-center justify-center rounded-lg bg-neutral-50 p-8 shadow-md dark:bg-neutral-900"
+      class="popup relative flex items-center justify-center rounded-lg bg-neutral-50 p-8 shadow-md dark:bg-neutral-900"
       @click.stop=""
     >
+      <BasicButton
+        v-test-class="testClasses.modalClose"
+        variant="ghost"
+        size="icon"
+        class="absolute right-2 top-2"
+        @click="close"
+      >
+        <XIcon class="opacity-80" />
+      </BasicButton>
       <slot></slot>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
+import BasicButton from '/@/components/_UI/BasicButton/BasicButton.vue';
+import { XIcon } from 'lucide-vue-next';
+import { testClasses } from '/@/utils/testClassBinds';
+
 const props = defineProps({
   opened: {
     type: Boolean,

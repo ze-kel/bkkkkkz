@@ -5,7 +5,7 @@
   <div class="flex h-full flex-col items-center justify-center p-10">
     <div class="text-2xl">To begin please set working directory</div>
     <div class="text-xs">Your files & settings will be store there.</div>
-    <BasicButton variant="default" class="mt-4" @click="clickHandler">
+    <BasicButton variant="default" class="mt-4" @click="changeRootPathHandler">
       Set Working Directory
     </BasicButton>
   </div>
@@ -18,10 +18,9 @@ import { trpcApi } from '/@/utils/trpc';
 
 const store = useStore();
 
-const clickHandler = async () => {
-  const res = await trpcApi.setRootPath.mutate();
-
-  if (res) {
+const changeRootPathHandler = async () => {
+  const updated = await trpcApi.setRootPath.mutate();
+  if (updated) {
     store.fetchRootPath();
   }
 };

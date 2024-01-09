@@ -4,12 +4,12 @@ import { expect, test } from '@playwright/test';
 import { setupTest, afterTest, getLocators } from './helpers';
 
 let electronApp: ElectronApplication;
+let workingPath: string;
 
 const originalPath = path.join(process.cwd(), 'tests', 'testfiles_packs', '1. Basic');
-const workingPath = path.join(process.cwd(), 'tests', 'working', 'core');
 
 test.beforeAll(async () => {
-  electronApp = await setupTest({ originalPath, FORCE_ROOT_PATH: workingPath });
+  ({ electronApp, workingPath } = await setupTest({ originalPath }));
 });
 
 test.afterAll(async () => await afterTest(electronApp, workingPath));

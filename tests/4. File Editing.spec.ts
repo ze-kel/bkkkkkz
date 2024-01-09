@@ -12,12 +12,13 @@ import {
 import type { ExpectedBook } from './helpers';
 
 let electronApp: ElectronApplication;
+let workingPath: string;
+let booksPath: string;
 
 const originalPath = path.join(process.cwd(), 'tests', 'testfiles_packs', '2. Single File');
-const workingPath = path.join(process.cwd(), 'tests', 'working', 'file editing');
 
 test.beforeAll(async () => {
-  electronApp = await setupTest({ originalPath, FORCE_ROOT_PATH: workingPath });
+  ({ electronApp, workingPath, booksPath } = await setupTest({ originalPath }));
 });
 
 test.afterAll(async () => await afterTest(electronApp, workingPath));
@@ -45,8 +46,8 @@ test('Changes on disk are reflected in the interface', async () => {
 
   await expectBookInEditor(L, expected, 'Initial book:');
 
-  const newContent = fs.readFileSync(path.join(workingPath, 'diskChange.txt'));
-  fs.writeFileSync(path.join(workingPath, '48.md'), newContent.toString());
+  const newContent = fs.readFileSync(path.join(booksPath, 'diskChange.txt'));
+  fs.writeFileSync(path.join(booksPath, '48.md'), newContent.toString());
 
   const expectedAfter: ExpectedBook = {
     title: 'Meditations',
@@ -128,8 +129,8 @@ test('Changes made in edtior are saved to disk', async () => {
 
   await page.waitForTimeout(1000);
 
-  const expected = fs.readFileSync(path.join(workingPath, 'editorChange.txt'));
-  const onDisk = fs.readFileSync(path.join(workingPath, '48.md'));
+  const expected = fs.readFileSync(path.join(booksPath, 'editorChange.txt'));
+  const onDisk = fs.readFileSync(path.join(booksPath, '48.md'));
 
   //  fs.writeFileSync(path.join(originalPath, 'debug.txt'), onDisk.toString());
 

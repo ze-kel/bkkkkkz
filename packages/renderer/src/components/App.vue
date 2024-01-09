@@ -4,7 +4,7 @@
       v-if="loaded"
       class="flex h-screen flex-col bg-neutral-50 text-neutral-950 dark:bg-neutral-950 dark:text-neutral-50"
     >
-      <ViewCore v-if="hasRootPath" />
+      <ViewCore v-if="typeof store.rootPath === 'string'" />
       <Welcome v-else />
       <NotificationHandler />
     </div>
@@ -24,15 +24,13 @@ import NotificationHandler from '/@/components/Notifications/NotificationHandler
 
 const store = useStore();
 
-const hasRootPath = computed(() => {
-  return typeof store.rootPath === 'string';
-});
-
 watch(
-  hasRootPath,
+  () => store.rootPath,
   async () => {
+    if (typeof store.rootPath !== 'string') return;
     await store.fetchSetting();
     await store.fetchOpened();
+    await store.fetchTags();
   },
   { immediate: false },
 );

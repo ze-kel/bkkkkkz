@@ -3,47 +3,63 @@ import type { ElectronApplication, Locator, Page } from 'playwright';
 import { _electron as electron } from 'playwright';
 import { testClasses } from '../packages/renderer/src/utils/testClassBinds';
 import { expect } from 'playwright/test';
+import ShortUniqueId from 'short-unique-id';
+import * as path from 'node:path';
+
+const workDir = path.join(process.cwd(), 'tests', 'working');
+
+const uid = new ShortUniqueId({ length: 10 });
 
 export const setupTest = async ({
   originalPath,
-  FORCE_ROOT_PATH,
-  FORCE_USER_PATH,
-  FAKE_SET_ROOT_DIR,
+  originalPath2,
+  noRootPath,
 }: {
   originalPath: string;
-  FORCE_ROOT_PATH?: string;
-  FORCE_USER_PATH?: string;
-  FAKE_SET_ROOT_DIR?: string;
+  originalPath2?: string;
+  noRootPath?: boolean;
 }) => {
-  const env: Record<string, string> = {};
+  const workingPath = path.join(workDir, uid.randomUUID());
 
-  if (FORCE_ROOT_PATH) {
-    env.FORCE_ROOT_PATH = FORCE_ROOT_PATH;
-    fs.removeSync(FORCE_ROOT_PATH);
-    fs.copySync(originalPath, FORCE_ROOT_PATH);
+  const filesFolder = path.join(workingPath, 'files');
+  const filesFolder2 = path.join(workingPath, 'files2');
+  const userFolder = path.join(workingPath, 'user');
+  fs.ensureDirSync(userFolder);
+
+  fs.ensureDirSync(filesFolder);
+  fs.ensureDirSync(filesFolder2);
+  fs.copySync(originalPath, filesFolder);
+
+  if (originalPath2) {
+    fs.copySync(originalPath2, filesFolder2);
   }
 
-  if (FORCE_USER_PATH) {
-    env.FORCE_USER_PATH = FORCE_USER_PATH;
-  }
-  if (FAKE_SET_ROOT_DIR) {
-    env.FAKE_SET_ROOT_DIR = FAKE_SET_ROOT_DIR;
+  const resetFolder = () => {
+    fs.rmSync(filesFolder, { recursive: true, force: true });
+    fs.rmSync(filesFolder2, { recursive: true, force: true });
+    fs.ensureDirSync(filesFolder);
+    fs.ensureDirSync(filesFolder2);
+    fs.copySync(originalPath, filesFolder);
+  };
+
+  if (!noRootPath) {
+    fs.writeFileSync(path.join(userFolder, 'path.json'), JSON.stringify({ path: filesFolder }));
   }
 
   const electronApp = await electron.launch({
     env: {
-      ...env,
       TEST_MODE: 'true',
       NODE_ENV: 'development',
+      FORCE_USER_PATH: userFolder,
+      FAKE_SET_ROOT_DIR: noRootPath ? filesFolder : filesFolder2,
     },
     args: ['.'],
   });
 
-  return electronApp;
+  return { electronApp, workingPath, booksPath: filesFolder, resetFolder };
 };
 
 export const afterTest = async (electronApp: ElectronApplication, workingPath: string) => {
-  await sleep(LOAD_TIMEOUT);
   await electronApp.close();
   fs.removeSync(workingPath);
 };

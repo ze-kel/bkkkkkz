@@ -4,7 +4,7 @@
       v-if="store.rootPath"
       title="Working Directory"
       :path="store.rootPath"
-      @change="trpcApi.setRootPath.mutate"
+      @change="changeRootPathHandler"
     />
 
     <div class="mt-4">
@@ -73,6 +73,13 @@ const importHTMLButton = ref<HTMLElement>();
 
 const importHTML = () => {
   if (importHTMLButton.value) importHTMLButton.value.click();
+};
+
+const changeRootPathHandler = async () => {
+  const updated = await trpcApi.setRootPath.mutate();
+  if (updated) {
+    store.fetchRootPath();
+  }
 };
 </script>
 

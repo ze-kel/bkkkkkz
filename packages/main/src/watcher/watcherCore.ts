@@ -17,6 +17,7 @@ export type IWatcherFunctionFFile = (file: ISavedFile) => void | Promise<void>;
 export type IWatcherFunctionFFiles = (files: ISavedFile[]) => void | Promise<void>;
 
 export interface IWatcherModule {
+  initialize?: () => void;
   initialFiles?: IWatcherFunctionFFiles;
   addFile?: IWatcherFunctionFFile;
   unlinkFile?: IWatcherFunction;
@@ -58,6 +59,10 @@ const TheWatcher: IWatcher = {
     if (!this.watcher) {
       throw 'Watcher was not created for some reason';
     }
+
+    this.modules.forEach(async (module) => {
+      if (module.initialize) module.initialize();
+    });
 
     const initialFiles = await FileService.loadFilesFromFolder(rootPath, true);
     this.modules.forEach(async (module) => {

@@ -9,10 +9,6 @@ const folderPath = process.env['FORCE_USER_PATH']
 const jsonPath = path.join(folderPath, 'path.json');
 
 export const getRootPath = (): string | null => {
-  if (process.env['FORCE_ROOT_PATH']) {
-    return process.env['FORCE_ROOT_PATH'];
-  }
-
   if (!fs.existsSync(jsonPath)) {
     return null;
   }

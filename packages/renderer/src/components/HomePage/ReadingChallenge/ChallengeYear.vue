@@ -47,7 +47,6 @@
 <script lang="ts" setup>
 import { computed, ref } from 'vue';
 
-import ContentEditable from '/@/components/_UI/ContentEditable.vue';
 import { XIcon } from 'lucide-vue-next';
 
 import type { PropType } from 'vue';

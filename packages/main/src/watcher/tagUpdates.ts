@@ -15,8 +15,8 @@ type IFilesTagsState = {
   [key: string]: string[];
 };
 
-const tags: ITagData = {};
-const files: IFilesTagsState = {};
+let tags: ITagData = {};
+let files: IFilesTagsState = {};
 
 export const INTERNAL_TAG_PREFIX = '_i_';
 export const INTERNAL_TAGS = {
@@ -154,6 +154,10 @@ const getRelevantIndexes = (pathInQuestion: string): number[] => {
 };
 
 export const TagUpdates: IWatcherModule = {
+  initialize() {
+    tags = {};
+    files = {};
+  },
   initialFiles(files) {
     addFilesBatch(files);
   },

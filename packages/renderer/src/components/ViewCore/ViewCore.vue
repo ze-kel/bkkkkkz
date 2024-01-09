@@ -56,7 +56,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, watch, onMounted, onUnmounted, ref, onBeforeMount } from 'vue';
+import { onMounted, ref } from 'vue';
 
 import { debounce as _debounce } from 'lodash';
 
@@ -79,7 +79,6 @@ const resizeHandle = ref<HTMLDivElement | null>(null);
 const isResizing = ref<boolean>(false);
 const startResizeAt = ref<number>(0);
 const changeFileTreeSize = (e: MouseEvent) => {
-  console.log('changesize');
   e.preventDefault();
   const newVal = fileTreeSize.value + e.screenX - startResizeAt.value;
   if (newVal < 500 && newVal > 150) {

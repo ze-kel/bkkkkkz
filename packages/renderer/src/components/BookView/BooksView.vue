@@ -75,16 +75,7 @@
 </template>
 
 <script setup lang="ts">
-import {
-  computed,
-  onMounted,
-  onUnmounted,
-  ref,
-  watch,
-  watchEffect,
-  nextTick,
-  onBeforeMount,
-} from 'vue';
+import { computed, onMounted, onUnmounted, ref, watch, watchEffect, nextTick } from 'vue';
 import Fuse from 'fuse.js';
 import { useStore } from '/@/use/store';
 

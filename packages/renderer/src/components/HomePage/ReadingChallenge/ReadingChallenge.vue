@@ -120,7 +120,6 @@ const sortedByYear = computed(() => {
 
 const currentYearChallenge = computed(() => {
   if (!data.value || !(currentYear.value in data.value)) return { books: 1 };
-  console.log(currentYearChallenge);
   return data.value[currentYear.value];
 });
 
