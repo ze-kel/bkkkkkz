@@ -24,6 +24,10 @@ export const setupTest = async ({
   const filesFolder = path.join(workingPath, 'files');
   const filesFolder2 = path.join(workingPath, 'files2');
   const userFolder = path.join(workingPath, 'user');
+  fs.ensureDirSync(originalPath);
+  if (originalPath2) {
+    fs.ensureDirSync(originalPath2);
+  }
   fs.ensureDirSync(userFolder);
 
   fs.ensureDirSync(filesFolder);
