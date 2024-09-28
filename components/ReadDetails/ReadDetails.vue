@@ -42,7 +42,7 @@ import { format } from 'date-fns';
 import { XIcon } from 'lucide-vue-next';
 import { useStore } from '~~/utils/store';
 import BasicButton from '~/components/_UI/BasicButton/BasicButton.vue';
-import { testClasses } from '~/plugins/testClass/binds';
+import { testClasses } from '~/tools/tests/binds';
 
 const store = useStore();
 

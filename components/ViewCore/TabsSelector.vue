@@ -82,7 +82,7 @@ import { clamp } from 'lodash';
 
 import { useElementSize, useMouse } from '@vueuse/core';
 import type { IOpened } from '~/server/services/openedTabs';
-import { testClasses } from '~/plugins/testClass/binds';
+import { testClasses } from '~/tools/tests/binds';
 
 const store = useStore();
 

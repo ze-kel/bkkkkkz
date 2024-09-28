@@ -5,6 +5,7 @@ import { BrowserWindow, app, ipcMain, shell } from 'electron';
 import ipcRequestHandler from '../server/trpc/ipcRequestHandler';
 import { appRouter } from '../server/trpc/api';
 import type { IpcRequest } from '../tools/types/Ipc';
+import TheWatcher from '../server/watcher/watcherCore';
 
 // Disable GPU Acceleration for Windows 7
 if (release().startsWith('6.1')) app.disableHardwareAcceleration();
@@ -50,6 +51,8 @@ function createWindow() {
     titleBarStyle: 'hidden',
     trafficLightPosition: { x: 10, y: 8 },
   });
+
+  TheWatcher.init();
 
   if (process.env.VITE_DEV_SERVER_URL) {
     win.loadURL(process.env.VITE_DEV_SERVER_URL);

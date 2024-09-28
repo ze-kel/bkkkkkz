@@ -7,6 +7,8 @@ dist-electron
 *.local
 thumbs.db
 
+.output
+
 .eslintcache
 
 # Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio, WebStorm and Rider
@@ -66,4 +68,4 @@ files
 .todo
 
 # working directory for tests
-tests/working
+tools/tests/working

@@ -42,7 +42,7 @@
 
 <script lang="ts" setup>
 import { computed, ref } from 'vue';
-import { testClasses } from '~/plugins/testClass/binds';
+import { testClasses } from '~/tools/tests/binds';
 
 const getFill = (index: number, displayedValue: number) => {
   if (index <= displayedValue) {

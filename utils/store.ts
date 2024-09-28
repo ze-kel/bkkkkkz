@@ -121,7 +121,6 @@ export const useStore = defineStore('main', {
     async fetchTags() {
       const { $trpc } = useNuxtApp();
       this.tagsTree = await $trpc.getTags.query();
-      console.log('FETCH TAGS', this.tagsTree);
     },
     async fetchRootPath() {
       const { $trpc } = useNuxtApp();

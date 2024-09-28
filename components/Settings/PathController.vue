@@ -17,7 +17,7 @@
 
 <script lang="ts" setup>
 import BasicButton from '~/components/_UI/BasicButton/BasicButton.vue';
-import { testClasses } from '~/plugins/testClass/binds';
+import { testClasses } from '~/tools/tests/binds';
 
 const props = defineProps({
   title: {

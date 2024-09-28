@@ -21,7 +21,7 @@ import { listener, listenerCtx } from '@milkdown/plugin-listener';
 import { Slice } from 'prosemirror-model';
 import 'prosemirror-view/style/prosemirror.css';
 import type { Ctx } from '@milkdown/ctx';
-import { testClasses } from '~/plugins/testClass/binds';
+import { testClasses } from '~/tools/tests/binds';
 
 const props = defineProps({
   modelValue: {

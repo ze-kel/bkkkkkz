@@ -5,10 +5,11 @@
   "private": true,
   "main": "dist-electron/main.js",
   "scripts": {
-    "dev": "nuxt dev --no-fork",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
     "build": "nuxt generate && electron-builder",
     "pack": "electron-builder",
-    "test": "npm run build && npx playwright test --workers=1",
+    "test": "npm run generate && npx playwright test --workers=1",
     "typecheck:main": "tsc --noEmit -p packages/main/tsconfig.json",
     "typecheck:preload": "tsc --noEmit -p packages/preload/tsconfig.json",
     "typecheck:renderer": "vue-tsc --noEmit -p packages/renderer/tsconfig.json",

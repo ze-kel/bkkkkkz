@@ -14,7 +14,7 @@ import {
 import type { Interval } from 'date-fns';
 import { computed, ref, watch } from 'vue';
 import BasicButton from '~/components/_UI/BasicButton/BasicButton.vue';
-import { testClasses } from '~/plugins/testClass/binds';
+import { testClasses } from '~/tools/tests/binds';
 
 const props = defineProps<{
   cursor: Date;

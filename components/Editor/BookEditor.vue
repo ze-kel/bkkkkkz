@@ -129,7 +129,7 @@ import type { Unsubscribable } from '@trpc/server/observable';
 import type { IOpenedFile, IOpenedNewFile } from '~/server/services/openedTabs';
 import { useStore } from '~~/utils/store';
 import BasicButton from '~/components/_UI/BasicButton/BasicButton.vue';
-import { testClasses } from '~/plugins/testClass/binds';
+import { testClasses } from '~/tools/tests/binds';
 
 const store = useStore();
 
@@ -209,6 +209,7 @@ watch(
 // Update events handling
 //
 const updateHandlerApi = ({ file }: { file: IFile }) => {
+  console.log('update handler api');
   // TODO: Why are we ignoring indexes here?
   loading.value = true;
 

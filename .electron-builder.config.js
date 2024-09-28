@@ -10,7 +10,7 @@ module.exports = async function () {
       output: 'dist',
       buildResources: 'data/buildResources',
     },
-    files: ['packages/**/dist/**'],
+    files: ['.output/**/*', 'dist-electron'],
     extraMetadata: {
       version: getVersion(),
     },

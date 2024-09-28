@@ -48,7 +48,7 @@
 import { cloneDeep as _cloneDeep } from 'lodash';
 import { ChevronDown, FolderIcon, LibraryIcon, HashIcon } from 'lucide-vue-next';
 import { useStore } from '~~/utils/store';
-import { testClasses } from '~/plugins/testClass/binds';
+import { testClasses } from '~/tools/tests/binds';
 import cls from '~/utils/cls';
 import { buttonVariants } from '~/components/_UI/BasicButton/BasicButtonStyle';
 import { ref, watch, watchEffect } from 'vue';

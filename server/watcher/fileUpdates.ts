@@ -63,7 +63,6 @@ export const FileUpdates: IFileUpdatesModule = {
     }
 
     const relevantIndexes = getRelevantIndexes(file.path);
-    console;
     if (relevantIndexes.length) apiEventsEmitter.emit('FILE_UPDATE', { file, relevantIndexes });
   },
   unlinkFile(path) {

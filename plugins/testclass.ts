@@ -1,5 +1,5 @@
 import type { Directive } from 'vue';
-import { testClassPrefix } from './testClass/binds';
+import { testClassPrefix } from '../tools/tests/binds';
 
 type IBinding = { value: string | string[] };
 

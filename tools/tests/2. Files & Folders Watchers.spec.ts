@@ -2,15 +2,15 @@ import * as path from 'path';
 import * as fs from 'fs-extra';
 import type { ElectronApplication } from 'playwright';
 import { expect, test } from '@playwright/test';
-import { setupTest, afterTest, getLocators } from './helpers';
-import { testClasses } from '../packages/renderer/src/utils/testClassBinds';
+import { setupTest, afterTest, getLocators, testFolderBase } from './helpers';
+import { testClasses } from '~/tools/tests/binds';
 
 let electronApp: ElectronApplication;
 let workingPath: string;
 let booksPath: string;
 let resetFolder: () => void = () => {};
 
-const originalPath = path.join(process.cwd(), 'tests', 'testfiles_packs', '1. Basic');
+const originalPath = path.join(testFolderBase, 'testfiles_packs', '1. Basic');
 
 test.beforeAll(async () => {
   ({ electronApp, workingPath, booksPath, resetFolder } = await setupTest({ originalPath }));

@@ -25,7 +25,7 @@
 <script lang="ts" setup>
 import BasicButton from '~/components/_UI/BasicButton/BasicButton.vue';
 import { XIcon } from 'lucide-vue-next';
-import { testClasses } from '~/plugins/testClass/binds';
+import { testClasses } from '~/tools/tests/binds';
 
 const props = defineProps({
   opened: {

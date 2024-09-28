@@ -25,7 +25,7 @@
 <script lang="ts" setup>
 import { XIcon } from 'lucide-vue-next';
 import BasicButton from '~/components/_UI/BasicButton/BasicButton.vue';
-import { testClasses } from '~/plugins/testClass/binds';
+import { testClasses } from '~/tools/tests/binds';
 import type { IOpened } from '~/server/services/openedTabs';
 import { computed, type PropType } from 'vue';
 import { useStore } from '~~/utils/store';

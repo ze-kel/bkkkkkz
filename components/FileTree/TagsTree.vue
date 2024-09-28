@@ -21,7 +21,7 @@ const { $trpc } = useNuxtApp();
 import { useStore } from '~~/utils/store';
 import TreeCell from '~/components/FileTree/TreeCell.vue';
 import { getDefaultViewSettings } from '~/utils/getDefaultViewSettings';
-import { testClasses } from '~/plugins/testClass/binds';
+import { testClasses } from '~/tools/tests/binds';
 
 const store = useStore();
 

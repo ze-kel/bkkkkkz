@@ -56,9 +56,8 @@ import { getDefaultViewSettings } from '~/utils/getDefaultViewSettings';
 import type { PropType } from 'vue';
 import type { IFolderTree } from '~/server/services/files';
 const { $trpc } = useNuxtApp();
-import type { OpenNewOneParams } from '/@/use/store';
 import { useStore } from '~~/utils/store';
-import { testClasses } from '~/plugins/testClass/binds';
+import { testClasses } from '~/tools/tests/binds';
 import TreeCell from './TreeCell.vue';
 import type { Unsubscribable } from '@trpc/server/observable';
 
@@ -124,7 +123,6 @@ const makeNewOpenedAndSelect = (params: OpenNewOneParams) => {
 const dragCounter = ref(0);
 
 const dragEnter = (e: DragEvent) => {
-  console.log('e');
   e.preventDefault();
   dragCounter.value++;
   //canDropHere.value = true;

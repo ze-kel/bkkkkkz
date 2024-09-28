@@ -1,12 +1,14 @@
 import * as fs from 'fs-extra';
 import type { ElectronApplication, Locator, Page } from 'playwright';
 import { _electron as electron } from 'playwright';
-import { testClasses } from '../../plugins/testClass/binds';
 import { expect } from 'playwright/test';
 import ShortUniqueId from 'short-unique-id';
 import * as path from 'node:path';
+import { testClasses } from '~/tools/tests/binds';
 
-const workDir = path.join(process.cwd(), 'tests', 'working');
+export const testFolderBase = path.join(process.cwd(), 'tools', 'tests');
+
+const workDir = path.join(testFolderBase, 'working');
 
 const uid = new ShortUniqueId({ length: 10 });
 
@@ -47,7 +49,7 @@ export const setupTest = async ({
   };
 
   if (!noRootPath) {
-    fs.writeFileSync(path.join(userFolder, 'path.json'), JSON.stringify({ path: filesFolder }));
+    fs.writeFileSync(path.join(userFolder, 'path-dev.json'), JSON.stringify({ path: filesFolder }));
   }
 
   const electronApp = await electron.launch({

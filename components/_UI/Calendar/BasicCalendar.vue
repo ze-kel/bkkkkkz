@@ -25,7 +25,7 @@ import {
 } from '~/components/_UI/DropdownGeneric';
 import { MenuItem, MenuRoot } from '~/components/_UI/GenericMenu';
 import BasicInput from '~/components/_UI/BasicInput.vue';
-import { testClasses } from '~/plugins/testClass/binds';
+import { testClasses } from '~/tools/tests/binds';
 
 const store = useStore();
 

@@ -32,7 +32,7 @@ import { computed, ref } from 'vue';
 import Popup from '../_UI/PopupComponent.vue';
 import Settings from '../Settings/SettingsPage.vue';
 import { useStore } from '~~/utils/store';
-import { testClasses } from '~/plugins/testClass/binds';
+import { testClasses } from '~/tools/tests/binds';
 
 import { PlusIcon, Settings2Icon, HomeIcon } from 'lucide-vue-next';
 import BasicButton from '~/components/_UI/BasicButton/BasicButton.vue';

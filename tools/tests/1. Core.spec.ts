@@ -1,12 +1,12 @@
 import * as path from 'path';
 import type { ElectronApplication } from 'playwright';
 import { expect, test } from '@playwright/test';
-import { setupTest, afterTest, getLocators } from './helpers';
+import { setupTest, afterTest, getLocators, testFolderBase } from './helpers';
 
 let electronApp: ElectronApplication;
 let workingPath: string;
 
-const originalPath = path.join(process.cwd(), 'tests', 'testfiles_packs', '1. Basic');
+const originalPath = path.join(testFolderBase, 'testfiles_packs', '1. Basic');
 
 test.beforeAll(async () => {
   ({ electronApp, workingPath } = await setupTest({ originalPath }));

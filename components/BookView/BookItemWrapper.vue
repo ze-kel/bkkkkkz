@@ -68,13 +68,12 @@ import type { PropType } from 'vue';
 import type { IFile } from '~/server/services/files';
 import type ElObserver from './elementObserver';
 import type { IViewStyle } from '~/server/services/openedTabs';
-import type { OpenNewOneParams } from '/@/use/store';
 import { useStore } from '~~/utils/store';
 const { $trpc } = useNuxtApp();
 
 import BookItemCover from '~/components/BookView/BookItemCover.vue';
 import BookItemLine from '~/components/BookView/BookItemLine.vue';
-import { testClasses } from '~/plugins/testClass/binds';
+import { testClasses } from '~/tools/tests/binds';
 export type IBookStyle = 'CARDS' | 'LINES';
 
 const store = useStore();

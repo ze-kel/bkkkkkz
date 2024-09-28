@@ -35,7 +35,7 @@ import type { PropType, Ref } from 'vue';
 import ContentEditable from '~/components/_UI/ContentEditable.vue';
 import { PlusIcon } from 'lucide-vue-next';
 import { cva } from 'class-variance-authority';
-import { testClasses } from '~/plugins/testClass/binds';
+import { testClasses } from '~/tools/tests/binds';
 
 const classes = cva([
   'text-foreground inline-flex items-center rounded-md  px-2.5 py-0.5 text-xs font-semibold transition-all h-6',

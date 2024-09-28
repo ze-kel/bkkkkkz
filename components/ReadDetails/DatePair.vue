@@ -10,7 +10,7 @@ import { computed } from 'vue';
 import type { PropType } from 'vue';
 import type { IDateRead } from '~/server/services/books';
 import { MoveRight } from 'lucide-vue-next';
-import { testClasses } from '~/plugins/testClass/binds';
+import { testClasses } from '~/tools/tests/binds';
 
 import DateInput from '~/components/_UI/Calendar/DateInput.vue';
 

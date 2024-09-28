@@ -8,6 +8,7 @@ import {
   getLocators,
   expectBookInEditor,
   removeLineTerminators,
+  testFolderBase,
 } from './helpers';
 import type { ExpectedBook } from './helpers';
 
@@ -15,7 +16,7 @@ let electronApp: ElectronApplication;
 let workingPath: string;
 let booksPath: string;
 
-const originalPath = path.join(process.cwd(), 'tests', 'testfiles_packs', '2. Single File');
+const originalPath = path.join(testFolderBase, 'testfiles_packs', '2. Single File');
 
 test.beforeAll(async () => {
   ({ electronApp, workingPath, booksPath } = await setupTest({ originalPath }));
