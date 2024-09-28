@@ -39,8 +39,8 @@ export const setupTest = async ({
   }
 
   const resetFolder = () => {
-    fs.rmSync(filesFolder, { recursive: true, force: true });
-    fs.rmSync(filesFolder2, { recursive: true, force: true });
+    fs.emptyDirSync(filesFolder);
+    fs.emptyDirSync(filesFolder2);
     fs.ensureDirSync(filesFolder);
     fs.ensureDirSync(filesFolder2);
     fs.copySync(originalPath, filesFolder);

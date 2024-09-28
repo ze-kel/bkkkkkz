@@ -18,6 +18,10 @@ test.beforeAll(async () => {
 
 test.afterAll(async () => await afterTest(electronApp, workingPath));
 
+test.beforeEach(() => {
+  resetFolder();
+});
+
 test('File tree watcher', async () => {
   const page = await electronApp.firstWindow();
   const L = getLocators(page);
@@ -52,7 +56,6 @@ test('Folder watcher', async () => {
   const page = await electronApp.firstWindow();
   const L = getLocators(page);
 
-  resetFolder();
   //wait for reset to appear
   await expect(L.fileTreeItems).toContainText(['1wbkk']);
   await L.fileTreeItems.nth(1).click();

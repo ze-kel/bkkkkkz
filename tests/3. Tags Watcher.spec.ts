@@ -14,6 +14,10 @@ test.beforeAll(async () => {
   ({ electronApp, workingPath, booksPath, resetFolder } = await setupTest({ originalPath }));
 });
 
+test.beforeEach(() => {
+  resetFolder();
+});
+
 test.afterAll(async () => await afterTest(electronApp, workingPath));
 
 test('Tag editing', async () => {
@@ -71,7 +75,6 @@ test('Tag page', async () => {
   const page = await electronApp.firstWindow();
   const L = getLocators(page);
 
-  resetFolder();
   //wait for reset
   await expect(L.tagTreeItem).toHaveCount(3);
 
