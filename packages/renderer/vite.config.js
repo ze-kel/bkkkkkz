@@ -41,9 +41,7 @@ const config = {
     emptyOutDir: true,
     reportCompressedSize: false,
   },
-  test: {
-    environment: 'happy-dom',
-  },
+  test: {},
   plugins: [
     vue(),
     renderer.vite({
