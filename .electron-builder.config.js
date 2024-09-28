@@ -8,7 +8,7 @@ module.exports = async function () {
   return {
     directories: {
       output: 'dist',
-      buildResources: 'buildResources',
+      buildResources: 'data/buildResources',
     },
     files: ['packages/**/dist/**'],
     extraMetadata: {

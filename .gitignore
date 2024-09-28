@@ -1,6 +1,9 @@
+
+.nuxt
 node_modules
 .DS_Store
 dist
+dist-electron
 *.local
 thumbs.db
 
