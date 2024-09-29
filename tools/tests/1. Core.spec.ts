@@ -16,7 +16,7 @@ test.afterAll(async () => await afterTest(electronApp, workingPath));
 
 test('App loads and vue mounts correctly', async () => {
   const page = await electronApp.firstWindow();
-  const appLocator = await page.locator('#app');
+  const appLocator = await page.locator('#__nuxt');
   await expect(await appLocator.count(), 'Root el exists').toBe(1);
 });
 

@@ -209,7 +209,6 @@ watch(
 // Update events handling
 //
 const updateHandlerApi = ({ file }: { file: IFile }) => {
-  console.log('update handler api');
   // TODO: Why are we ignoring indexes here?
   loading.value = true;
 

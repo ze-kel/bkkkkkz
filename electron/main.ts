@@ -1,11 +1,9 @@
 import { release } from 'os';
 import path from 'path';
-import { BrowserWindow, app, ipcMain, shell } from 'electron';
-// Use relative path to avoid issues
-import ipcRequestHandler from '../server/trpc/ipcRequestHandler';
+import { BrowserWindow, app } from 'electron';
 import { appRouter } from '../server/trpc/api';
-import type { IpcRequest } from '../tools/types/Ipc';
 import TheWatcher from '../server/watcher/watcherCore';
+import { createIPCHandler } from 'electron-trpc/main';
 
 // Disable GPU Acceleration for Windows 7
 if (release().startsWith('6.1')) app.disableHardwareAcceleration();
@@ -53,6 +51,7 @@ function createWindow() {
   });
 
   TheWatcher.init();
+  createIPCHandler({ router: appRouter, windows: [win] });
 
   if (process.env.VITE_DEV_SERVER_URL) {
     win.loadURL(process.env.VITE_DEV_SERVER_URL);
@@ -82,13 +81,5 @@ app.on('activate', () => {
 });
 
 app.whenReady().then(() => {
-  ipcMain.handle('trpc', (event, req: IpcRequest) => {
-    return ipcRequestHandler({
-      endpoint: '/trpc',
-      req,
-      router: appRouter,
-    });
-  });
-
   createWindow();
 });

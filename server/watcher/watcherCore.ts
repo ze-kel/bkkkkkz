@@ -85,7 +85,6 @@ const TheWatcher: IWatcher = {
     };
 
     const change = async (path: string) => {
-      console.log('CHANGE ', path);
       if (extname(path) !== '.md') return;
       const file = await FileService.getFileContent(path);
       this.modules.forEach(async (module) => {
