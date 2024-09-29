@@ -29,20 +29,11 @@ const dataSorted = computed(() =>
   store.tagsTree ? [...store.tagsTree].sort((a, b) => a.localeCompare(b)) : undefined,
 );
 
-const toUnsub: Unsubscribable[] = [];
-
 onBeforeMount(async () => {
   await store.fetchTags();
 });
 
-onMounted(async () => {
-  const s1 = $trpc.tagsUpdate.subscribe(undefined, { onData: store.updateTags });
-  toUnsub.push(s1);
-});
-
-onUnmounted(async () => {
-  toUnsub.forEach((s) => s.unsubscribe());
-});
+onMounted(async () => {});
 
 const openedTag = computed(
   () => store.openedItem && store.openedItem.type === 'tag' && store.openedItem.thing,

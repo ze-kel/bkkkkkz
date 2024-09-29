@@ -81,7 +81,7 @@ import TabVisual from './TabVisual.vue';
 import { clamp } from 'lodash';
 
 import { useElementSize, useMouse } from '@vueuse/core';
-import type { IOpened } from '~/server/services/openedTabs';
+import type { IOpened } from '~/api/openedTabs';
 import { testClasses } from '~/tools/tests/binds';
 
 const store = useStore();

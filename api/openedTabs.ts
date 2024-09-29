@@ -1,7 +1,8 @@
-import * as path from 'path';
-import * as fs from 'fs-extra';
 import { z } from 'zod';
-import { getRootPath } from './rootPath';
+
+import * as fs from '@tauri-apps/plugin-fs';
+import * as path from '@tauri-apps/api/path';
+
 export const zSortByOption = z.enum([
   'Title',
   'Author',
@@ -103,36 +104,41 @@ export type IOpenedTabs = z.infer<typeof ZOpenedTabs>;
 
 const JSON_NAME = 'openedTabs.json';
 
-export const getOpenedTabs = () => {
-  const rootPath = getRootPath();
+export const getOpenedTabs = async () => {
+  const rootPath = rootPathFromStore();
 
   if (!rootPath) {
     throw new Error('Trying to read settings without root path present');
   }
 
-  const targetFolder = path.join(rootPath, '/.internal/');
-  const targetFile = path.join(targetFolder, JSON_NAME);
-  fs.ensureDirSync(targetFolder);
+  const targetFolder = await path.join(rootPath, '/.internal/');
+  const targetFile = await path.join(targetFolder, JSON_NAME);
 
-  const f = fs.existsSync(targetFile)
-    ? JSON.parse(fs.readFileSync(targetFile).toString())
-    : { tabs: [] };
+  try {
+    const f = (await fs.exists(targetFile))
+      ? JSON.parse(await fs.readTextFile(targetFile))
+      : { tabs: [] };
 
-  const parsed = ZOpenedTabs.parse(f);
-  return parsed;
+    return ZOpenedTabs.parse(f);
+  } catch (e) {
+    return { tabs: [] };
+  }
 };
 
-export const setOpenedTabs = (tabs: IOpenedTabs) => {
-  const rootPath = getRootPath();
+export const setOpenedTabs = async (tabs: IOpenedTabs) => {
+  const rootPath = rootPathFromStore();
 
   if (!rootPath) {
     throw new Error('Trying to write settings without root path present');
   }
 
-  const targetFolder = path.join(rootPath, '/.internal/');
-  const targetFile = path.join(targetFolder, JSON_NAME);
-  fs.ensureDirSync(targetFolder);
+  const targetFolder = await path.join(rootPath, '/.internal/');
+  const targetFile = await path.join(targetFolder, JSON_NAME);
 
-  fs.writeFileSync(targetFile, JSON.stringify(tabs));
+  if (!fs.exists(targetFolder)) {
+    fs.mkdir(targetFolder);
+  }
+
+  fs.writeTextFile(targetFile, JSON.stringify(tabs));
   return;
 };

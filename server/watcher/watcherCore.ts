@@ -1,15 +1,15 @@
 import * as chokidar from 'chokidar';
 import { extname } from 'path';
 import * as fs from 'fs-extra';
-import FileService from '../services/files';
-import { DOTFILE_REGEX, DOTDIR_REGEX } from '../helpers/utils';
+import FileService from '../../api/files';
+import { DOTFILE_REGEX, DOTDIR_REGEX } from '../../api/utils';
 
 import { FileUpdates } from './fileUpdates';
 import { FolderUpdates } from './folderTreeUpdates';
 import { TagUpdates } from './tagUpdates';
 
 import type { FSWatcher } from 'chokidar';
-import type { ISavedFile } from '../services/files';
+import type { ISavedFile } from '../../api/files';
 import { getRootPath } from '../services/rootPath';
 
 export type IWatcherFunction = (path: string) => void | Promise<void>;

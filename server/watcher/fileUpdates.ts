@@ -1,9 +1,9 @@
 import type { IWatcherModule } from './watcherCore';
 import * as path from 'path';
 
-import { getOpenedTabs } from '../services/openedTabs';
-import type { IOpened } from '../services/openedTabs';
-import { apiEventsEmitter } from '../trpc/api';
+import { getOpenedTabs } from '../../api/openedTabs';
+import type { IOpened } from '../../api/openedTabs';
+import { apiEventsEmitter } from '../trpc/api.txtx';
 
 type IWatcherFileIgnore = {
   [key: string]: Date;

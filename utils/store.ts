@@ -4,11 +4,19 @@ import { clamp as _clamp, cloneDeep } from 'lodash';
 import { cloneDeep as _cloneDeep } from 'lodash';
 import ShortUniqueId from 'short-unique-id';
 
-import type { INotification } from '~~/server/trpc/api';
-import type { IFolderTree } from '~/server/services/files';
-import type { IOpenedTabs, IOpened, IViewSettings } from '~/server/services/openedTabs';
-import type { ISettings } from '~/server/services/settings';
+import type { IOpenedTabs, IOpened, IViewSettings } from '~/api/openedTabs';
 import type { ITags } from '~/server/watcher/tagUpdates';
+import { getRootPath } from '~/api/rootPath';
+import type { IFolderTree } from '~/api/files';
+import type { ISettings } from '~/api/settings';
+
+export type INotification = {
+  title: string;
+  text: string | string[];
+  subtext?: string;
+  variant?: 'default' | 'destructive';
+  ttlSeconds?: number;
+};
 
 const uid = new ShortUniqueId({ length: 10 });
 
@@ -103,28 +111,23 @@ export const useStore = defineStore('main', {
         tabs: this.openedTabs,
         activeId: this.openedTabsActiveId,
       });
-      const { $trpc } = useNuxtApp();
 
-      await $trpc.setOpenedTabs.mutate(clone);
+      //await $trpc.setOpenedTabs.mutate(clone);
     },
     async fetchOpened() {
-      const { $trpc } = useNuxtApp();
-      const res = await $trpc.getOpenedTabs.query();
-
+      /*
       this.openedTabs = res.tabs;
       this.openedTabsActiveId = res.activeId;
+      */
     },
     async fetchSetting() {
-      const { $trpc } = useNuxtApp();
-      this.settings = await $trpc.getSettings.query();
+      //this.settings = await $trpc.getSettings.query();
     },
     async fetchTags() {
-      const { $trpc } = useNuxtApp();
-      this.tagsTree = await $trpc.getTags.query();
+      //this.tagsTree = await $trpc.getTags.query();
     },
     async fetchRootPath() {
-      const { $trpc } = useNuxtApp();
-      this.rootPath = await $trpc.getRootPath.query();
+      this.rootPath = await getRootPath();
     },
 
     setOpenedId(id: string) {
@@ -205,3 +208,15 @@ export const useStore = defineStore('main', {
 if (import.meta.hot) {
   import.meta.hot.accept(acceptHMRUpdate(useStore, import.meta.hot));
 }
+
+export const rootPathFromStore = () => {
+  const store = useStore();
+
+  const r = store.rootPath;
+
+  if (typeof r !== 'string') {
+    throw new Error('No Root Path');
+  }
+
+  return r;
+};

@@ -1,6 +1,7 @@
+import { readTextFile } from '@tauri-apps/plugin-fs';
 import * as matter from 'gray-matter';
-import type { ISavedFile } from './files';
 import { z } from 'zod';
+import type { ISavedFile } from '~/api/files';
 
 const zDateRead = z.object({ started: z.string().optional(), finished: z.string().optional() });
 
@@ -19,8 +20,10 @@ export const zBookData = z.object({
 
 export type IBookData = z.infer<typeof zBookData>;
 
-export const makeBookFile = (path: string, name: string): ISavedFile => {
-  const parsed = matter.read(path);
+export const makeBookFile = async (path: string, name: string) => {
+  const f = await readTextFile(path);
+
+  const parsed = matter.default(f);
 
   const res = zBookData.safeParse(parsed.data);
 
@@ -36,7 +39,7 @@ export const makeBookFile = (path: string, name: string): ISavedFile => {
   return file;
 };
 
-export const makeEncodedBook = (file: ISavedFile): string => {
+export const makeEncodedBook = (file: ISavedFile) => {
   const res = zBookData.safeParse(file);
 
   const data: IBookData = res.success ? res.data : {};

@@ -18,8 +18,6 @@ import { debounce as _debounce } from 'lodash';
 
 import { useStore } from '~~/utils/store';
 
-const { $trpc } = useNuxtApp();
-
 const store = useStore();
 
 watch(
@@ -44,12 +42,6 @@ onBeforeMount(async () => {
   loaded.value = true;
 });
 
-onMounted(async () => {
-  window.addEventListener('beforeunload', () => {
-    $trpc.clearAllEvents.mutate();
-  });
-});
-
 //
 // Dark mode class
 //
@@ -60,18 +52,6 @@ const darkModeClass = computed(() => {
   if (store.settings.darkMode === 'Light') return '';
 
   return 'dark';
-});
-
-//
-// Handle backend notification
-//
-
-const r = $trpc.sendNotification.subscribe(undefined, {
-  onData: store.showNotification,
-});
-
-onUnmounted(async () => {
-  r.unsubscribe();
 });
 </script>
 

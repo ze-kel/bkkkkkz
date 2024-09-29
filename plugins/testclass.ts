@@ -22,12 +22,11 @@ const testIdDirective: Directive = (el: HTMLElement, binding: IBinding) => {
 export default defineNuxtPlugin({
   name: 'test-class-directive',
   enforce: 'post',
-  dependsOn: ['trpc'],
 
   async setup(nuxtApp) {
-    const { $trpc } = useNuxtApp();
+    const ENABLE_TEST_CLASS = true;
 
-    if (await $trpc.isTest.query()) {
+    if (ENABLE_TEST_CLASS) {
       nuxtApp.vueApp.directive('test-class', testIdDirective);
     } else {
       nuxtApp.vueApp.directive('test-class', testIdDirective);

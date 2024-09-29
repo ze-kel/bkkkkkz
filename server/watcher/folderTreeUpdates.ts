@@ -1,6 +1,6 @@
 import type { IWatcherModule } from './watcherCore';
-import FileService from '../services/files';
-import { apiEventsEmitter } from '../trpc/api';
+import FileService from '../../api/files';
+import { apiEventsEmitter } from '../trpc/api.txtx';
 import { getRootPathSafe } from '../services/rootPath';
 
 export const FolderUpdates: IWatcherModule = {

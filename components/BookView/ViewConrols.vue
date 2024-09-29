@@ -49,7 +49,7 @@ import {
 } from 'lucide-vue-next';
 
 import ButtonsSwitch from '../_UI/ButtonsSwitch.vue';
-import type { ISortByOption } from '~/server/services/openedTabs';
+import type { ISortByOption } from '~/api/openedTabs';
 import BasicButton from '~/components/_UI/BasicButton/BasicButton.vue';
 import { SelectorItem, SelectorRoot } from '~/components/_UI/Selector';
 

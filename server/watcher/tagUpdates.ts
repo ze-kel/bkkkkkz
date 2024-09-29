@@ -1,9 +1,8 @@
 import { difference as _difference } from 'lodash';
 import { debounce as _debounce } from 'lodash';
-import { getOpenedTabs } from '../services/openedTabs';
-import type { IFile, ISavedFile } from '../services/files';
+import { getOpenedTabs } from '../../api/openedTabs';
+import type { IFile, ISavedFile } from '../../api/files';
 import type { IWatcherModule } from './watcherCore';
-import { apiEventsEmitter } from '../trpc/api';
 
 export type ITagData = {
   [key: string]: Set<string>;

@@ -1,24 +1,17 @@
-import type { IFolderTree, ISavedFile } from '../services/files';
-import FileService, { zSavedFile, zUnsavedFile } from '../services/files';
+import type { IFolderTree, ISavedFile } from '../../api/files';
+import FileService, { zSavedFile, zUnsavedFile } from '../../api/files';
 import { z } from 'zod';
 import { FileUpdates } from '../watcher/fileUpdates';
-import { getOpenedTabs, setOpenedTabs, ZOpenedTabs } from '../services/openedTabs';
+import { getOpenedTabs, setOpenedTabs, ZOpenedTabs } from '../../api/openedTabs';
 import type { ITags } from '../watcher/tagUpdates';
 import TagsStore from '../watcher/tagUpdates';
 import { observable } from '@trpc/server/observable';
 import { EventEmitter } from 'events';
 import { getRootPath, setRootPath } from '../services/rootPath';
-import { getSettings, saveSettings, zSettings } from '../services/settings';
+import { getSettings, saveSettings, zSettings } from '../../api/settings';
 import { getReadChallenge, saveReadChallenge, zReadChallenge } from '../services/readChalenge';
 import { procedure, router } from './trpc';
 
-export type INotification = {
-  title: string;
-  text: string | string[];
-  subtext?: string;
-  variant?: 'default' | 'destructive';
-  ttlSeconds?: number;
-};
 
 export const apiEventsEmitter = new EventEmitter();
 

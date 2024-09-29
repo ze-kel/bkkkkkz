@@ -65,11 +65,10 @@ import {
 } from '~/components/_UI/ContextMenu/';
 
 import type { PropType } from 'vue';
-import type { IFile } from '~/server/services/files';
+import { remove, type IFile } from '~/api/files';
 import type ElObserver from './elementObserver';
-import type { IViewStyle } from '~/server/services/openedTabs';
+import type { IViewStyle } from '~/api/openedTabs';
 import { useStore } from '~~/utils/store';
-const { $trpc } = useNuxtApp();
 
 import BookItemCover from '~/components/BookView/BookItemCover.vue';
 import BookItemLine from '~/components/BookView/BookItemLine.vue';
@@ -118,7 +117,7 @@ onMounted(() => {
   props.observer.watchElement(itemRef.value, triggerInView);
 });
 
-const deleteBook = () => $trpc.delete.mutate(props.currentFile.path);
+const deleteBook = () => remove(props.currentFile.path);
 
 //
 // Drag & drop

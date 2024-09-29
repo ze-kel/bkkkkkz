@@ -123,10 +123,16 @@ import {
 } from '~/components/_UI/ContextMenu/';
 
 import type { PropType } from 'vue';
-import type { IFile, ISavedFile, IUnsavedFile } from '~/server/services/files';
+import {
+  getFileContent,
+  saveFileContent,
+  saveNewFile,
+  type IFile,
+  type ISavedFile,
+  type IUnsavedFile,
+} from '~/api/files';
 const { $trpc } = useNuxtApp();
-import type { Unsubscribable } from '@trpc/server/observable';
-import type { IOpenedFile, IOpenedNewFile } from '~/server/services/openedTabs';
+import type { IOpenedFile, IOpenedNewFile } from '~/api/openedTabs';
 import { useStore } from '~~/utils/store';
 import BasicButton from '~/components/_UI/BasicButton/BasicButton.vue';
 import { testClasses } from '~/tools/tests/binds';
@@ -148,7 +154,7 @@ const loading = ref(true);
 watchEffect(async () => {
   if (props.opened.type === 'file') {
     loading.value = true;
-    const res = await $trpc.loadFileContent.query(props.opened.thing);
+    const res = await getFileContent(props.opened.thing);
     previousName.value = res.name || '';
     openedFile.value = res;
 
@@ -164,7 +170,7 @@ watchEffect(async () => {
 
 const manualSave = async () => {
   if ('unsaved' in openedFile.value) {
-    const saved = await $trpc.saveNewFile.mutate({
+    const saved = await saveNewFile({
       basePath: props.opened.thing,
       file: _cloneDeep(openedFile.value) as IUnsavedFile,
     });
@@ -177,12 +183,12 @@ const manualSave = async () => {
 };
 
 const save = (file: ISavedFile) => {
-  $trpc.saveFileContent.mutate(_cloneDeep(file));
+  saveFileContent(_cloneDeep(file));
 };
 
 const rename = async (newName: string) => {
   if (!openedFile.value || 'unsaved' in openedFile.value) return;
-  const newPath = await $trpc.rename.mutate({ srcPath: openedFile.value.path, newName });
+  const newPath = await rename({ srcPath: openedFile.value.path, newName });
   store.openNewOne({ ...props.opened, thing: newPath }, { place: 'current' });
 };
 

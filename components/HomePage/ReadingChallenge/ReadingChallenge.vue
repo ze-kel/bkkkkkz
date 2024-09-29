@@ -57,10 +57,10 @@ import { cloneDeep, cloneDeep as _cloneDeep, findIndex } from 'lodash';
 import BasicButton from '~/components/_UI/BasicButton/BasicButton.vue';
 import BasicInput from '~/components/_UI/BasicInput.vue';
 
-import type { IFiles, ISavedFile } from '~/server/services/files';
+import type { IFiles, ISavedFile } from '~/api/files';
 const { $trpc } = useNuxtApp();
 import { useStore } from '~~/utils/store';
-import type { IReadChallengeData } from '~/server/services/readChalenge';
+import type { IReadChallengeData } from '~/api/readChalenge';
 
 const store = useStore();
 const read = ref<IFiles>({});

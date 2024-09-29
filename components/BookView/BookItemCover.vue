@@ -7,7 +7,7 @@
 <script lang="ts" setup>
 import BookCover from '~/components/Cover/BookCover.vue';
 import type { PropType } from 'vue';
-import type { IFile } from '~/server/services/files';
+import type { IFile } from '~/api/files';
 const props = defineProps({
   currentFile: {
     type: Object as PropType<IFile>,

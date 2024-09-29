@@ -24,7 +24,7 @@ import { computed, ref } from 'vue';
 
 import BookItem from '~/components/BookView/BookItemWrapper.vue';
 
-import type { IFile, IFiles } from '~/server/services/files';
+import type { IFile, IFiles } from '~/api/files';
 const { $trpc } = useNuxtApp();
 import BasicButton from '~/components/_UI/BasicButton/BasicButton.vue';
 

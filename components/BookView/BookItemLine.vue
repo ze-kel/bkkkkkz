@@ -24,7 +24,7 @@
 
 <script lang="ts" setup>
 import { computed, type PropType } from 'vue';
-import type { IFile } from '~/server/services/files';
+import type { IFile } from '~/api/files';
 import { useStore } from '~~/utils/store';
 import { dateReducerAllYears } from './getDateReducer';
 import RatingStars from '~/components/Rating/RatingStars.vue';

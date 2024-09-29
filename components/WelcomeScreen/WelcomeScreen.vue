@@ -12,14 +12,14 @@
 </template>
 
 <script lang="ts" setup>
+import { selectAndSetRootPath } from '~/api/rootPath';
 import BasicButton from '~/components/_UI/BasicButton/BasicButton.vue';
 import { useStore } from '~~/utils/store';
-const { $trpc } = useNuxtApp();
 
 const store = useStore();
 
 const changeRootPathHandler = async () => {
-  const updated = await $trpc.setRootPath.mutate();
+  const updated = await selectAndSetRootPath();
   if (updated) {
     store.fetchRootPath();
   }

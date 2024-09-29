@@ -54,7 +54,7 @@ import { computed, onUpdated, ref, watchEffect, nextTick } from 'vue';
 import { cloneDeep as _cloneDeep } from 'lodash';
 import { getDefaultViewSettings } from '~/utils/getDefaultViewSettings';
 import type { PropType } from 'vue';
-import type { IFolderTree } from '~/server/services/files';
+import type { IFolderTree } from '~/api/files';
 const { $trpc } = useNuxtApp();
 import { useStore } from '~~/utils/store';
 import { testClasses } from '~/tools/tests/binds';

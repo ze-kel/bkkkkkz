@@ -50,7 +50,7 @@ import { computed, ref } from 'vue';
 import { XIcon } from 'lucide-vue-next';
 
 import type { PropType } from 'vue';
-import type { ISavedFile } from '~/server/services/files';
+import type { ISavedFile } from '~/api/files';
 import BasicButton from '~/components/_UI/BasicButton/BasicButton.vue';
 import BasicInput from '~/components/_UI/BasicInput.vue';
 

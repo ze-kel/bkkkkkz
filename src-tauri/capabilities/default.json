@@ -1,0 +1,62 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "enables the default permissions",
+  "windows": [
+    "main"
+  ],
+  "permissions": [
+    {
+      "identifier": "fs:scope",
+      "allow": [
+        {
+          "path": "/",
+          "requireLiteralLeadingDot": false
+        },
+        {
+          "path": "/**",
+          "requireLiteralLeadingDot": false
+        },
+        {
+          "path": "**/.*",
+          "requireLiteralLeadingDot": false
+        },
+        {
+          "path": "**",
+          "requireLiteralLeadingDot": false
+        },
+        {
+          "path": "$HOME",
+          "requireLiteralLeadingDot": false
+        },
+        {
+          "path": "$HOME/**",
+          "requireLiteralLeadingDot": false
+        },
+        {
+          "path": "$HOME/*",
+          "requireLiteralLeadingDot": false
+        }
+      ]
+    },
+    "core:default",
+    "store:default",
+    "store:allow-get",
+    "store:allow-set",
+    "store:allow-save",
+    "store:allow-load",
+    "dialog:default",
+    "fs:allow-home-read-recursive",
+    "fs:allow-home-meta",
+    "fs:allow-home-meta-recursive",
+    "fs:allow-home-read",
+    "fs:allow-home-write",
+    "fs:allow-home-write-recursive",
+    "fs:read-all",
+    "fs:read-dirs",
+    "fs:read-files",
+    "fs:read-meta",
+    "fs:write-all",
+    "fs:write-files"
+  ]
+}

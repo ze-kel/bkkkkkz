@@ -44,6 +44,7 @@
             class="grid"
             :class="opened.settings.viewStyle === 'Lines' ? 'grid-cols-1' : 'cards gap-4'"
           >
+            zzzzzzzzz
             <BookItem
               v-for="item in group.content"
               :key="item.path"
@@ -84,15 +85,14 @@ import { cloneDeep as _cloneDeep } from 'lodash';
 import getSortFunction from './getSortFunction';
 import { groupItems } from './groupItems';
 import ElObserver from './elementObserver';
-const { $trpc } = useNuxtApp();
 
 import BookItem from './BookItemWrapper.vue';
 import Rating from '../Rating/RatingStars.vue';
 import ViewConrols from './ViewConrols.vue';
 
-import type { IFile, IFiles } from '~/server/services/files';
+import { loadFilesFromFolder, type IFile, type IFiles } from '~/api/files';
 import type { PropType } from 'vue';
-import type { IOpenedPath, IOpenedTag } from '~/server/services/openedTabs';
+import type { IOpenedPath, IOpenedTag } from '~/api/openedTabs';
 import EmptyBooksPlaceholder from '~/components/Placeholders/EmptyBooksPlaceholder.vue';
 
 const store = useStore();
@@ -115,13 +115,13 @@ const props = defineProps({
 const loadContent = async () => {
   loading.value = true;
   if (props.opened.type === 'folder') {
-    files.value = await $trpc.loadFilesFromFolder.query({
-      path: props.opened.thing,
+    files.value = await loadFilesFromFolder({
+      basePath: props.opened.thing,
       recursive: props.opened.recursive,
     });
   }
   if (props.opened.type === 'tag') {
-    files.value = await $trpc.loadFilesFromTag.query(props.opened.thing);
+    //files.value = await $trpc.loadFilesFromTag.query(props.opened.thing);
   }
   nextTick(() => {
     loading.value = false;
@@ -165,6 +165,7 @@ const removeHandlerApi = ({
   }
 };
 
+/*
 const u = $trpc.fileUpdate.subscribe(undefined, {
   onData: updateHandlerApi,
 });
@@ -182,6 +183,7 @@ onUnmounted(async () => {
   a.unsubscribe();
   r.unsubscribe();
 });
+*/
 
 //
 // Search
@@ -222,7 +224,7 @@ const filteredFiles = computed(() => {
 // Sort
 //
 const sortedFiles = computed(() => {
-  if (!store.settings) return [];
+  if (!store.settings) return filteredFiles.value;
   const sortFunction = getSortFunction(props.opened.settings.sortBy, store.settings?.dateFormat);
 
   return [...filteredFiles.value].sort((a, b) => {

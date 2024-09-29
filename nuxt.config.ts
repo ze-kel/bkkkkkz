@@ -1,36 +1,33 @@
 export default defineNuxtConfig({
-  devtools: { enabled: true },
   alias: {
     components: '/<srcDir>/components',
   },
-
-  router: {
-    options: {
-      hashMode: true,
-    },
-  },
+  modules: ['@nuxtjs/tailwindcss', '@pinia/nuxt'],
+  compatibilityDate: '2024-09-29',
 
   experimental: {
-    appManifest: false,
+    // to use plugins/node.client.ts
+    clientNodeCompat: true,
   },
 
-  modules: ['nuxt-electron', '@nuxtjs/tailwindcss', '@pinia/nuxt'],
-
-  electron: {
-    build: [
-      {
-        // Main-Process entry file of the Electron App.
-        entry: 'electron/main.ts',
-      },
-      {
-        entry: 'electron/preload.ts',
-        onstart(args) {
-          args.reload();
-        },
-      },
-    ],
-    renderer: {},
-  },
+  // Everything below is recomended Tauri config for nuxt
+  // https://v2.tauri.app/start/frontend/nuxt/
+  devtools: { enabled: true },
   ssr: false,
-  compatibilityDate: '2024-09-29',
+  devServer: { host: '0.0.0.0' },
+  vite: {
+    clearScreen: false,
+    // https://v2.tauri.app/reference/environment-variables/
+    envPrefix: ['VITE_', 'TAURI_'],
+    server: {
+      strictPort: true,
+      hmr: {
+        // Use websocket for mobile hot reloading
+        protocol: 'ws',
+        // Make sure it's available on the network
+        host: '0.0.0.0',
+        port: 5183,
+      },
+    },
+  },
 });
