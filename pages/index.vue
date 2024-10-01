@@ -17,6 +17,7 @@ import { computed, onMounted, onUnmounted, ref, onBeforeMount, watch } from 'vue
 import { debounce as _debounce } from 'lodash';
 
 import { useStore } from '~~/utils/store';
+import TheWatcher from '~/server/watcher/watcherCore';
 
 const store = useStore();
 
@@ -24,6 +25,7 @@ watch(
   () => store.rootPath,
   async () => {
     if (typeof store.rootPath !== 'string') return;
+    await TheWatcher.init();
     await store.fetchSetting();
     await store.fetchOpened();
     await store.fetchTags();

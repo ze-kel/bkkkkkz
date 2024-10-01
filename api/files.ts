@@ -88,8 +88,6 @@ export const getFileTree = async (basePath: string) => {
 
   await Promise.all(promises);
 
-  console.log('final files', output);
-
   return output;
 };
 
@@ -117,8 +115,6 @@ export const loadFilesFromFolder = async ({
 
   const files = await readDir(basePath);
 
-  console.log('load files', files);
-
   const result: IFiles = {};
 
   await Promise.all(
@@ -136,16 +132,12 @@ export const loadFilesFromFolder = async ({
       } else {
         if ((await path.extname(entry.name)) === 'md') {
           const fileContent = await getFileContent(fullPath);
-          console.log('file ', fileContent);
           result[fullPath] = fileContent;
         } else {
-          console.log('file not md', entry.name);
         }
       }
     }),
   );
-
-  console.log(result);
 
   return result;
 };
@@ -222,7 +214,7 @@ export const moveToFolder = async (moveItemPath: string, toFolderPath: string): 
   return target;
 };
 
-export const renameEntity = async (srcPath: string, newName: string) => {
+export const renameEntity = async ({ srcPath, newName }: { srcPath: string; newName: string }) => {
   const onlyDir = await path.dirname(srcPath);
   const targetPath = await path.join(onlyDir, newName);
   await rename(srcPath, targetPath);
@@ -239,8 +231,8 @@ export const locateCover = async (filename: string) => {
   return await path.join(root, localSettings.coversPath, filename);
 };
 
-export const removeCover = async (filePath: string): Promise<void> => {
-  const book = await getFileContent(filePath);
+export const removeCover = async ({ bookFilePath }: { bookFilePath: string }): Promise<void> => {
+  const book = await getFileContent(bookFilePath);
   if (!book.cover) throw 'Trying to delete cover from book without one';
   const coverPath = await locateCover(book.cover);
   await remove(coverPath);
@@ -275,9 +267,9 @@ export const getPathForCoverSaving = async (coverFile: string) => {
   return path.join(root, localSettings.coversPath, coverFileName + ext);
 };
 
-export const setCover = async (filePath: string) => {
+export const setCover = async ({ bookFilePath }: { bookFilePath: string }) => {
   const root = rootPathFromStore();
-  const book = await getFileContent(filePath);
+  const book = await getFileContent(bookFilePath);
   const file = await open({
     filters: [{ name: 'Images', extensions: ['jpg', 'jpeg', 'png', 'gif', 'webp'] }],
   });
@@ -307,8 +299,8 @@ export const saveCoverFromBlob = async (fileNameWithExtension: string, imageBlob
   return path;
 };
 
-export const fetchCover = async (filePath: string) => {
-  const book = await getFileContent(filePath);
+export const fetchCover = async ({ bookFilePath }: { bookFilePath: string }) => {
+  const book = await getFileContent(bookFilePath);
   if (!book.ISBN13 || (String(book.ISBN13).length !== 13 && String(book.ISBN13).length !== 10)) {
     showNotification({
       title: 'Unable to fetch',
@@ -343,8 +335,8 @@ export const fetchCover = async (filePath: string) => {
     return;
   }
 
-  const bookFilePath = await saveCoverFromBlob(String(book.ISBN13), cover);
-  book.cover = await path.basename(bookFilePath);
+  const savedCoverPath = await saveCoverFromBlob(String(book.ISBN13), cover);
+  book.cover = await path.basename(savedCoverPath);
   saveFileContent(book);
 
   showNotification({

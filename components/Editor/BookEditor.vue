@@ -14,13 +14,13 @@
               </div>
             </ContextMenuTrigger>
             <ContextMenuContent>
-              <ContextMenuItem @click="setCover">
+              <ContextMenuItem @click="setCoverHandle">
                 {{ openedFile.cover ? 'Change cover' : 'Add cover' }}
               </ContextMenuItem>
 
-              <ContextMenuItem @click="fetchCover"> Try to fetch cover </ContextMenuItem>
+              <ContextMenuItem @click="fetchCoverHandle"> Try to fetch cover </ContextMenuItem>
 
-              <ContextMenuItem v-if="openedFile.cover" @click="removeCover">
+              <ContextMenuItem v-if="openedFile.cover" @click="removeCoverHandler">
                 Remove cover
               </ContextMenuItem>
             </ContextMenuContent>
@@ -124,18 +124,22 @@ import {
 
 import type { PropType } from 'vue';
 import {
+  fetchCover,
   getFileContent,
+  removeCover,
+  renameEntity,
   saveFileContent,
   saveNewFile,
+  setCover,
   type IFile,
   type ISavedFile,
   type IUnsavedFile,
 } from '~/api/files';
-const { $trpc } = useNuxtApp();
 import type { IOpenedFile, IOpenedNewFile } from '~/api/openedTabs';
 import { useStore } from '~~/utils/store';
 import BasicButton from '~/components/_UI/BasicButton/BasicButton.vue';
 import { testClasses } from '~/tools/tests/binds';
+import { apiEventsEmitter } from '~/api/events';
 
 const store = useStore();
 
@@ -188,7 +192,7 @@ const save = (file: ISavedFile) => {
 
 const rename = async (newName: string) => {
   if (!openedFile.value || 'unsaved' in openedFile.value) return;
-  const newPath = await rename({ srcPath: openedFile.value.path, newName });
+  const newPath = await renameEntity({ srcPath: openedFile.value.path, newName });
   store.openNewOne({ ...props.opened, thing: newPath }, { place: 'current' });
 };
 
@@ -215,6 +219,7 @@ watch(
 // Update events handling
 //
 const updateHandlerApi = ({ file }: { file: IFile }) => {
+  console.log('update handler api', file);
   // TODO: Why are we ignoring indexes here?
   loading.value = true;
 
@@ -224,26 +229,19 @@ const updateHandlerApi = ({ file }: { file: IFile }) => {
     loading.value = false;
   });
 };
-const toClear: Array<Unsubscribable> = [];
 
-const registerHandles = () => {
-  const u = $trpc.fileUpdate.subscribe(undefined, {
-    onData: updateHandlerApi,
-  });
-  const r = $trpc.fileRemove.subscribe(undefined, {
-    onData: () => {
-      store.closeOpened();
-    },
-  });
-  toClear.push(u, r);
+const removeHandlerApi = () => {
+  store.closeOpened();
 };
 
 onMounted(() => {
-  registerHandles();
+  apiEventsEmitter.addListener('FILE_UPDATE', updateHandlerApi);
+  apiEventsEmitter.addListener('FILE_REMOVE', removeHandlerApi);
 });
 
 onUnmounted(() => {
-  toClear.forEach((u) => u.unsubscribe());
+  apiEventsEmitter.removeListener('FILE_UPDATE', updateHandlerApi);
+  apiEventsEmitter.removeListener('FILE_REMOVE', removeHandlerApi);
 });
 
 //
@@ -280,17 +278,17 @@ const startDrag = (devt: DragEvent) => {
 ///
 /// Cover Right click
 ///
-const removeCover = () => {
+const removeCoverHandler = () => {
   if ('unsaved' in openedFile.value) return;
-  $trpc.removeCoverFile.mutate({ bookFilePath: openedFile.value.path });
+  removeCover({ bookFilePath: openedFile.value.path });
 };
 
-const setCover = () => {
+const setCoverHandle = () => {
   if ('unsaved' in openedFile.value) return;
-  $trpc.setCover.mutate({ bookFilePath: openedFile.value.path });
+  setCover({ bookFilePath: openedFile.value.path });
 };
 
-const fetchCover = async () => {
+const fetchCoverHandle = async () => {
   if (!openedFile.value.ISBN13) {
     store.showNotification({
       title: `Can't fetch cover without ISBN13`,
@@ -307,7 +305,7 @@ const fetchCover = async () => {
     return;
   }
 
-  $trpc.fetchCover.mutate({ bookFilePath: openedFile.value.path });
+  fetchCover({ bookFilePath: openedFile.value.path });
 };
 </script>
 

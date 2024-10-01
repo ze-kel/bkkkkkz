@@ -3,12 +3,13 @@ import { defineStore, acceptHMRUpdate } from 'pinia';
 import { clamp as _clamp, cloneDeep } from 'lodash';
 import { cloneDeep as _cloneDeep } from 'lodash';
 import ShortUniqueId from 'short-unique-id';
+import TagService from '~/server/watcher/tagUpdates';
 
 import type { IOpenedTabs, IOpened, IViewSettings } from '~/api/openedTabs';
 import type { ITags } from '~/server/watcher/tagUpdates';
 import { getRootPath } from '~/api/rootPath';
 import type { IFolderTree } from '~/api/files';
-import type { ISettings } from '~/api/settings';
+import { getSettings, type ISettings } from '~/api/settings';
 
 export type INotification = {
   title: string;
@@ -121,10 +122,10 @@ export const useStore = defineStore('main', {
       */
     },
     async fetchSetting() {
-      //this.settings = await $trpc.getSettings.query();
+      this.settings = await getSettings();
     },
     async fetchTags() {
-      //this.tagsTree = await $trpc.getTags.query();
+      this.tagsTree = await TagService.getTags();
     },
     async fetchRootPath() {
       this.rootPath = await getRootPath();

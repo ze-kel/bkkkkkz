@@ -36,13 +36,13 @@
 
 <script lang="ts" setup>
 import type { PropType } from 'vue';
-import type { IDateRead } from '~/server/services/books';
 import DatePair from './DatePair.vue';
 import { format } from 'date-fns';
 import { XIcon } from 'lucide-vue-next';
 import { useStore } from '~~/utils/store';
 import BasicButton from '~/components/_UI/BasicButton/BasicButton.vue';
 import { testClasses } from '~/tools/tests/binds';
+import type { IDateRead } from '~/api/books';
 
 const store = useStore();
 

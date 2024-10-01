@@ -22,7 +22,7 @@ export const getSettings = async () => {
     throw new Error('Trying to read settings without root path present');
   }
 
-  const targetFolder = await path.join(rootPath, '/.internal/');
+  const targetFolder = await path.join(rootPath, '/internal/');
 
   const targetFile = await path.join(targetFolder, JSON_NAME);
 
@@ -36,9 +36,8 @@ export const getSettings = async () => {
     const f = (await fs.exists(targetFile)) ? JSON.parse(await fs.readTextFile(targetFile)) : {};
 
     return zSettings.parse(f);
-  } catch (e) {
-    return def;
-  }
+  } catch (e) {}
+  return def;
 };
 
 export const saveSettings = async (settings: ISettings) => {

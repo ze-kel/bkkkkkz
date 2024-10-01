@@ -5,6 +5,7 @@
 <script lang="ts" setup>
 import FileTreeInner from './FileTreeInner.vue';
 import { onMounted } from 'vue';
+import { apiEventsEmitter } from '~/api/events';
 import { getFileTree } from '~/api/files';
 import { useStore } from '~~/utils/store';
 
@@ -14,5 +15,11 @@ onMounted(async () => {
   if (!store.rootPath) return;
   const tree = await getFileTree(store.rootPath);
   store.updateFolderTree(tree);
+
+  apiEventsEmitter.addListener('TREE_UPDATE', store.updateFolderTree);
+});
+
+onUnmounted(() => {
+  apiEventsEmitter.removeListener('TREE_UPDATE', store.updateFolderTree);
 });
 </script>

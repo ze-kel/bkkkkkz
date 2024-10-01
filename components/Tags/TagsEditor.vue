@@ -30,7 +30,7 @@
 </template>
 
 <script lang="ts" setup>
-import { getCurrentInstance, computed, nextTick, ref, watch } from 'vue';
+import { computed, nextTick, ref, watch } from 'vue';
 import type { PropType, Ref } from 'vue';
 import ContentEditable from '~/components/_UI/ContentEditable.vue';
 import { PlusIcon } from 'lucide-vue-next';

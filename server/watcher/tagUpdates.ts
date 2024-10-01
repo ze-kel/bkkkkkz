@@ -1,8 +1,8 @@
 import { difference as _difference } from 'lodash';
 import { debounce as _debounce } from 'lodash';
-import { getOpenedTabs } from '../../api/openedTabs';
 import type { IFile, ISavedFile } from '../../api/files';
 import type { IWatcherModule } from './watcherCore';
+import { apiEventsEmitter } from '~/api/events';
 
 export type ITagData = {
   [key: string]: Set<string>;
@@ -84,7 +84,7 @@ const processAddedFile = (file: ISavedFile) => {
   sendUpdates();
 };
 
-const processUpdatedFile = (file: ISavedFile) => {
+const processUpdatedFile = async (file: ISavedFile) => {
   const tags = file.tags || [];
 
   const internal = generateInternalTags(file);
@@ -102,7 +102,8 @@ const processUpdatedFile = (file: ISavedFile) => {
   files[file.path] = tags;
   sendUpdates();
 
-  const tabs = getOpenedTabs().tabs;
+  const store = useStore();
+  const tabs = store.openedTabs;
   if (!tabs) return;
 
   tabs.forEach((item, index) => {
@@ -139,7 +140,8 @@ const hasTag = (tag: string, path: string): boolean => {
 const getRelevantIndexes = (pathInQuestion: string): number[] => {
   const relevantTo: number[] = [];
 
-  const tabs = getOpenedTabs().tabs;
+  const store = useStore();
+  const tabs = store.openedTabs;
   if (!tabs) return relevantTo;
 
   tabs.forEach((openedEntry, index) => {

@@ -15,13 +15,12 @@
 
 <script lang="ts" setup>
 import { cloneDeep as _cloneDeep } from 'lodash';
-import type { Unsubscribable } from 'type-fest';
 import { computed, onBeforeMount, onMounted, onUnmounted } from 'vue';
-const { $trpc } = useNuxtApp();
 import { useStore } from '~~/utils/store';
 import TreeCell from '~/components/FileTree/TreeCell.vue';
 import { getDefaultViewSettings } from '~/utils/getDefaultViewSettings';
 import { testClasses } from '~/tools/tests/binds';
+import { apiEventsEmitter } from '~/api/events';
 
 const store = useStore();
 
@@ -33,7 +32,13 @@ onBeforeMount(async () => {
   await store.fetchTags();
 });
 
-onMounted(async () => {});
+onMounted(async () => {
+  apiEventsEmitter.addListener('TAGS_UPDATE', store.fetchTags);
+});
+
+onUnmounted(() => {
+  apiEventsEmitter.removeListener('TAGS_UPDATE', store.fetchTags);
+});
 
 const openedTag = computed(
   () => store.openedItem && store.openedItem.type === 'tag' && store.openedItem.thing,
