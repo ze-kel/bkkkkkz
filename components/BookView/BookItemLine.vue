@@ -28,9 +28,10 @@ import type { IFile } from '~/api/files';
 import { useStore } from '~~/utils/store';
 import { dateReducerAllYears } from './getDateReducer';
 import RatingStars from '~/components/Rating/RatingStars.vue';
+import type { IBookFromDb } from '~/api/watcher/metaCache';
 const props = defineProps({
   currentFile: {
-    type: Object as PropType<IFile>,
+    type: Object as PropType<IBookFromDb>,
     required: true,
   },
   isVisible: {
@@ -44,6 +45,8 @@ const store = useStore();
 const onlyMainTitle = computed(() => props.currentFile.title?.split(':')[0]);
 
 const stringifiedDates = computed(() => {
+  return '';
+  /*
   if (!props.currentFile.read) return '';
 
   if (!store.settings) return '';
@@ -51,5 +54,6 @@ const stringifiedDates = computed(() => {
   return props.currentFile.read
     .reduce(dateReducerAllYears(store.settings.dateFormat), [])
     .join(', ');
+    */
 });
 </script>

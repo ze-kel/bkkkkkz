@@ -35,7 +35,7 @@
       </ContextMenu>
 
       <div v-if="isDragging" ref="forDrag" class="absolute top-[-50px]">
-        <DragDisplay> {{ currentFile.name }} </DragDisplay>
+        <DragDisplay> {{ 'TODO: currentFile.name' }} </DragDisplay>
       </div>
     </template>
 
@@ -73,13 +73,14 @@ import { useStore } from '~~/utils/store';
 import BookItemCover from '~/components/BookView/BookItemCover.vue';
 import BookItemLine from '~/components/BookView/BookItemLine.vue';
 import { testClasses } from '~/tools/tests/binds';
+import type { IBookFromDb } from '~/api/watcher/metaCache';
 export type IBookStyle = 'CARDS' | 'LINES';
 
 const store = useStore();
 
 const props = defineProps({
   currentFile: {
-    type: Object as PropType<IFile>,
+    type: Object as PropType<IBookFromDb>,
     required: true,
   },
   viewStyle: {

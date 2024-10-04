@@ -6,6 +6,5 @@ myRating: 4
 read:
   - started: '2017-05-12'
     finished: '2017-05-18'
-ISBN13: 9780807014295
+isbn13: 9780807014295
 ---
-

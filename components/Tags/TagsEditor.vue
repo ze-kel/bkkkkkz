@@ -57,7 +57,6 @@ const emit = defineEmits<{
 const tags = computed({
   get: () => {
     const tags = props.modelValue;
-    //tags.sort((a, b) => a.localeCompare(b));
     return tags;
   },
   set: (val) => {
@@ -66,6 +65,7 @@ const tags = computed({
 });
 
 const saveTag = (index: number, tag: string) => {
+  console.log('save tag', index, tag);
   const newTags = [...tags.value];
   if (!tag) {
     newTags.splice(index, 1);

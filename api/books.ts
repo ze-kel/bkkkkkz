@@ -15,7 +15,7 @@ export const zBookData = z.object({
   read: z.array(zDateRead).optional(),
   tags: z.array(z.string()).optional(),
   cover: z.string().optional(),
-  ISBN13: z.number().optional(),
+  isbn13: z.number().optional(),
 });
 
 export type IBookData = z.infer<typeof zBookData>;

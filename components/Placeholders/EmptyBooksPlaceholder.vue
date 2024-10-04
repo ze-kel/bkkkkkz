@@ -16,8 +16,7 @@
 import BasicButton from '~/components/_UI/BasicButton/BasicButton.vue';
 import { useStore } from '~~/utils/store';
 import { getDefaultViewSettings } from '~/utils/getDefaultViewSettings';
-
-const { $trpc } = useNuxtApp();
+import { saveNewFiles } from '~/api/files';
 
 const store = useStore();
 
@@ -28,7 +27,7 @@ const addDemoBooks = async () => {
     throw new Error('EmptyAllBooksPlaceholder handler: no root path');
   }
 
-  await $trpc.saveNewFiles.mutate({
+  await saveNewFiles({
     basePath: store.rootPath,
     files: [
       {
@@ -36,7 +35,7 @@ const addDemoBooks = async () => {
         author: 'Fyodor Dostoevsky',
         year: 1866,
         unsaved: true,
-        ISBN13: 9780140449136,
+        isbn13: 9780140449136,
         myRating: 5,
         read: [
           {
@@ -57,7 +56,7 @@ const addDemoBooks = async () => {
         author: 'Bret Easton Ellis',
         year: 1991,
         unsaved: true,
-        ISBN13: 9780679735779,
+        isbn13: 9780679735779,
         myRating: 4,
         read: [
           {
@@ -73,7 +72,7 @@ const addDemoBooks = async () => {
         author: 'Stephenie Meyer',
         year: 2005,
         unsaved: true,
-        ISBN13: 9780316160179,
+        isbn13: 9780316160179,
         read: [
           {
             started: '2023-06-16',

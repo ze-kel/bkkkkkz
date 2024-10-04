@@ -11,11 +11,19 @@ import { useStore } from '~~/utils/store';
 
 const store = useStore();
 
-onMounted(async () => {
-  if (!store.rootPath) return;
-  const tree = await getFileTree(store.rootPath);
-  store.updateFolderTree(tree);
+watch(
+  () => store.rootPath,
+  async (v) => {
+    if (!v) {
+      return;
+    }
+    const tree = await getFileTree(v);
+    store.updateFolderTree(tree);
+  },
+  { immediate: true },
+);
 
+onMounted(async () => {
   apiEventsEmitter.addListener('TREE_UPDATE', store.updateFolderTree);
 });
 

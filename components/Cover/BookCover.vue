@@ -32,7 +32,7 @@ import { computed, ref, watch } from 'vue';
 import { debounce as _debounce } from 'lodash';
 
 import type { PropType } from 'vue';
-import type { IBookData } from '~/server/services/books';
+import type { IBookData } from '~/api/books';
 
 const props = defineProps({
   file: {

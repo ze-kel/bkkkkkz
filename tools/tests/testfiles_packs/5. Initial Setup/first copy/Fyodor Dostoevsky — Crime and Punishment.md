@@ -11,7 +11,7 @@ read:
 tags:
   - tagOneThree
 cover: '9780140449136'
-ISBN13: 9780140449136
+isbn13: 9780140449136
 ---
 
 Crime and Punishment is a novel by the Russian author Fyodor Dostoevsky. It was first published in the literary journal The Russian Messenger in twelve monthly installments during 1866.

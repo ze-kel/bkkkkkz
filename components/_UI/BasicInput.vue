@@ -1,9 +1,7 @@
 <script setup lang="ts">
 import { cva } from 'class-variance-authority';
 import cls from '~/utils/cls';
-import { useVModel } from '@vueuse/core';
 import { computed, ref, watch } from 'vue';
-import { NUMBERS_REGEX } from '~/server/helpers/utils';
 
 const inputVariants = cva(
   [

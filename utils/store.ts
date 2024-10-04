@@ -3,10 +3,8 @@ import { defineStore, acceptHMRUpdate } from 'pinia';
 import { clamp as _clamp, cloneDeep } from 'lodash';
 import { cloneDeep as _cloneDeep } from 'lodash';
 import ShortUniqueId from 'short-unique-id';
-import TagService from '~/server/watcher/tagUpdates';
 
 import type { IOpenedTabs, IOpened, IViewSettings } from '~/api/openedTabs';
-import type { ITags } from '~/server/watcher/tagUpdates';
 import { getRootPath } from '~/api/rootPath';
 import type { IFolderTree } from '~/api/files';
 import { getSettings, type ISettings } from '~/api/settings';
@@ -31,7 +29,6 @@ export type StateType = {
   openedTabsActiveId: IOpenedTabs['activeId'];
   folderTree: IFolderTree | null;
   settings: ISettings | null;
-  tagsTree: ITags;
   notifications: INotificationWithId[];
 };
 
@@ -50,7 +47,6 @@ export const useStore = defineStore('main', {
   state: (): StateType => {
     return {
       rootPath: null,
-      tagsTree: [],
       settings: null,
       folderTree: null,
       openedTabs: [],
@@ -124,9 +120,6 @@ export const useStore = defineStore('main', {
     async fetchSetting() {
       this.settings = await getSettings();
     },
-    async fetchTags() {
-      this.tagsTree = await TagService.getTags();
-    },
     async fetchRootPath() {
       this.rootPath = await getRootPath();
     },
@@ -163,9 +156,7 @@ export const useStore = defineStore('main', {
     updateSettings(data: ISettings) {
       this.settings = data;
     },
-    updateTags(data: ITags) {
-      this.tagsTree = data;
-    },
+    updateTags() {},
     updateOpened(data: IOpenedTabs['tabs']) {
       this.openedTabs = data;
     },

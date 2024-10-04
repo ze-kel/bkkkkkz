@@ -10,6 +10,16 @@ export default defineNuxtConfig({
     clientNodeCompat: true,
   },
 
+  tailwindcss: {
+    config: {
+      darkMode: 'selector',
+      theme: {
+        extend: {},
+      },
+      plugins: [require('@tailwindcss/container-queries')],
+    },
+  },
+
   // Everything below is recomended Tauri config for nuxt
   // https://v2.tauri.app/start/frontend/nuxt/
   devtools: { enabled: true },

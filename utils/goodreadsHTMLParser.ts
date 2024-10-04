@@ -1,7 +1,6 @@
 import { format, parse, isValid } from 'date-fns';
-
-import type { IBookData, IDateRead } from '~/server/services/books';
-import type { IUnsavedFile } from '~/server/services/files';
+import type { IDateRead } from '~/api/books';
+import { createFolder, saveNewFiles, type IUnsavedFile } from '~/api/files';
 import { useStore } from '~~/utils/store';
 
 const grabSimpleValue = (rootElement: Element, name: string) => {
@@ -86,7 +85,7 @@ const parseBook = (rootElement: Element, dateFormat: string): IUnsavedFile => {
 
   book.title = grabSimpleValue(rootElement, 'title');
   book.author = grabSimpleValue(rootElement, 'author');
-  book.ISBN13 = Number(grabSimpleValue(rootElement, 'isbn13'));
+  book.isbn13 = Number(grabSimpleValue(rootElement, 'isbn13'));
 
   const year = getYear(rootElement);
   if (year) book.year = year;
@@ -125,14 +124,13 @@ export const importGoodReadsHTML = (event: Event) => {
       for (const book of books) {
         result.push(parseBook(book, store.settings?.dateFormat));
       }
-      const { $trpc } = useNuxtApp();
 
-      const path = await $trpc.createFolder.mutate({
-        pathToFolder: store.rootPath,
+      const path = await createFolder({
+        pathForFolder: store.rootPath,
         name: `Goodreads Import ${format(new Date(), 'MM-dd HH-mm-ss')}`,
       });
 
-      await $trpc.saveNewFiles.mutate({ basePath: path, files: result });
+      await saveNewFiles({ basePath: path, files: result });
     }
   };
 };

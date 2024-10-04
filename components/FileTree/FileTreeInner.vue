@@ -59,7 +59,6 @@ const { $trpc } = useNuxtApp();
 import { useStore } from '~~/utils/store';
 import { testClasses } from '~/tools/tests/binds';
 import TreeCell from './TreeCell.vue';
-import type { Unsubscribable } from '@trpc/server/observable';
 
 import {
   ContextMenu,

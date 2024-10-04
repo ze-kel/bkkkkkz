@@ -44,7 +44,6 @@
             class="grid"
             :class="opened.settings.viewStyle === 'Lines' ? 'grid-cols-1' : 'cards gap-4'"
           >
-            zzzzzzzzz
             <BookItem
               v-for="item in group.content"
               :key="item.path"
@@ -64,7 +63,7 @@
         :class="opened.settings.viewStyle === 'Lines' ? 'grid-cols-1' : 'cards gap-3'"
       >
         <BookItem
-          v-for="item in sortedFiles"
+          v-for="item in files"
           :key="item.path"
           :current-file="item"
           :view-style="opened.settings.viewStyle"
@@ -94,10 +93,12 @@ import { loadFilesFromFolder, type IFile, type IFiles } from '~/api/files';
 import type { PropType } from 'vue';
 import type { IOpenedPath, IOpenedTag } from '~/api/openedTabs';
 import EmptyBooksPlaceholder from '~/components/Placeholders/EmptyBooksPlaceholder.vue';
+import { getFilesByPath, getFilesByTag, type IBookFromDb } from '~/api/watcher/metaCache';
+import { apiEventsEmitter, useApiEventListener } from '~/api/events';
 
 const store = useStore();
 
-const files = ref<IFiles>({});
+const files = ref<IBookFromDb[]>([]);
 
 const loading = ref(true);
 
@@ -115,13 +116,10 @@ const props = defineProps({
 const loadContent = async () => {
   loading.value = true;
   if (props.opened.type === 'folder') {
-    files.value = await loadFilesFromFolder({
-      basePath: props.opened.thing,
-      recursive: props.opened.recursive,
-    });
+    files.value = await getFilesByPath(props.opened.thing);
   }
   if (props.opened.type === 'tag') {
-    //files.value = await $trpc.loadFilesFromTag.query(props.opened.thing);
+    files.value = await getFilesByTag(props.opened.thing);
   }
   nextTick(() => {
     loading.value = false;
@@ -134,72 +132,41 @@ loadContent();
 //
 // Update event handling
 //
-const updateHandlerApi = ({
-  file,
-  relevantIndexes,
-}: {
-  file: IFile;
-  relevantIndexes: number[];
-}) => {
-  if (!relevantIndexes.includes(props.index)) return;
-  if (files.value[file.path]) {
-    files.value[file.path] = file;
+const updateHandlerApi = ({ file, path }: { file: IBookFromDb; path: string }) => {
+  const index = files.value.findIndex((v) => v.path === file.path);
+  if (index >= 0) {
+    files.value[index] = file;
   }
 };
 
-const addHandlerApi = ({ file, relevantIndexes }: { file: IFile; relevantIndexes: number[] }) => {
-  if (!relevantIndexes.includes(props.index)) return;
-  files.value[file.path] = file;
+const addHandlerApi = ({ file }: { file: IBookFromDb; path: string }) => {
+  files.value.push(file);
 };
 
-const removeHandlerApi = ({
-  path,
-  relevantIndexes,
-}: {
-  path: string;
-  relevantIndexes: number[];
-}) => {
-  if (!relevantIndexes.includes(props.index)) return;
-  if (files.value[path]) {
-    delete files.value[path];
+const removeHandlerApi = ({ path }: { path: string }) => {
+  const index = files.value.findIndex((v) => v.path === path);
+
+  if (index >= 0) {
+    files.value.splice(index, 1);
   }
 };
 
-/*
-const u = $trpc.fileUpdate.subscribe(undefined, {
-  onData: updateHandlerApi,
-});
-
-const a = $trpc.fileAdd.subscribe(undefined, {
-  onData: addHandlerApi,
-});
-
-const r = $trpc.fileRemove.subscribe(undefined, {
-  onData: removeHandlerApi,
-});
-
-onUnmounted(async () => {
-  u.unsubscribe();
-  a.unsubscribe();
-  r.unsubscribe();
-});
-*/
+useApiEventListener('FILE_ADD', addHandlerApi);
+useApiEventListener('FILE_UPDATE', updateHandlerApi);
+useApiEventListener('FILE_REMOVE', removeHandlerApi);
 
 //
 // Search
 //
-const filesArray = computed<IFile[]>(() => {
-  return Object.values(files.value);
-});
 
 const collectionIndex = ref(-1);
-const fuse = new Fuse<IFile>(filesArray.value, {
+const fuse = new Fuse<IBookFromDb>(files.value, {
   keys: ['name', 'title', 'author', 'year'],
   threshold: 0.2,
 });
 
 watchEffect(() => {
-  fuse.setCollection(filesArray.value);
+  fuse.setCollection(files.value);
   collectionIndex.value++;
 });
 
@@ -215,7 +182,7 @@ const filteredFiles = computed(() => {
   // This is a way to force update computed when we do fuse.setCollection, which is not reactive by itself
   if (collectionIndex.value < 0) return [];
 
-  if (!props.opened.settings.searchQuery) return filesArray.value;
+  if (!props.opened.settings.searchQuery) return files.value;
   const res = fuse.search(props.opened.settings.searchQuery);
   return res.map((el) => el.item);
 });
@@ -223,6 +190,7 @@ const filteredFiles = computed(() => {
 //
 // Sort
 //
+
 const sortedFiles = computed(() => {
   if (!store.settings) return filteredFiles.value;
   const sortFunction = getSortFunction(props.opened.settings.sortBy, store.settings?.dateFormat);
@@ -235,6 +203,7 @@ const sortedFiles = computed(() => {
 //
 // Grouping
 //
+
 const groupedFiles = computed(() => {
   if (!store.settings) return [];
   return groupItems(sortedFiles.value, props.opened.settings.sortBy, store.settings?.dateFormat);

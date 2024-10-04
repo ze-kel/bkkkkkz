@@ -29,12 +29,12 @@
           <Rating v-model="openedFile.myRating" class="mt-3 place-content-center self-center" />
 
           <BasicInput
-            v-model="openedFile.ISBN13"
+            v-model="openedFile.isbn13"
             v-test-class="testClasses.editorIsbn"
             type="number"
             class="min-w-[100px] text-center opacity-50 focus:opacity-100"
             theme="hidden"
-            placeholder="ISBN13"
+            placeholder="isbn13"
           />
         </div>
 
@@ -289,9 +289,9 @@ const setCoverHandle = () => {
 };
 
 const fetchCoverHandle = async () => {
-  if (!openedFile.value.ISBN13) {
+  if (!openedFile.value.isbn13) {
     store.showNotification({
-      title: `Can't fetch cover without ISBN13`,
+      title: `Can't fetch cover without isbn13`,
       text: 'Please specify ISBN and try again',
     });
     return;

@@ -1,8 +1,9 @@
+import type { ISavedFile } from '~/api/files';
+import type { ISortDirection, ISortByOption } from '~/api/openedTabs';
 import { getDateReducerSingle } from './getDateReducer';
-import type { ISavedFile } from '~/server/services/files';
-import type { ISortByOption, ISortDirection } from '../../../../../plugins/services/openedTabs';
+import type { IBookFromDb } from '~/api/watcher/metaCache';
 
-type ISortFuction = (a: ISavedFile, b: ISavedFile, direction: ISortDirection) => number;
+type ISortFuction = (a: IBookFromDb, b: IBookFromDb, direction: ISortDirection) => number;
 
 const getSortByReadFunc = (last: boolean, format: string): ISortFuction => {
   const dateReducer = getDateReducerSingle(last, format);

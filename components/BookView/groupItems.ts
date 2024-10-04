@@ -1,13 +1,13 @@
+import type { ISortByOption } from '~/api/openedTabs';
 import { getDateReducerSingle } from './getDateReducer';
-import type { ISortByOption } from '../../../../../plugins/services/openedTabs';
-import type { ISavedFile } from '~/server/services/files';
+import type { IBookFromDb } from '~/api/watcher/metaCache';
 
 export type IBookGroup = {
   label: string;
-  content: ISavedFile[];
+  content: IBookFromDb[];
 };
 
-const getGroupLabel = (book: ISavedFile, propety: ISortByOption, format: string): string => {
+const getGroupLabel = (book: IBookFromDb, propety: ISortByOption, format: string): string => {
   switch (propety) {
     case 'Title': {
       return book.title ? book.title[0] : 'Unknown Author';
@@ -26,16 +26,17 @@ const getGroupLabel = (book: ISavedFile, propety: ISortByOption, format: string)
       const date = book.read?.reduce(getDateReducerSingle(true, format), null)?.getFullYear();
       return date ? String(date) : 'Never';
     }
-    case 'Filename': {
-      return book.name[0];
-    }
     case 'Rating': {
       return book.myRating ? String(book.myRating) : 'Not Rated';
     }
   }
 };
 
-export const groupItems = (sortedItems: ISavedFile[], sortingBy: ISortByOption, format: string) => {
+export const groupItems = (
+  sortedItems: IBookFromDb[],
+  sortingBy: ISortByOption,
+  format: string,
+) => {
   const grouped: IBookGroup[] = [];
 
   let lastLabel: string | null = null;

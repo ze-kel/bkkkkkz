@@ -112,8 +112,19 @@ const makeNumber = (input: string) => {
   return Number(input.replace(NUMBERS_REGEX, ''));
 };
 
+const removeNL = (text: string) => {
+  text = replaceAll(text, '\r\n', '');
+  text = replaceAll(text, '\n', '');
+  text = replaceAll(text, '\r', '');
+  return text;
+};
+
 function inputHandler() {
-  const content = currentContent();
+  let content = currentContent();
+
+  if (props.noNL) {
+    content = removeNL(content);
+  }
 
   if (props.number) {
     emit('update:modelValue', makeNumber(content));
@@ -127,9 +138,7 @@ function onPaste(event: ClipboardEvent) {
   if (!event.clipboardData) return;
   let text = event.clipboardData.getData('text/plain');
   if (props.noNL) {
-    text = replaceAll(text, '\r\n', ' ');
-    text = replaceAll(text, '\n', ' ');
-    text = replaceAll(text, '\r', ' ');
+    text = removeNL(text);
   }
   window.document.execCommand('insertText', false, text);
 }

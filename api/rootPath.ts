@@ -1,7 +1,17 @@
 import { open } from '@tauri-apps/plugin-dialog';
-import { TauriStore } from '~/api/tauriStore';
 
 const KEY = 'ROOT_PATH';
+
+import { createStore, Store } from '@tauri-apps/plugin-store';
+
+let tauriStore: Store | null = null;
+
+const getStore = async () => {
+  if (!tauriStore) {
+    tauriStore = await createStore('appData.bin');
+  }
+  return tauriStore;
+};
 
 const getPathFromUser = async () => {
   if (process.env['FAKE_SET_ROOT_DIR']) {
@@ -18,17 +28,23 @@ export const selectAndSetRootPath = async () => {
   const result = await getPathFromUser();
   if (!result) return;
 
-  await TauriStore.set(KEY, result);
-  await TauriStore.save();
+  const store = await getStore();
+
+  await store.set(KEY, result);
+  await store.save();
   return result;
 };
 
 export const getRootPath = async () => {
+  console.log('get rp');
   if (process.env['FORCE_USER_PATH']) {
     return process.env['FORCE_USER_PATH'];
   }
 
-  const res = await TauriStore.get(KEY);
+  const store = await getStore();
+
+  const res = await store.get(KEY);
+  console.log('root path is', res);
 
   if (typeof res !== 'string') return null;
 

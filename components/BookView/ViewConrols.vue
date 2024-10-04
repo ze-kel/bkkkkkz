@@ -67,7 +67,6 @@ const canSortby: ISortByOption[] = [
   'Year',
   'Last Read',
   'First Read',
-  'Filename',
 ];
 
 const flipSortDirection = () => {

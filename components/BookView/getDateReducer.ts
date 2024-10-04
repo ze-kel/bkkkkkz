@@ -1,6 +1,5 @@
 import { parse } from 'date-fns';
-
-import type { IDateRead } from '~/server/services/books';
+import type { IDateRead } from '~/api/books';
 
 type IDateReducer = (acc: null | Date, datePair: IDateRead) => null | Date;
 

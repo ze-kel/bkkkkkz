@@ -40,11 +40,6 @@
       ]
     },
     "core:default",
-    "store:default",
-    "store:allow-get",
-    "store:allow-set",
-    "store:allow-save",
-    "store:allow-load",
     "dialog:default",
     "fs:allow-home-read-recursive",
     "fs:allow-home-meta",
@@ -57,6 +52,9 @@
     "fs:read-files",
     "fs:read-meta",
     "fs:write-all",
-    "fs:write-files"
+    "fs:write-files",
+    "sql:default",
+    "sql:allow-execute",
+    "store:default"
   ]
 }

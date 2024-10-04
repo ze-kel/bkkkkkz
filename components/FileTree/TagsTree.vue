@@ -21,23 +21,23 @@ import TreeCell from '~/components/FileTree/TreeCell.vue';
 import { getDefaultViewSettings } from '~/utils/getDefaultViewSettings';
 import { testClasses } from '~/tools/tests/binds';
 import { apiEventsEmitter } from '~/api/events';
+import { getAllTags } from '~/api/watcher/metaCache';
 
 const store = useStore();
-
-const dataSorted = computed(() =>
-  store.tagsTree ? [...store.tagsTree].sort((a, b) => a.localeCompare(b)) : undefined,
-);
-
-onBeforeMount(async () => {
-  await store.fetchTags();
+const { data, refresh } = useAsyncData(() => {
+  return getAllTags();
 });
 
+const dataSorted = computed(() =>
+  data.value ? [...data.value].sort((a, b) => a.localeCompare(b)) : undefined,
+);
+
 onMounted(async () => {
-  apiEventsEmitter.addListener('TAGS_UPDATE', store.fetchTags);
+  apiEventsEmitter.addListener('META_UPDATE', refresh);
 });
 
 onUnmounted(() => {
-  apiEventsEmitter.removeListener('TAGS_UPDATE', store.fetchTags);
+  apiEventsEmitter.removeListener('META_UPDATE', refresh);
 });
 
 const openedTag = computed(

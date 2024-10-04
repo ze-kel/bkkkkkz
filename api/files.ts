@@ -2,10 +2,9 @@ import * as path from '@tauri-apps/api/path';
 
 import { makeBookFile, makeEncodedBook } from './books';
 import { getSettings } from './settings';
-import TagsStore from '../server/watcher/tagUpdates';
 import { open } from '@tauri-apps/plugin-dialog';
 
-import { DOTFILE_REGEX, FILENAME_REGEX } from './utils';
+import { DOTDIR_REGEX, DOTFILE_REGEX, FILENAME_REGEX } from './utils';
 import { zBookData } from './books';
 import { z } from 'zod';
 import {
@@ -16,8 +15,9 @@ import {
   writeFile,
   copyFile,
   mkdir,
-  BaseDirectory,
 } from '@tauri-apps/plugin-fs';
+import { FileUpdates } from '~/api/watcher/fileUpdates';
+import { add } from 'date-fns';
 
 export type IFolderTree = {
   type: 'folder';
@@ -71,22 +71,14 @@ export const getFileTree = async (basePath: string) => {
     content: {},
   };
 
-  const promises: Promise<any>[] = [];
-
-  files.forEach((entry) => {
-    if (entry.isDirectory) {
-      promises.push(
-        new Promise(async (resolve) => {
-          const r = await getFileTree(await path.join(basePath, entry.name));
-
-          output.content[entry.name] = r;
-          resolve(undefined);
-        }),
-      );
-    }
-  });
-
-  await Promise.all(promises);
+  await Promise.all(
+    files.map(async (entry) => {
+      if (entry.isDirectory && !DOTFILE_REGEX.test(entry.name) && !DOTDIR_REGEX.test(entry.name)) {
+        const r = await getFileTree(await path.join(basePath, entry.name));
+        output.content[entry.name] = r;
+      }
+    }),
+  );
 
   return output;
 };
@@ -143,21 +135,16 @@ export const loadFilesFromFolder = async ({
 };
 
 export const loadFilesFromTag = async (tag: string): Promise<IFiles> => {
-  const result: IFiles = {};
-
-  const filesToGet = TagsStore.getTagPaths(tag);
-
-  await Promise.all(
-    filesToGet.map(async (filePath) => {
-      const fileContent = await getFileContent(filePath);
-      result[filePath] = fileContent;
-    }),
-  );
-
-  return result;
+  return {};
 };
 
-export const saveFileContent = async (file: ISavedFile): Promise<void> => {
+export const saveFileContent = async (
+  file: ISavedFile,
+  dontBlockWatcher?: boolean,
+): Promise<void> => {
+  if (!dontBlockWatcher) {
+    FileUpdates.ignored[file.path] = add(new Date(), { seconds: 3 });
+  }
   const encoded = makeEncodedBook(file);
   await writeTextFile(file.path, encoded);
 };
@@ -203,7 +190,13 @@ export const saveNewFile = async ({
   return fileToSave;
 };
 
-export const saveNewFiles = async (basePath: string, files: IUnsavedFile[]): Promise<void> => {
+export const saveNewFiles = async ({
+  basePath,
+  files,
+}: {
+  basePath: string;
+  files: IUnsavedFile[];
+}): Promise<void> => {
   await Promise.all(files.map((file) => saveNewFile({ basePath, file })));
 };
 
@@ -254,7 +247,7 @@ export const getPathForCoverSaving = async (coverFile: string) => {
   const totalPath = await path.join(root, localSettings.coversPath);
 
   if (!(await exists(totalPath))) {
-    await createFolder(root, localSettings.coversPath);
+    await createFolder({ pathForFolder: root, name: localSettings.coversPath });
   }
 
   const ext = await path.extname(coverFile);
@@ -286,7 +279,13 @@ export const setCover = async ({ bookFilePath }: { bookFilePath: string }) => {
   }
 };
 
-export const createFolder = async (pathForFolder: string, name: string) => {
+export const createFolder = async ({
+  pathForFolder,
+  name,
+}: {
+  pathForFolder: string;
+  name: string;
+}) => {
   const newPath = await path.join(pathForFolder, name);
   await mkdir(newPath);
   return newPath;
@@ -301,7 +300,7 @@ export const saveCoverFromBlob = async (fileNameWithExtension: string, imageBlob
 
 export const fetchCover = async ({ bookFilePath }: { bookFilePath: string }) => {
   const book = await getFileContent(bookFilePath);
-  if (!book.ISBN13 || (String(book.ISBN13).length !== 13 && String(book.ISBN13).length !== 10)) {
+  if (!book.isbn13 || (String(book.isbn13).length !== 13 && String(book.isbn13).length !== 10)) {
     showNotification({
       title: 'Unable to fetch',
       text: 'ISBN is incorrect. It should be 10 or 13 numbers.',
@@ -314,7 +313,7 @@ export const fetchCover = async ({ bookFilePath }: { bookFilePath: string }) => 
     text: 'Please wait',
   });
 
-  const res = await fetch(`https://covers.openlibrary.org/b/ISBN/${book.ISBN13}-L.jpg`);
+  const res = await fetch(`https://covers.openlibrary.org/b/ISBN/${book.isbn13}-L.jpg`);
 
   if (res.status !== 200) {
     showNotification({
@@ -335,7 +334,7 @@ export const fetchCover = async ({ bookFilePath }: { bookFilePath: string }) => 
     return;
   }
 
-  const savedCoverPath = await saveCoverFromBlob(String(book.ISBN13), cover);
+  const savedCoverPath = await saveCoverFromBlob(String(book.isbn13), cover);
   book.cover = await path.basename(savedCoverPath);
   saveFileContent(book);
 

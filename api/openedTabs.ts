@@ -10,7 +10,6 @@ export const zSortByOption = z.enum([
   'Last Read',
   'First Read',
   'Rating',
-  'Filename',
 ]);
 
 export type ISortByOption = z.infer<typeof zSortByOption>;

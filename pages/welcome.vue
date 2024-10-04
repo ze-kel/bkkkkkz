@@ -24,6 +24,10 @@ const changeRootPathHandler = async () => {
     store.fetchRootPath();
   }
 };
+
+definePageMeta({
+  layout: 'empty',
+});
 </script>
 
 <style scoped>
