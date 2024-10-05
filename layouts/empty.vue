@@ -2,7 +2,7 @@
   <slot />
 </template>
 
-<script lang="ts">
+<script lang="ts" setup>
 const store = useStore();
 
 watch(

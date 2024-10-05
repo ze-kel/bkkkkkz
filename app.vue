@@ -13,8 +13,7 @@ import { ref, onBeforeMount, watch } from 'vue';
 
 import { debounce as _debounce } from 'lodash';
 
-import { useStore } from '~~/utils/store';
-import TheWatcher from '~/api/watcher/watcherCore';
+import { useStore } from '~/utils/store';
 
 const store = useStore();
 

@@ -18,13 +18,8 @@ import { onMounted, ref } from 'vue';
 
 import { debounce as _debounce } from 'lodash';
 
-import IconsMenu from '~/components/IconsMenu/IconsMenu.vue';
-import FileTree from '~/components/FileTree/FileTree.vue';
-import TagsTree from '~/components/FileTree/TagsTree.vue';
-import BookEditor from '~/components/Editor/BookEditor.vue';
 import BookView from '~/components/BookView/BooksView.vue';
 import TabsSelector from './TabsSelector.vue';
-import { useStore } from '~~/utils/store';
 import NoTabPlaceholder from '~/components/Placeholders/NoTabPlaceholder.vue';
 
 const store = useStore();

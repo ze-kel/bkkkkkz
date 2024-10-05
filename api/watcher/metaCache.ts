@@ -3,9 +3,16 @@ import type { IWatcherModule } from './watcherCore';
 import type { IBookData } from '../books';
 import { apiEventsEmitter } from '~/api/events';
 
-const db = await Database.load('sqlite:test.db');
+let db: Database | null = null;
+const getDb = async () => {
+  if (!db) {
+    db = await Database.load('sqlite:test.db');
+  }
+  return db;
+};
 
 const initDatabase = async () => {
+  const db = await getDb();
   await db.execute('DROP TABLE IF EXISTS tags');
   await db.execute('DROP TABLE IF EXISTS files');
   await db.execute('DROP TABLE IF EXISTS read');
@@ -23,6 +30,7 @@ const initDatabase = async () => {
 const wrapOrNull = (v?: string) => (v?.length ? `"${v}"` : 'NULL');
 
 const addFileToDb = async (path: string, file: IBookData) => {
+  const db = await getDb();
   await db.execute(
     `INSERT INTO files(path, title, author, year, myRating, cover, isbn13)
   VALUES ($1, $2, $3, $4, $5, $6, $7)
@@ -53,6 +61,7 @@ const addFileToDb = async (path: string, file: IBookData) => {
 };
 
 const removeFileFromDb = async (path: string) => {
+  const db = await getDb();
   await db.execute(`DELETE FROM files WHERE path=$1`, [path]);
 };
 
@@ -83,6 +92,7 @@ export const MetaCache: IWatcherModule = {
 };
 
 export const getAllTags = async () => {
+  const db = await getDb();
   const res = (await db.select('SELECT DISTINCT tag FROM tags')) as { tag: string }[];
   return res.map((v) => v.tag);
 };
@@ -103,6 +113,7 @@ export interface IBookFromDb {
 }
 
 const getFilesAbstract = async (whereClause: string) => {
+  const db = await getDb();
   const res = (await db.select(
     `SELECT *, GROUP_CONCAT(tags.tag, ',') AS tagsRaw, GROUP_CONCAT(IFNULL(read.started,'') || '|' || IFNULL(read.finished,''), ',') as readRaw FROM files 
     JOIN tags ON files.path = tags.path 
