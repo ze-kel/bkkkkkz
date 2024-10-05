@@ -1,7 +1,7 @@
 <template>
   <div
     :class="
-      cls(
+      cn(
         'border border-transparent',
         buttonVariants({
           variant: isRenaming || canDropHere ? 'outline' : selected ? 'default' : 'ghost',
@@ -35,7 +35,7 @@
       <input
         ref="inputName"
         v-model="innerName"
-        :class="['w-full bg-transparent  outline-none']"
+        :class="['w-full bg-transparent outline-none']"
         @blur="saveName"
         @keyup.enter="removeFocus"
         @keyup.escape="removeFocus"
@@ -49,8 +49,7 @@ import { cloneDeep as _cloneDeep } from 'lodash';
 import { ChevronDown, FolderIcon, LibraryIcon, HashIcon } from 'lucide-vue-next';
 import { useStore } from '~~/utils/store';
 import { testClasses } from '~/tools/tests/binds';
-import cls from '~/utils/cls';
-import { buttonVariants } from '~/components/_UI/BasicButton/BasicButtonStyle';
+import { buttonVariants } from '~/components/_shadcn/button';
 import { ref, watch, watchEffect } from 'vue';
 
 const store = useStore();

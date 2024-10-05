@@ -1,8 +1,13 @@
 export default defineNuxtConfig({
   alias: {
-    components: '/<srcDir>/components',
+    components: './components',
   },
-  modules: ['@nuxtjs/tailwindcss', '@pinia/nuxt'],
+  modules: [
+    '@nuxtjs/tailwindcss',
+    '@pinia/nuxt',
+    'shadcn-nuxt',
+    '@nuxtjs/color-mode',
+  ],
   compatibilityDate: '2024-09-29',
 
   experimental: {
@@ -10,14 +15,13 @@ export default defineNuxtConfig({
     clientNodeCompat: true,
   },
 
+  shadcn: {
+    prefix: 'Sh',
+    componentDir: './components/_shadcn',
+  },
+
   tailwindcss: {
-    config: {
-      darkMode: 'selector',
-      theme: {
-        extend: {},
-      },
-      plugins: [require('@tailwindcss/container-queries')],
-    },
+    configPath: 'tailwind.config.ts',
   },
 
   // Everything below is recomended Tauri config for nuxt

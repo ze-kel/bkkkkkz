@@ -16,15 +16,14 @@
       {{ text }}
     </div>
 
-    <BasicButton variant="ghost" size="iconSm" @mousedown.stop @click.stop="emit('close')">
-      <XIcon class="text-neutral-300 duration-[0] dark:text-neutral-600" />
-    </BasicButton>
+    <ShButton variant="ghost" size="iconSm" @mousedown.stop @click.stop="emit('close')">
+      <XIcon class="duration-[0] text-neutral-300 dark:text-neutral-600" />
+    </ShButton>
   </div>
 </template>
 
 <script lang="ts" setup>
 import { XIcon } from 'lucide-vue-next';
-import BasicButton from '~/components/_UI/BasicButton/BasicButton.vue';
 import { testClasses } from '~/tools/tests/binds';
 import type { IOpened } from '~/api/openedTabs';
 import { computed, type PropType } from 'vue';

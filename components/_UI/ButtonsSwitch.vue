@@ -8,7 +8,7 @@
       class="px-2 py-1 transition-colors"
       :class="[
         modelValue === option.key
-          ? 'bg-neutral-200  dark:bg-neutral-800 '
+          ? 'bg-neutral-200 dark:bg-neutral-800'
           : 'cursor-pointer hover:bg-neutral-200 dark:hover:bg-neutral-800',
         optionClasses,
       ]"
@@ -20,7 +20,6 @@
 </template>
 
 <script lang="ts" setup>
-//hover:bg-neutral-100 hover:text-neutral-900 dark:hover:bg-neutral-800 dark:hover:text-neutral-50
 import type { PropType } from 'vue';
 
 export type ISwitchOption = { key: string | number; [key: string]: unknown };

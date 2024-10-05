@@ -1,6 +1,6 @@
 <template>
-  <ContextMenu>
-    <ContextMenuTrigger>
+  <ShContextMenu>
+    <ShContextMenuTrigger>
       <TreeCell
         v-test-class="testClasses.fileTreeItems"
         :draggable="!isRoot"
@@ -26,16 +26,16 @@
         "
         @save-name="saveName"
       />
-    </ContextMenuTrigger>
-    <ContextMenuContent>
-      <ContextMenuItem @click="startCreating"> Create folder </ContextMenuItem>
+    </ShContextMenuTrigger>
+    <ShContextMenuContent>
+      <ShContextMenuItem @click="startCreating"> Create folder </ShContextMenuItem>
       <template v-if="!isRoot">
-        <ContextMenuItem @click="startRenaming"> Rename folder </ContextMenuItem>
+        <ShContextMenuItem @click="startRenaming"> Rename folder </ShContextMenuItem>
 
-        <ContextMenuItem @click="deleteFolder"> Delete folder </ContextMenuItem>
+        <ShContextMenuItem @click="deleteFolder"> Delete folder </ShContextMenuItem>
       </template>
-    </ContextMenuContent>
-  </ContextMenu>
+    </ShContextMenuContent>
+  </ShContextMenu>
 
   <div v-if="!isFolded || isCreating" :class="(foldable || isCreating) && 'pl-5'">
     <FileTreeInner
@@ -54,18 +54,18 @@ import { computed, onUpdated, ref, watchEffect, nextTick } from 'vue';
 import { cloneDeep as _cloneDeep } from 'lodash';
 import { getDefaultViewSettings } from '~/utils/getDefaultViewSettings';
 import type { PropType } from 'vue';
-import type { IFolderTree } from '~/api/files';
+import {
+  createFolder,
+  moveToFolder,
+  removeEntity,
+  renameEntity,
+  type IFolderTree,
+} from '~/api/files';
 const { $trpc } = useNuxtApp();
 import { useStore } from '~~/utils/store';
 import { testClasses } from '~/tools/tests/binds';
 import TreeCell from './TreeCell.vue';
-
-import {
-  ContextMenu,
-  ContextMenuTrigger,
-  ContextMenuContent,
-  ContextMenuItem,
-} from '~/components/_UI/ContextMenu/';
+import { apiEventsEmitter } from '~/api/events';
 
 const store = useStore();
 
@@ -167,7 +167,7 @@ const onDrop = async (e: DragEvent, targetPath: string) => {
     if (!draggedPath) {
       throw 'no dragged path';
     }
-    const newPath = await $trpc.move.mutate({
+    const newPath = await moveToFolder({
       moveItemPath: draggedPath,
       toFolderPath: targetPath,
     });
@@ -200,13 +200,9 @@ const startRenaming = () => {
   isRenaming.value = true;
 };
 
-const tempSubscription = ref<Unsubscribable>();
-
 const resetLockFromSubscription = () => {
   renameLock.value = false;
-  if (tempSubscription.value) {
-    tempSubscription.value.unsubscribe();
-  }
+  apiEventsEmitter.removeListener('TREE_UPDATE', resetLockFromSubscription);
 };
 
 const saveName = async (newName: string) => {
@@ -217,7 +213,7 @@ const saveName = async (newName: string) => {
   if (newName && newName !== props.content.name) {
     const oldPath = props.content.path;
 
-    const newPath = await $trpc.rename.mutate({
+    const newPath = await renameEntity({
       newName: newName,
       srcPath: props.content.path,
     });
@@ -239,13 +235,11 @@ const saveName = async (newName: string) => {
   }
 
   // Unlocks isOpened value when our fs watcher sends updated FileTree data
-  tempSubscription.value = $trpc.treeUpdate.subscribe(undefined, {
-    onComplete: resetLockFromSubscription,
-  });
+  apiEventsEmitter.addListener('TREE_UPDATE', resetLockFromSubscription);
 };
 
 ///
-/// Creating new folder
+/// Creating new folder 
 ///
 const isCreating = ref(false);
 
@@ -253,16 +247,16 @@ const startCreating = () => {
   isCreating.value = true;
 };
 
-const saveNewFolder = (name: string) => {
+const saveNewFolder = async (name: string) => {
   if (!name) {
     isCreating.value = false;
   } else {
-    $trpc.createFolder.mutate({ name, pathToFolder: props.content.path });
+    await createFolder({ name, pathForFolder: props.content.path });
     flipOnNext.value = true;
   }
 };
 
-const deleteFolder = () => $trpc.delete.mutate(props.content.path);
+const deleteFolder = () => props.content.path;
 </script>
 
 <style lang="postcss"></style>

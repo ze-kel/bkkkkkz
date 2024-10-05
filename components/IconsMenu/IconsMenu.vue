@@ -1,41 +1,31 @@
 <template>
-  <Popup :opened="settingsOpened" @close="flipSettings">
-    <Settings />
-  </Popup>
+  <ShDialog v-model:open="settingsOpened">
+    <ShDialogContent>
+      <ShDialogTitle>Settings</ShDialogTitle>
+      <Settings />
+    </ShDialogContent>
+  </ShDialog>
   <div class="flex items-center justify-start py-2">
-    <BasicButton v-test-class="testClasses.menuHome" variant="ghost" size="icon" @click="openHome">
-      <HomeIcon stroke-width="1" />
-    </BasicButton>
-
-    <BasicButton
+    <ShButton
       v-test-class="testClasses.menuSettings"
       variant="ghost"
       size="icon"
       @click="flipSettings"
     >
       <Settings2Icon stroke-width="1" />
-    </BasicButton>
+    </ShButton>
 
-    <BasicButton
-      v-test-class="testClasses.menuAddBook"
-      variant="ghost"
-      size="icon"
-      @click="addBook"
-    >
+    <ShButton v-test-class="testClasses.menuAddBook" variant="ghost" size="icon" @click="addBook">
       <PlusIcon stroke-width="1" />
-    </BasicButton>
+    </ShButton>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { computed, ref } from 'vue';
-import Popup from '../_UI/PopupComponent.vue';
 import Settings from '../Settings/SettingsPage.vue';
-import { useStore } from '~~/utils/store';
 import { testClasses } from '~/tools/tests/binds';
 
-import { PlusIcon, Settings2Icon, HomeIcon } from 'lucide-vue-next';
-import BasicButton from '~/components/_UI/BasicButton/BasicButton.vue';
+import { PlusIcon, Settings2Icon } from 'lucide-vue-next';
 
 const store = useStore();
 
@@ -43,19 +33,6 @@ const settingsOpened = ref(false);
 const flipSettings = () => {
   settingsOpened.value = !settingsOpened.value;
 };
-
-const openHome = () => {
-  store.openNewOne(
-    { id: store.generateRandomId(), type: 'innerPage', thing: 'home', scrollPosition: 0 },
-    { place: 'last', focus: true },
-  );
-};
-
-const homeOpened = computed(() => {
-  return (
-    store.openedItem && store.openedItem.type === 'innerPage' && store.openedItem.thing === 'home'
-  );
-});
 
 const addBook = () => {
   if (!store.rootPath) return;

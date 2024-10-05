@@ -15,9 +15,11 @@ import {
   writeFile,
   copyFile,
   mkdir,
+  remove,
 } from '@tauri-apps/plugin-fs';
 import { FileUpdates } from '~/api/watcher/fileUpdates';
 import { add } from 'date-fns';
+import { toast } from 'vue-sonner';
 
 export type IFolderTree = {
   type: 'folder';
@@ -52,11 +54,6 @@ export type IFile = ISavedFile;
 
 export type IFiles = {
   [key: string]: IFile;
-};
-
-const showNotification = (n: INotification) => {
-  const store = useStore();
-  store.showNotification(n);
 };
 
 export const getFileTree = async (basePath: string) => {
@@ -143,7 +140,7 @@ export const saveFileContent = async (
   dontBlockWatcher?: boolean,
 ): Promise<void> => {
   if (!dontBlockWatcher) {
-    FileUpdates.ignored[file.path] = add(new Date(), { seconds: 3 });
+    FileUpdates.ignored[file.path] = add(new Date(), { seconds: 2 });
   }
   const encoded = makeEncodedBook(file);
   await writeTextFile(file.path, encoded);
@@ -185,7 +182,7 @@ export const saveNewFile = async ({
     path: await path.join(basePath, newName),
   };
 
-  await saveFileContent(fileToSave);
+  await saveFileContent(fileToSave, true);
 
   return fileToSave;
 };
@@ -200,7 +197,13 @@ export const saveNewFiles = async ({
   await Promise.all(files.map((file) => saveNewFile({ basePath, file })));
 };
 
-export const moveToFolder = async (moveItemPath: string, toFolderPath: string): Promise<string> => {
+export const moveToFolder = async ({
+  moveItemPath,
+  toFolderPath,
+}: {
+  moveItemPath: string;
+  toFolderPath: string;
+}): Promise<string> => {
   const target = await path.join(toFolderPath, await path.basename(moveItemPath));
   if (target === moveItemPath) return moveItemPath;
   await rename(moveItemPath, target);
@@ -214,8 +217,14 @@ export const renameEntity = async ({ srcPath, newName }: { srcPath: string; newN
   return targetPath;
 };
 
-export const remove = async (delPath: string): Promise<void> => {
-  await remove(delPath);
+export const removeEntity = async ({
+  name,
+  pathToFolder,
+}: {
+  name: string;
+  pathToFolder: string;
+}): Promise<void> => {
+  await remove(await path.join(pathToFolder, name));
 };
 
 export const locateCover = async (filename: string) => {
@@ -230,12 +239,7 @@ export const removeCover = async ({ bookFilePath }: { bookFilePath: string }): P
   const coverPath = await locateCover(book.cover);
   await remove(coverPath);
   delete book.cover;
-  await saveFileContent(book);
-
-  showNotification({
-    title: 'Deleted',
-    text: 'Cover removed and deleted from disk',
-  });
+  await saveFileContent(book, true);
 };
 
 // Takes filename for cover we want to save and returns path to save it.
@@ -275,7 +279,7 @@ export const setCover = async ({ bookFilePath }: { bookFilePath: string }) => {
     await copyFile(file, await path.join(root, pathToSave));
 
     book.cover = await path.basename(pathToSave);
-    saveFileContent(book);
+    saveFileContent(book, true);
   }
 };
 
@@ -301,45 +305,25 @@ export const saveCoverFromBlob = async (fileNameWithExtension: string, imageBlob
 export const fetchCover = async ({ bookFilePath }: { bookFilePath: string }) => {
   const book = await getFileContent(bookFilePath);
   if (!book.isbn13 || (String(book.isbn13).length !== 13 && String(book.isbn13).length !== 10)) {
-    showNotification({
-      title: 'Unable to fetch',
-      text: 'ISBN is incorrect. It should be 10 or 13 numbers.',
-    });
-    return;
+    throw new Error(
+      'ISBN13 read from file is incorrect. This should not happen. Restart app and try again, else report as bug.',
+    );
   }
-
-  showNotification({
-    title: 'Trying to fetch cover',
-    text: 'Please wait',
-  });
 
   const res = await fetch(`https://covers.openlibrary.org/b/ISBN/${book.isbn13}-L.jpg`);
 
   if (res.status !== 200) {
-    showNotification({
-      title: 'Unable to fetch',
-      text: 'OpenLibrary has no cover awailable for this ISBN',
-    });
-    return;
+    throw new Error('OpenLibrary has no cover available for this ISBN');
   }
 
   const cover = await res.blob();
 
   // Sometimes API returns empty 1px by 1px image. Treat this as if we got 404
   if (cover.size / 1000 < 5) {
-    showNotification({
-      title: 'Unable to fetch',
-      text: 'OpenLibrary has no cover awailable for this ISBN',
-    });
-    return;
+    throw new Error('OpenLibrary has no cover available for this ISBN');
   }
 
-  const savedCoverPath = await saveCoverFromBlob(String(book.isbn13), cover);
+  const savedCoverPath = await saveCoverFromBlob(String(book.isbn13) + '.jpg', cover);
   book.cover = await path.basename(savedCoverPath);
-  saveFileContent(book);
-
-  showNotification({
-    title: 'Got cover',
-    text: 'OpenLibrary found cover for this ISBN, added it.',
-  });
+  saveFileContent(book, true);
 };

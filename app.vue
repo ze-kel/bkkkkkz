@@ -5,42 +5,49 @@
     <NuxtLayout>
       <NuxtPage />
     </NuxtLayout>
+    <ShToaster :theme="colorMode.value === 'dark' ? 'dark' : 'light'" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onBeforeMount, watch } from 'vue';
-
 import { debounce as _debounce } from 'lodash';
-
-import { useStore } from '~/utils/store';
+import { useApiEventListener } from './api/events';
 
 const store = useStore();
-
-const darkModeClass = computed(() => {
-  if (!store.settings || store.settings.darkMode === 'System') {
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : '';
-  }
-  if (store.settings.darkMode === 'Light') return '';
-
-  return 'dark';
-});
 
 onBeforeMount(async () => {
   await store.fetchRootPath();
 });
 
+const colorMode = useColorMode();
+
+// Global hook for deleted files
+useApiEventListener('FILE_REMOVE', ({ path }: { path: string }) => {
+  if (store.openedItem?.thing === path) {
+    store.closeOpened();
+  }
+
+  nextTick(() => {
+    const filtered = store.openedTabs.filter((v) => v.thing !== path);
+
+    if (filtered.length !== store.openedTabs.length) {
+      store.updateOpened(filtered);
+    }
+  });
+});
+
 useHead({
   htmlAttrs: {
-    class: [
-      darkModeClass.value,
-      darkModeClass.value === 'dark'
-        ? 'bg-gradient-to-t from-neutral-900 from-20% to-neutral-950 to-80%'
-        : 'bg-gradient-to-t from-neutral-200 from-20% to-neutral-50 to-80%',
-    ],
+    class: computed(() => {
+      return [
+        colorMode.value === 'dark'
+          ? 'bg-gradient-to-t from-neutral-900 from-20% to-neutral-950 to-80%'
+          : 'bg-gradient-to-t from-neutral-200 from-20% to-neutral-50 to-80%',
+      ];
+    }),
   },
   bodyAttrs: {
-    class: 'min-h-screen',
+    class: 'min-h-screen text-neutral-950  dark:text-neutral-50',
   },
 });
 </script>
@@ -68,30 +75,18 @@ useHead({
 
 ::-webkit-scrollbar {
   -webkit-appearance: none;
-  @apply w-3;
+  @apply w-2;
 }
 ::-webkit-scrollbar-thumb {
-  @apply bg-neutral-400;
+  @apply rounded-md bg-neutral-400 dark:bg-neutral-800;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-neutral-500;
+  @apply bg-neutral-500 dark:bg-neutral-600;
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-neutral-200;
-}
-
-.dark ::-webkit-scrollbar-track {
-  @apply bg-neutral-900;
-}
-
-.dark ::-webkit-scrollbar-thumb {
-  @apply bg-neutral-700;
-}
-
-.dark ::-webkit-scrollbar-thumb:hover {
-  @apply bg-neutral-600;
+  @apply bg-neutral-50 dark:bg-neutral-950;
 }
 
 input::-webkit-outer-spin-button,

@@ -1,4 +1,4 @@
-import type { IViewSettings } from '../../../../plugins/services/openedTabs';
+import type { IViewSettings } from "~/api/openedTabs";
 
 export const getDefaultViewSettings = (): IViewSettings => {
   return {

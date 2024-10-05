@@ -9,19 +9,7 @@ import { getRootPath } from '~/api/rootPath';
 import type { IFolderTree } from '~/api/files';
 import { getSettings, type ISettings } from '~/api/settings';
 
-export type INotification = {
-  title: string;
-  text: string | string[];
-  subtext?: string;
-  variant?: 'default' | 'destructive';
-  ttlSeconds?: number;
-};
-
 const uid = new ShortUniqueId({ length: 10 });
-
-interface INotificationWithId extends INotification {
-  id: string;
-}
 
 export type StateType = {
   rootPath: string | null;
@@ -29,7 +17,6 @@ export type StateType = {
   openedTabsActiveId: IOpenedTabs['activeId'];
   folderTree: IFolderTree | null;
   settings: ISettings | null;
-  notifications: INotificationWithId[];
 };
 
 export type OpenNewOneParams =
@@ -51,7 +38,6 @@ export const useStore = defineStore('main', {
       folderTree: null,
       openedTabs: [],
       openedTabsActiveId: '',
-      notifications: [],
     };
   },
   actions: {
@@ -159,21 +145,6 @@ export const useStore = defineStore('main', {
     updateTags() {},
     updateOpened(data: IOpenedTabs['tabs']) {
       this.openedTabs = data;
-    },
-
-    //
-    // Notifications
-    //
-    showNotification(notif: INotification) {
-      const id = uid.randomUUID();
-      this.notifications.push({ ...notif, id });
-
-      if (notif.ttlSeconds !== Infinity) {
-        setTimeout(() => this.removeNotifcation(id), notif.ttlSeconds || 5000);
-      }
-    },
-    removeNotifcation(id: string) {
-      this.notifications = this.notifications.filter((v) => v.id !== id);
     },
   },
   getters: {

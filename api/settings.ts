@@ -7,12 +7,13 @@ export const zSettings = z.object({
   recursiveFolders: z.boolean().default(false),
   dateFormat: z.string().default('yyyy-MM-dd'),
   dateLocale: z.string().default('en-GB'),
-  coversPath: z.string().default('.covers'),
+  coversPath: z.string().default('covers'),
   darkMode: z.enum(['Light', 'System', 'Dark']).default('System'),
 });
 
 export type ISettings = z.infer<typeof zSettings>;
 
+const FOLDER_NAME = '.internal';
 const JSON_NAME = 'settings.json';
 
 export const getSettings = async () => {
@@ -22,7 +23,7 @@ export const getSettings = async () => {
     throw new Error('Trying to read settings without root path present');
   }
 
-  const targetFolder = await path.join(rootPath, '/internal/');
+  const targetFolder = await path.join(rootPath, FOLDER_NAME);
 
   const targetFile = await path.join(targetFolder, JSON_NAME);
 
@@ -47,7 +48,7 @@ export const saveSettings = async (settings: ISettings) => {
     throw new Error('Trying to write settings without root path present');
   }
 
-  const targetFolder = await path.join(rootPath, '/.internal/');
+  const targetFolder = await path.join(rootPath, FOLDER_NAME);
   const targetFile = await path.join(targetFolder, JSON_NAME);
 
   if (!(await fs.exists(targetFolder))) {

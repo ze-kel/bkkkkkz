@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import { cva } from 'class-variance-authority';
-import cls from '~/utils/cls';
-import { computed, ref, watch } from 'vue';
 
 const inputVariants = cva(
   [
@@ -66,6 +64,6 @@ watch(
     v-bind="$attrs"
     :placeholder="placeholder"
     :type="props.type || 'text'"
-    :class="cls(inputVariants({ theme }), $attrs.class as string)"
+    :class="cn(inputVariants({ theme }), $attrs.class as string)"
   />
 </template>

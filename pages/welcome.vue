@@ -5,15 +5,14 @@
   <div class="flex h-full flex-col items-center justify-center p-10">
     <div class="text-2xl">To begin please set working directory</div>
     <div class="text-xs">Your files & settings will be store there.</div>
-    <BasicButton variant="default" class="mt-4" @click="changeRootPathHandler">
+    <ShButton variant="default" class="mt-4" @click="changeRootPathHandler">
       Set Working Directory
-    </BasicButton>
+    </ShButton>
   </div>
 </template>
 
 <script lang="ts" setup>
 import { selectAndSetRootPath } from '~/api/rootPath';
-import BasicButton from '~/components/_UI/BasicButton/BasicButton.vue';
 import { useStore } from '~~/utils/store';
 
 const store = useStore();

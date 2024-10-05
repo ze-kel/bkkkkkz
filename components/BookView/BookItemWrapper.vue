@@ -1,9 +1,9 @@
 <!--This component provides interactivity for BookItem-->
 <template>
   <div :id="currentFile.path" ref="itemRef">
-    <template v-if="inViewport || !observer">
-      <ContextMenu>
-        <ContextMenuTrigger>
+    <template v-if="true">
+      <ShContextMenu>
+        <ShContextMenuTrigger>
           <div
             v-test-class="testClasses.bookItems"
             v-bind="$attrs"
@@ -23,16 +23,16 @@
             />
             <BookItemLine v-else :current-file="currentFile" :is-visible="true" />
           </div>
-        </ContextMenuTrigger>
+        </ShContextMenuTrigger>
 
-        <ContextMenuContent>
-          <ContextMenuItem @click="openFullEditor({ place: 'last', focus: true })">
+        <ShContextMenuContent>
+          <ShContextMenuItem @click="openFullEditor({ place: 'last', focus: true })">
             Open in a new tab
-          </ContextMenuItem>
+          </ShContextMenuItem>
 
-          <ContextMenuItem @click="deleteBook"> Delete </ContextMenuItem>
-        </ContextMenuContent>
-      </ContextMenu>
+          <ShContextMenuItem @click="deleteBook"> Delete </ShContextMenuItem>
+        </ShContextMenuContent>
+      </ShContextMenu>
 
       <div v-if="isDragging" ref="forDrag" class="absolute top-[-50px]">
         <DragDisplay> {{ 'TODO: currentFile.name' }} </DragDisplay>
@@ -51,22 +51,11 @@
 </template>
 
 <script setup lang="ts">
-import { nextTick, onMounted, ref } from 'vue';
-
 import { debounce as _debounce } from 'lodash';
 
-import DragDisplay from '../_UI/DragDisplay.vue';
-
-import {
-  ContextMenu,
-  ContextMenuTrigger,
-  ContextMenuContent,
-  ContextMenuItem,
-} from '~/components/_UI/ContextMenu/';
+import DragDisplay from '~/components/_ui/DragDisplay.vue';
 
 import type { PropType } from 'vue';
-import { remove, type IFile } from '~/api/files';
-import type ElObserver from './elementObserver';
 import type { IViewStyle } from '~/api/openedTabs';
 import { useStore } from '~~/utils/store';
 
@@ -74,6 +63,7 @@ import BookItemCover from '~/components/BookView/BookItemCover.vue';
 import BookItemLine from '~/components/BookView/BookItemLine.vue';
 import { testClasses } from '~/tools/tests/binds';
 import type { IBookFromDb } from '~/api/watcher/metaCache';
+import { remove } from '@tauri-apps/plugin-fs';
 export type IBookStyle = 'CARDS' | 'LINES';
 
 const store = useStore();
@@ -86,10 +76,6 @@ const props = defineProps({
   viewStyle: {
     type: String as PropType<IViewStyle>,
     default: 'Covers',
-  },
-  observer: {
-    type: Object as PropType<ElObserver>,
-    default: undefined,
   },
 });
 
@@ -106,17 +92,6 @@ const openFullEditor = (params: OpenNewOneParams) => {
 };
 
 const itemRef = ref<HTMLElement>();
-
-const inViewport = ref(false);
-
-const triggerInView = (visible: boolean) => {
-  inViewport.value = visible;
-};
-
-onMounted(() => {
-  if (!itemRef.value || !props.observer) return;
-  props.observer.watchElement(itemRef.value, triggerInView);
-});
 
 const deleteBook = () => remove(props.currentFile.path);
 
@@ -155,9 +130,4 @@ const startDrag = (devt: DragEvent) => {
 };
 </script>
 
-<style scoped>
-.editorWrapper {
-  width: 66vw;
-  height: 66vh;
-}
-</style>
+<style scoped></style>

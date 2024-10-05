@@ -5,7 +5,7 @@
       class="absolute left-0 top-0 flex h-full w-full flex-col rounded-md border border-neutral-200 p-3 shadow-lg transition-opacity dark:border-neutral-800"
     >
       <div
-        class="title overflow-hiddenalign-middle h-1/2 shrink overflow-hidden text-xs leading-tight @[10rem]:text-lg"
+        class="title x h-1/2 shrink overflow-hidden align-middle text-xs leading-tight @[10rem]:text-lg"
       >
         {{ mainTitle }}
       </div>
@@ -19,7 +19,7 @@
     </div>
     <div v-else class="flex h-full items-end overflow-hidden rounded-md">
       <img
-        :src="`covers://${file.cover}`"
+        :src="data || ''"
         class="block h-full w-full object-cover"
         @error="() => (forceFake = true)"
       />
@@ -30,9 +30,11 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 import { debounce as _debounce } from 'lodash';
+import { convertFileSrc } from '@tauri-apps/api/core';
 
 import type { PropType } from 'vue';
 import type { IBookData } from '~/api/books';
+import { locateCover } from '~/api/files';
 
 const props = defineProps({
   file: {
@@ -41,9 +43,21 @@ const props = defineProps({
   },
 });
 
+const { data } = useAsyncData(
+  'cover:' + props.file.cover,
+  async () => {
+    if (!props.file.cover) return null;
+    const p = await locateCover(props.file.cover);
+    if (!p) return null;
+
+    return await convertFileSrc(p);
+  },
+  { watch: [() => props.file.cover] },
+);
+
 const forceFake = ref(false);
 
-const showImage = computed(() => props.file.cover && !forceFake.value);
+const showImage = computed(() => data.value && !forceFake.value);
 
 watch(
   () => props.file.cover,

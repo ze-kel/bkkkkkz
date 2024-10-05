@@ -2,18 +2,17 @@
   <div class="flex h-full w-full flex-col items-center justify-center">
     <div class="text-center">You dont have any books {{ isRootOpened ? 'yet' : 'here' }}.</div>
     <div class="mt-4 flex gap-4">
-      <BasicButton v-if="isRootOpened" variant="outline" @click="addDemoBooks"
-        >Add Demo Books</BasicButton
+      <ShButton v-if="isRootOpened" variant="outline" @click="addDemoBooks"
+        >Add Demo Books</ShButton
       >
-      <BasicButton v-else variant="outline" @click="openAllBooks">View All Books</BasicButton>
+      <ShButton v-else variant="outline" @click="openAllBooks">View All Books</ShButton>
 
-      <BasicButton variant="outline" @click="openNewBook">Add New Book</BasicButton>
+      <ShButton variant="outline" @click="openNewBook">Add New Book</ShButton>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import BasicButton from '~/components/_UI/BasicButton/BasicButton.vue';
 import { useStore } from '~~/utils/store';
 import { getDefaultViewSettings } from '~/utils/getDefaultViewSettings';
 import { saveNewFiles } from '~/api/files';

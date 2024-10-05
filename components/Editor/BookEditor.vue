@@ -1,10 +1,10 @@
 <template>
-  <div v-if="!loading" class="flex h-full w-full flex-col overflow-x-hidden overflow-y-scroll">
+  <div v-if="!loading" class="flex h-full w-full flex-col overflow-y-auto overflow-x-hidden">
     <div class="mx-auto w-full max-w-2xl">
       <div class="grid gap-4 py-4" style="grid-template-columns: auto 1fr">
         <div class="flex flex-col items-center gap-2">
-          <ContextMenu>
-            <ContextMenuTrigger class="w-fit">
+          <ShContextMenu>
+            <ShContextMenuTrigger class="w-fit">
               <div
                 class="aspect-[6/9] w-[175px] bg-transparent"
                 :draggable="true"
@@ -12,19 +12,19 @@
               >
                 <Cover :file="openedFile" />
               </div>
-            </ContextMenuTrigger>
-            <ContextMenuContent>
-              <ContextMenuItem @click="setCoverHandle">
+            </ShContextMenuTrigger>
+            <ShContextMenuContent>
+              <ShContextMenuItem @click="setCoverHandle">
                 {{ openedFile.cover ? 'Change cover' : 'Add cover' }}
-              </ContextMenuItem>
+              </ShContextMenuItem>
 
-              <ContextMenuItem @click="fetchCoverHandle"> Try to fetch cover </ContextMenuItem>
+              <ShContextMenuItem @click="fetchCoverHandle"> Try to fetch cover </ShContextMenuItem>
 
-              <ContextMenuItem v-if="openedFile.cover" @click="removeCoverHandler">
+              <ShContextMenuItem v-if="openedFile.cover" @click="removeCoverHandler">
                 Remove cover
-              </ContextMenuItem>
-            </ContextMenuContent>
-          </ContextMenu>
+              </ShContextMenuItem>
+            </ShContextMenuContent>
+          </ShContextMenu>
 
           <Rating v-model="openedFile.myRating" class="mt-3 place-content-center self-center" />
 
@@ -49,9 +49,9 @@
               theme="hidden"
             />
 
-            <BasicButton v-if="!autoSave" variant="outline" size="sm" @click="manualSave">
+            <ShButton v-if="!autoSave" variant="outline" size="sm" @click="manualSave">
               Save
-            </BasicButton>
+            </ShButton>
           </div>
 
           <BasicInput
@@ -82,7 +82,7 @@
             />
           </div>
 
-          <Tags v-model="openedFile.tags" class="" />
+          <TagsEditor v-model="openedFile.tags" class="" />
           <ReadDetails v-model="openedFile.read" class="mt-3" />
         </div>
       </div>
@@ -101,11 +101,10 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted, watchEffect, onUnmounted, watch, nextTick, computed } from 'vue';
-import ReadDetails from '../ReadDetails/ReadDetails.vue';
+import ReadDetails from './ReadDetails/ReadDetails.vue';
 import Rating from '../Rating/RatingStars.vue';
-import Tags from '../Tags/TagsEditor.vue';
-import DragDisplay from '~/components/_UI/DragDisplay.vue';
+import TagsEditor from './TagsEditor/index.vue';
+import DragDisplay from '~/components/_ui/DragDisplay.vue';
 import Cover from '../Cover/BookCover.vue';
 import BasicInput from '../_UI/BasicInput.vue';
 import MilkdownEditor from './MilkdownEditor.vue';
@@ -114,13 +113,6 @@ import { MilkdownProvider } from '@milkdown/vue';
 
 import { cloneDeep as _cloneDeep } from 'lodash';
 import { debounce as _debounce } from 'lodash';
-
-import {
-  ContextMenu,
-  ContextMenuTrigger,
-  ContextMenuContent,
-  ContextMenuItem,
-} from '~/components/_UI/ContextMenu/';
 
 import type { PropType } from 'vue';
 import {
@@ -137,9 +129,9 @@ import {
 } from '~/api/files';
 import type { IOpenedFile, IOpenedNewFile } from '~/api/openedTabs';
 import { useStore } from '~~/utils/store';
-import BasicButton from '~/components/_UI/BasicButton/BasicButton.vue';
 import { testClasses } from '~/tools/tests/binds';
-import { apiEventsEmitter } from '~/api/events';
+import { apiEventsEmitter, useApiEventListener } from '~/api/events';
+import { toast } from 'vue-sonner';
 
 const store = useStore();
 
@@ -219,8 +211,7 @@ watch(
 // Update events handling
 //
 const updateHandlerApi = ({ file }: { file: IFile }) => {
-  console.log('update handler api', file);
-  // TODO: Why are we ignoring indexes here?
+  console.log('received update');
   loading.value = true;
 
   openedFile.value = file;
@@ -230,19 +221,7 @@ const updateHandlerApi = ({ file }: { file: IFile }) => {
   });
 };
 
-const removeHandlerApi = () => {
-  store.closeOpened();
-};
-
-onMounted(() => {
-  apiEventsEmitter.addListener('FILE_UPDATE', updateHandlerApi);
-  apiEventsEmitter.addListener('FILE_REMOVE', removeHandlerApi);
-});
-
-onUnmounted(() => {
-  apiEventsEmitter.removeListener('FILE_UPDATE', updateHandlerApi);
-  apiEventsEmitter.removeListener('FILE_REMOVE', removeHandlerApi);
-});
+useApiEventListener('FILE_UPDATE', updateHandlerApi);
 
 //
 // File drag & drop
@@ -278,7 +257,7 @@ const startDrag = (devt: DragEvent) => {
 ///
 /// Cover Right click
 ///
-const removeCoverHandler = () => {
+const removeCoverHandler = async () => {
   if ('unsaved' in openedFile.value) return;
   removeCover({ bookFilePath: openedFile.value.path });
 };
@@ -290,22 +269,30 @@ const setCoverHandle = () => {
 
 const fetchCoverHandle = async () => {
   if (!openedFile.value.isbn13) {
-    store.showNotification({
-      title: `Can't fetch cover without isbn13`,
-      text: 'Please specify ISBN and try again',
+    toast.error("Can't fetch cover without isbn13", {
+      description: 'Please specify ISBN and try again',
     });
     return;
   }
 
   if ('unsaved' in openedFile.value) {
-    store.showNotification({
-      title: `Can't fetch cover for unsaved file`,
-      text: 'Save file and try again',
+    toast.error(`Can't fetch cover for unsaved file`, {
+      description: 'Save file and try again',
     });
     return;
   }
 
-  fetchCover({ bookFilePath: openedFile.value.path });
+  const promise = fetchCover({ bookFilePath: openedFile.value.path });
+
+  toast.promise(promise, {
+    loading: 'Fetching...',
+    success: () => {
+      return `Cover updated`;
+    },
+    error: (e: any) => {
+      return String(e);
+    },
+  });
 };
 </script>
 

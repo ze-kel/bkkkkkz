@@ -1,9 +1,9 @@
 <template>
-  <div ref="scrollRoot" class="flex h-full w-full flex-col overflow-y-scroll px-2 pb-4">
-    <ViewConrols class="sticky top-0 z-10 bg-neutral-50 pt-2 dark:bg-neutral-950" />
+  <div ref="scrollRoot" class="flex h-full w-full flex-col overflow-y-auto px-2 pr-4">
+    <ViewControls class="sticky top-0 z-10 bg-neutral-50 pt-2 dark:bg-neutral-950" />
 
     <!--When looking at All Books and we have zero books show placeholder-->
-    <EmptyBooksPlaceholder v-if="Object.values(files).length === 0 && !loading" />
+    <EmptyBooksPlaceholder v-if="files.length === 0 && !loading" />
 
     <div
       :class="[
@@ -49,7 +49,6 @@
               :key="item.path"
               :current-file="item"
               :view-style="opened.settings.viewStyle"
-              :observer="elementObserver"
             />
           </div>
         </div>
@@ -67,34 +66,30 @@
           :key="item.path"
           :current-file="item"
           :view-style="opened.settings.viewStyle"
-          :observer="elementObserver"
         />
       </div>
     </div>
+    <div class="h-4"></div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, watch, watchEffect, nextTick } from 'vue';
 import Fuse from 'fuse.js';
-import { useStore } from '~~/utils/store';
 
 import { debounce as _debounce } from 'lodash';
 import { cloneDeep as _cloneDeep } from 'lodash';
 import getSortFunction from './getSortFunction';
 import { groupItems } from './groupItems';
-import ElObserver from './elementObserver';
 
 import BookItem from './BookItemWrapper.vue';
 import Rating from '../Rating/RatingStars.vue';
-import ViewConrols from './ViewConrols.vue';
+import ViewControls from './ViewControls.vue';
 
-import { loadFilesFromFolder, type IFile, type IFiles } from '~/api/files';
 import type { PropType } from 'vue';
 import type { IOpenedPath, IOpenedTag } from '~/api/openedTabs';
 import EmptyBooksPlaceholder from '~/components/Placeholders/EmptyBooksPlaceholder.vue';
 import { getFilesByPath, getFilesByTag, type IBookFromDb } from '~/api/watcher/metaCache';
-import { apiEventsEmitter, useApiEventListener } from '~/api/events';
+import { useApiEventListener } from '~/api/events';
 
 const store = useStore();
 
@@ -210,25 +205,15 @@ const groupedFiles = computed(() => {
 });
 
 //
-// Observer for lazy loading
-//
-const scrollRoot = ref<HTMLElement>();
-
-let elementObserver = ref<ElObserver>();
-
-onMounted(() => {
-  if (!scrollRoot.value) return;
-  elementObserver.value = new ElObserver(scrollRoot.value);
-});
-
-onUnmounted(() => {
-  if (!scrollRoot.value) return;
-  elementObserver.value?.destroy(scrollRoot.value);
-});
-
-//
 // Scroll position
 //
+
+const scrollRoot = useTemplateRef('scrollRoot');
+
+onMounted(() => {
+  console.log(scrollRoot.value);
+});
+
 const setScrollPositionFromSaved = () => {
   if (!scrollRoot.value) return;
   scrollRoot.value.scrollTop = props.opened.scrollPosition;

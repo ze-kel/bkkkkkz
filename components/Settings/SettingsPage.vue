@@ -9,11 +9,17 @@
 
     <div class="mt-4">
       <h2 class="font-semibold">Theme</h2>
-      <SelectorRoot v-model="darkMode" class="6 mt-1 w-36">
-        <SelectorItem v-for="item in ['Light', 'System', 'Dark']" :key="item" :value="item">
-          {{ item }}
-        </SelectorItem>
-      </SelectorRoot>
+
+      <ShSelect v-model="colorMode.preference" class="w-40">
+        <ShSelectTrigger>
+          <ShSelectValue placeholder="Sort by" />
+        </ShSelectTrigger>
+        <ShSelectContent>
+          <ShSelectItem value="light">Light</ShSelectItem>
+          <ShSelectItem value="system">System</ShSelectItem>
+          <ShSelectItem value="dark">Dark</ShSelectItem>
+        </ShSelectContent>
+      </ShSelect>
     </div>
 
     <div class="mt-4">
@@ -27,9 +33,7 @@
           @change="importGoodReadsHTML"
         />
         <label for="grhtmlinput">
-          <BasicButton variant="outline" class="mt-1" @click="importHTML"
-            >Select</BasicButton
-          ></label
+          <ShButton variant="outline" class="mt-1" @click="importHTML">Select</ShButton></label
         >
         <div class="mt-2 max-w-xs text-xs">
           <p class="text-xs">
@@ -49,11 +53,12 @@ import { importGoodReadsHTML } from '~/utils/goodreadsHTMLParser';
 
 import { useStore } from '~~/utils/store';
 
-import { SelectorRoot, SelectorItem } from '~/components/_UI/Selector';
-import BasicButton from '~/components/_UI/BasicButton/BasicButton.vue';
+import { saveSettings } from '~/api/settings';
+import { selectAndSetRootPath } from '~/api/rootPath';
+
+const colorMode = useColorMode();
 
 const store = useStore();
-const { $trpc } = useNuxtApp();
 
 const darkMode = computed({
   get: () => {
@@ -64,7 +69,7 @@ const darkMode = computed({
 
     const s = { ...store.settings, darkMode: val };
 
-    await $trpc.saveSettings.mutate(s);
+    await saveSettings(s);
 
     store.updateSettings(s);
   },
@@ -77,7 +82,7 @@ const importHTML = () => {
 };
 
 const changeRootPathHandler = async () => {
-  const updated = await $trpc.setRootPath.mutate();
+  const updated = await selectAndSetRootPath();
   if (updated) {
     store.fetchRootPath();
   }

@@ -13,17 +13,10 @@ import {
 } from 'date-fns';
 import type { Interval } from 'date-fns';
 import { computed, onMounted, ref, watch, nextTick } from 'vue';
-import BasicButton from '~/components/_UI/BasicButton/BasicButton.vue';
 import { useStore } from '~~/utils/store';
 import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-vue-next';
 import DaysRenderer from '~/components/_UI/Calendar/DaysRenderer.vue';
-import {
-  DropdownRoot,
-  DropdownContent,
-  DropdownTrigger,
-  DropdownCloser,
-} from '~/components/_UI/DropdownGeneric';
-import { MenuItem, MenuRoot } from '~/components/_UI/GenericMenu';
+
 import BasicInput from '~/components/_UI/BasicInput.vue';
 import { testClasses } from '~/tools/tests/binds';
 
@@ -88,7 +81,9 @@ const allMonths = [
   'December',
 ];
 
-const setMonth = (i: number) => {
+const setMonth = (monthString: string) => {
+  const i = allMonths.findIndex((v) => v === monthString);
+  if (i < 0) return;
   const cur = cursor.value.getMonth();
   if (i === cur) return;
 
@@ -185,32 +180,32 @@ watch(cursor, () => {
 
 <template>
   <div class="">
-    <div class="flex items-center justify-between">
-      <BasicButton variant="outline" size="icon" @click="moveCursorMonths(-1)">
+    <div class="flex items-center justify-between gap-2">
+      <ShButton variant="outline" size="icon" @click="moveCursorMonths(-1)">
         <ChevronLeftIcon class="w-5" />
-      </BasicButton>
+      </ShButton>
 
-      <DropdownRoot>
-        <DropdownTrigger>
-          <BasicButton v-test-class="testClasses.editorCalendarMonthSelectorButton" variant="ghost">
-            {{ currentMonthString }}
-          </BasicButton>
-        </DropdownTrigger>
-        <DropdownContent>
-          <DropdownCloser>
-            <MenuRoot class="grid w-64 grid-cols-2">
-              <MenuItem
-                v-for="(month, i) in allMonths"
-                :key="month"
-                v-test-class="testClasses.editorCalendarMonthSelectorMonth"
-                @click="setMonth(i)"
-              >
-                {{ month }}
-              </MenuItem>
-            </MenuRoot>
-          </DropdownCloser>
-        </DropdownContent>
-      </DropdownRoot>
+      <ShSelect :model-value="allMonths[cursor.getMonth()]" @update:model-value="setMonth">
+        <ShSelectTrigger
+          class="h-6 w-24 justify-center border-none px-0 py-0 text-center"
+          hide-icon
+          v-test-class="testClasses.editorCalendarMonthSelectorButton"
+        >
+          {{ currentMonthString }}
+        </ShSelectTrigger>
+        <ShSelectContent class="max-h-[200px]">
+          <ShSelectItem
+            v-for="(month, i) in allMonths"
+            size="xs"
+            variant="outline"
+            :key="month"
+            :value="month"
+            v-test-class="testClasses.editorCalendarMonthSelectorMonth"
+          >
+            {{ month }}
+          </ShSelectItem>
+        </ShSelectContent>
+      </ShSelect>
 
       <BasicInput
         v-model="currentYearInputValue"
@@ -221,9 +216,9 @@ watch(cursor, () => {
         @blur="currentYearInputBlurHandler"
       />
 
-      <BasicButton variant="outline" size="icon" @click="moveCursorMonths(1)">
+      <ShButton variant="outline" size="icon" @click="moveCursorMonths(1)">
         <ChevronRightIcon class="w-5" />
-      </BasicButton>
+      </ShButton>
     </div>
     <div
       class="heightTransition relative mt-2 w-64 overflow-hidden"
