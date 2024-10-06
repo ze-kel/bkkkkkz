@@ -10,6 +10,7 @@ export const zSortByOption = z.enum([
   'Last Read',
   'First Read',
   'Rating',
+  'Filename',
 ]);
 
 export type ISortByOption = z.infer<typeof zSortByOption>;
@@ -65,16 +66,6 @@ export const zOpenedFile = z.object({
 
 export type IOpenedFile = z.infer<typeof zOpenedFile>;
 
-export const zOpenedNewFile = z.object({
-  id: z.string(),
-  type: z.literal('newFile'),
-  // Path to be saved at
-  thing: z.string(),
-  scrollPosition: z.number(),
-});
-
-export type IOpenedNewFile = z.infer<typeof zOpenedNewFile>;
-
 export const zOpenedInnerPage = z.object({
   id: z.string(),
   type: z.literal('innerPage'),
@@ -87,7 +78,6 @@ export type IOpenedInnerPage = z.infer<typeof zOpenedInnerPage>;
 export const zOpened = z.discriminatedUnion('type', [
   zOpenedFile,
   zOpenedInnerPage,
-  zOpenedNewFile,
   zOpenedPath,
   zOpenedTag,
 ]);

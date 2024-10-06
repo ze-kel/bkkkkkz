@@ -1,4 +1,3 @@
-import type { ISavedFile } from '~/api/files';
 import type { ISortDirection, ISortByOption } from '~/api/openedTabs';
 import { getDateReducerSingle } from './getDateReducer';
 import type { IBookFromDb } from '~/api/watcher/metaCache';

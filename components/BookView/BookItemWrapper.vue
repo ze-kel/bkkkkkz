@@ -80,6 +80,8 @@ const props = defineProps({
 });
 
 const openFullEditor = (params: OpenNewOneParams) => {
+  console.log(props.currentFile);
+
   store.openNewOne(
     {
       id: store.generateRandomId(),

@@ -48,10 +48,6 @@
               placeholder="Filename"
               theme="hidden"
             />
-
-            <ShButton v-if="!autoSave" variant="outline" size="sm" @click="manualSave">
-              Save
-            </ShButton>
           </div>
 
           <BasicInput
@@ -88,9 +84,16 @@
       </div>
 
       <div class="h-full min-h-[200px] border-t border-neutral-300 py-4 dark:border-neutral-800">
-        <MilkdownProvider>
-          <MilkdownEditor v-model="openedFile.content" />
-        </MilkdownProvider>
+        <Editor2
+          ref="markdown"
+          :initial-value="openedFile.content"
+          @change="
+            () => {
+              unsavedMarkdownChanges++;
+              debouncedSave();
+            }
+          "
+        />
       </div>
     </div>
   </div>
@@ -107,9 +110,6 @@ import TagsEditor from './TagsEditor/index.vue';
 import DragDisplay from '~/components/_ui/DragDisplay.vue';
 import Cover from '../Cover/BookCover.vue';
 import BasicInput from '../_UI/BasicInput.vue';
-import MilkdownEditor from './MilkdownEditor.vue';
-
-import { MilkdownProvider } from '@milkdown/vue';
 
 import { cloneDeep as _cloneDeep } from 'lodash';
 import { debounce as _debounce } from 'lodash';
@@ -121,31 +121,31 @@ import {
   removeCover,
   renameEntity,
   saveFileContent,
-  saveNewFile,
   setCover,
   type IFile,
   type ISavedFile,
-  type IUnsavedFile,
 } from '~/api/files';
-import type { IOpenedFile, IOpenedNewFile } from '~/api/openedTabs';
+import type { IOpenedFile } from '~/api/openedTabs';
 import { useStore } from '~~/utils/store';
 import { testClasses } from '~/tools/tests/binds';
-import { apiEventsEmitter, useApiEventListener } from '~/api/events';
+import { useApiEventListener } from '~/api/events';
 import { toast } from 'vue-sonner';
+import type { EditorView } from '@codemirror/view';
 
 const store = useStore();
 
 const props = defineProps({
   opened: {
-    type: Object as PropType<IOpenedFile | IOpenedNewFile>,
+    type: Object as PropType<IOpenedFile>,
     required: true,
   },
 });
 
-const openedFile = ref<ISavedFile | IUnsavedFile>({ unsaved: true, name: '' });
+const openedFile = ref<ISavedFile>({ name: '', path: '' });
 const previousName = ref('');
-const autoSave = ref(false);
 const loading = ref(true);
+
+const markdownRef = useTemplateRef('markdown');
 
 watchEffect(async () => {
   if (props.opened.type === 'file') {
@@ -155,35 +155,34 @@ watchEffect(async () => {
     openedFile.value = res;
 
     nextTick(() => {
-      autoSave.value = true;
       loading.value = false;
     });
   } else {
-    autoSave.value = false;
     loading.value = false;
   }
 });
 
-const manualSave = async () => {
-  if ('unsaved' in openedFile.value) {
-    const saved = await saveNewFile({
-      basePath: props.opened.thing,
-      file: _cloneDeep(openedFile.value) as IUnsavedFile,
-    });
-    openedFile.value = saved;
-    store.openNewOne({ ...props.opened, type: 'file', thing: saved.path }, { place: 'current' });
-    autoSave.value = true;
-  } else {
-    save(openedFile.value);
-  }
-};
+const unsavedMarkdownChanges = ref(0);
 
-const save = (file: ISavedFile) => {
-  saveFileContent(_cloneDeep(file));
+const save = async () => {
+  const file = openedFile.value;
+  if (!file.path || !file.name) return;
+  let sc = 0;
+  if (markdownRef.value && markdownRef.value.$.exposed) {
+    const { editor } = markdownRef.value.$.exposed as { editor: Ref<EditorView | null> };
+
+    if (editor.value) {
+      file.content = editor.value?.state.doc.toString();
+      sc = unsavedMarkdownChanges.value;
+    }
+  }
+
+  await saveFileContent(file);
+  unsavedMarkdownChanges.value = unsavedMarkdownChanges.value - sc;
 };
 
 const rename = async (newName: string) => {
-  if (!openedFile.value || 'unsaved' in openedFile.value) return;
+  if (!openedFile.value.path) return;
   const newPath = await renameEntity({ srcPath: openedFile.value.path, newName });
   store.openNewOne({ ...props.opened, thing: newPath }, { place: 'current' });
 };
@@ -191,17 +190,25 @@ const rename = async (newName: string) => {
 const debouncedSave = _debounce(save, 500);
 const debouncedRename = _debounce(rename, 500);
 
+onBeforeUnmount(async () => {
+  debouncedRename.cancel();
+  if (unsavedMarkdownChanges.value > 0) {
+    debouncedSave();
+  }
+  debouncedSave.flush();
+});
+
 watch(
   openedFile,
   (newFile, oldFile) => {
-    if (!oldFile || !newFile || !autoSave.value || 'unsaved' in newFile || loading.value) return;
+    if (!oldFile || !newFile || loading.value) return;
 
     // Can't check against oldFile because after mutation it will be the same
     // OldFile is still useful to eliminate initial load case
     if (newFile.name && newFile.name !== previousName.value) {
       debouncedRename(newFile.name);
     } else {
-      debouncedSave(newFile);
+      debouncedSave();
     }
   },
   { deep: true },
@@ -211,10 +218,24 @@ watch(
 // Update events handling
 //
 const updateHandlerApi = ({ file }: { file: IFile }) => {
-  console.log('received update');
   loading.value = true;
 
   openedFile.value = file;
+
+  if (markdownRef.value && markdownRef.value.$.exposed) {
+    const { editor } = markdownRef.value.$.exposed as { editor: Ref<EditorView | null> };
+
+    if (editor.value) {
+      // TODO: this is just replacing the doc. It should at least apply unsaved transactions. In the ideal case diff and change parts
+      editor.value.dispatch({
+        changes: {
+          from: 0,
+          to: editor.value.state.doc.length,
+          insert: file.content,
+        },
+      });
+    }
+  }
 
   nextTick(() => {
     loading.value = false;

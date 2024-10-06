@@ -3,7 +3,9 @@
     <div>You have nothing opened.</div>
     <div class="mt-4 flex gap-4">
       <ShButton variant="outline" @click="openAllBooks">View All Books</ShButton>
-      <ShButton variant="outline" @click="openNewBook">Add New Book</ShButton>
+      <IconsMenuBookAdder>
+        <ShButton variant="outline">Add New Book</ShButton>
+      </IconsMenuBookAdder>
     </div>
   </div>
 </template>
@@ -27,22 +29,6 @@ const openAllBooks = () => {
       scrollPosition: 0,
       settings: getDefaultViewSettings(),
       recursive: true,
-    },
-    { place: 'current', focus: true },
-  );
-};
-
-const openNewBook = () => {
-  if (!store.rootPath) {
-    throw new Error('NoTabPlaceholder handler: no root path');
-  }
-
-  store.openNewOne(
-    {
-      id: store.generateRandomId(),
-      type: 'newFile',
-      thing: store.rootPath,
-      scrollPosition: 0,
     },
     { place: 'current', focus: true },
   );

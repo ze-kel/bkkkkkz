@@ -19,7 +19,6 @@ import {
 } from '@tauri-apps/plugin-fs';
 import { FileUpdates } from '~/api/watcher/fileUpdates';
 import { add } from 'date-fns';
-import { toast } from 'vue-sonner';
 
 export type IFolderTree = {
   type: 'folder';
@@ -44,7 +43,6 @@ export const zSavedFile = zBookData.and(
   z.object({
     content: z.string().optional(),
     name: z.string(),
-    unsaved: z.literal<boolean>(false).optional(),
     path: z.string(),
   }),
 );

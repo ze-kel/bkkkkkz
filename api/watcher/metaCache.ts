@@ -2,12 +2,16 @@ import Database from '@tauri-apps/plugin-sql';
 import type { IWatcherModule } from './watcherCore';
 import type { IBookData } from '../books';
 import { apiEventsEmitter } from '~/api/events';
+import * as path from '@tauri-apps/api/path';
 
 let db: Database | null = null;
 const getDb = async () => {
   if (!db) {
     db = await Database.load('sqlite:test.db');
   }
+
+  console.log('awa', await path.appDataDir(), await path.join(''));
+
   return db;
 };
 
@@ -30,11 +34,12 @@ const initDatabase = async () => {
 const wrapOrNull = (v?: string) => (v?.length ? `"${v}"` : 'NULL');
 
 const addFileToDb = async (path: string, file: IBookData) => {
+  console.log('add', path, file);
   const db = await getDb();
 
   await db.execute(
     `INSERT INTO files(path, title, author, year, myRating, cover, isbn13)
-  VALUES ($1, $2, $3, $4, $5, $6, $7)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
   ON CONFLICT(path) DO UPDATE SET
     title=excluded.title, author=excluded.author, year=excluded.year, myRating=excluded.myRating, cover=excluded.cover, isbn13=excluded.isbn13
   `,
@@ -63,7 +68,7 @@ const addFileToDb = async (path: string, file: IBookData) => {
     const vals = file.read.map(
       (v) => `("${path}",${wrapOrNull(v.started)},${wrapOrNull(v.finished)})`,
     );
-    db.execute(`INSERT INTO read(path, started, finished) VALUES ${vals.join(',')}`);
+    await db.execute(`INSERT INTO read(path, started, finished) VALUES ${vals.join(',')}`);
   }
 };
 
@@ -122,9 +127,13 @@ export interface IBookFromDb {
 const getFilesAbstract = async (whereClause: string) => {
   const db = await getDb();
   const res = (await db.select(
-    `SELECT *, GROUP_CONCAT(tags.tag, ',') AS tagsRaw, GROUP_CONCAT(IFNULL(read.started,'') || '|' || IFNULL(read.finished,''), ',') as readRaw FROM files 
-    LEFT JOIN tags ON files.path = tags.path 
-    LEFT JOIN read ON files.path = read.Path
+    `SELECT * FROM files 
+    LEFT JOIN 
+    (SELECT tags.path as tagPath, GROUP_CONCAT(tags.tag, ',') AS tagsRaw FROM tags GROUP BY tags.path)
+    ON files.path = tagPath
+    LEFT JOIN 
+    (SELECT read.path as readPath, GROUP_CONCAT(IFNULL(read.started,'') || '|' || IFNULL(read.finished,''), ',') as readRaw FROM read GROUP BY read.path)
+    ON files.path = readPath 
     ${whereClause};
     `,
   )) as Array<IBookFromDb & { tagsRaw: string; readRaw: string }>;
@@ -152,7 +161,9 @@ export const getFilesByTag = async (tag: string) => {
 
 export const getFilesByPath = async (path: string) => {
   const db = await getDb();
+
   const all = await db.select('SELECT * FROM files');
+  console.log('all', all);
 
   return await getFilesAbstract(
     `WHERE files.path LIKE concat('%', '${path}', '%') GROUP BY files.path`,

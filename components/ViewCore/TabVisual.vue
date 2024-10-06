@@ -74,10 +74,6 @@ const text = computed(() => {
     return props.item.thing.split(/[\\/]/).pop();
   }
 
-  if (props.item.type === 'newFile') {
-    return 'Unsaved File';
-  }
-
   if (props.item.type === 'innerPage') {
     return capitalize(props.item.thing);
   }
