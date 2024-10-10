@@ -29,6 +29,9 @@ const getGroupLabel = (book: IBookFromDb, propety: ISortByOption, format: string
     case 'Rating': {
       return book.myRating ? String(book.myRating) : 'Not Rated';
     }
+    case 'Filename': {
+      return '';
+    }
   }
 };
 

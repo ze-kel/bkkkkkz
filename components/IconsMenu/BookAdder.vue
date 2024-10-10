@@ -7,7 +7,7 @@
     <ShDialogContent>
       <ShDialogTitle> Create new file </ShDialogTitle>
       <UiBasicInput
-        v-on-key-stroke:Enter="addBook"
+        @keyup.enter="addBook"
         autofocus
         v-model:model-value="newFileName"
         placeholder="Filename"
@@ -20,9 +20,7 @@
 </template>
 
 <script lang="ts" setup>
-import * as path from '@tauri-apps/api/path';
-import { computedAsync } from '@vueuse/core';
-import { vOnKeyStroke } from '@vueuse/components';
+import path from 'path-browserify';
 import { toast } from 'vue-sonner';
 import { exists, writeTextFile } from '@tauri-apps/plugin-fs';
 
@@ -43,13 +41,8 @@ const folderToSave = computed(() => {
   return store.openedItem.thing;
 });
 
-// Path join call rust, avoid call on each keystroke by computing with mock
-const folderToSaveStub = computedAsync(async () => {
-  return await path.join(folderToSave.value, '<|>');
-}, '<|>');
-
 const folderToSaveDisplay = computed(() => {
-  return folderToSaveStub.value.replace('<|>', actualFilename.value);
+  return path.join(folderToSave.value, actualFilename.value);
 });
 
 const addBook = async () => {

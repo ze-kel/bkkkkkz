@@ -10,8 +10,6 @@ const getDb = async () => {
     db = await Database.load('sqlite:test.db');
   }
 
-  console.log('awa', await path.appDataDir(), await path.join(''));
-
   return db;
 };
 
@@ -34,7 +32,6 @@ const initDatabase = async () => {
 const wrapOrNull = (v?: string) => (v?.length ? `"${v}"` : 'NULL');
 
 const addFileToDb = async (path: string, file: IBookData) => {
-  console.log('add', path, file);
   const db = await getDb();
 
   await db.execute(

@@ -6,6 +6,8 @@
       <NuxtPage />
     </NuxtLayout>
     <ShToaster :theme="colorMode.value === 'dark' ? 'dark' : 'light'" />
+
+    <div id="customTeleport" class="absolute top-[-1000px]"></div>
   </div>
 </template>
 
