@@ -17,6 +17,17 @@ import { useStore } from '~~/utils/store';
 
 const store = useStore();
 
+watch(
+  () => store.rootPath,
+  async (v) => {
+    if (!v) {
+      return;
+    }
+    await navigateTo('/');
+  },
+  { immediate: true },
+);
+
 const changeRootPathHandler = async () => {
   const updated = await selectAndSetRootPath();
   if (updated) {

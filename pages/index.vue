@@ -1,25 +1,34 @@
 <template>
-  <div v-if="store.openedItem" :key="store.openedItem.id" class="h-full w-full">
-    <template v-if="store.openedItem.type === 'innerPage'"> home page is deprecated </template>
-    <template v-else>
-      <BookEditor v-if="store.openedItem.type === 'file'" :opened="store.openedItem" />
-      <TableView v-else :opened="store.openedItem" :index="store.openedTabsActiveIndex || 0" />
-    </template>
-  </div>
+  <div class="flex h-full w-full items-center justify-center">
+    <div class="text-lg">Initializing</div>
 
-  <PlaceholdersNoTabPlaceholder v-else />
+    <div>DbSetup: {{ dbSetup }}</div>
+    <div>DbSetup: {{ cacheSetup }}</div>
+    <div>DbSetup: {{ watcherSetup }}</div>
+
+    <div>
+      <ShButton> Retry </ShButton>
+    </div>
+  </div>
 </template>
 
-<script setup lang="ts">
-import { debounce as _debounce } from 'lodash';
-
+<script lang="ts" setup>
 import { useStore } from '~~/utils/store';
-import BookEditor from '~/components/Editor/BookEditor.vue';
-import TableView from '~/components/BookView/BooksView.vue';
+import { invoke } from '@tauri-apps/api/core';
 
 const store = useStore();
 
+const dbSetup = ref(false);
+const cacheSetup = ref(false);
+const watcherSetup = ref(false);
+
+const initLoop = () => {
+
+  invoke('')
+
+};
+
 definePageMeta({
-  layout: 'app',
+  layout: 'empty',
 });
 </script>

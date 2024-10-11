@@ -5,6 +5,7 @@ use serde::Deserialize;
 use std::fs::File;
 use std::io::{self, BufRead, BufReader};
 use std::path::Path;
+use std::sync::Mutex;
 use walkdir::WalkDir;
 
 // Function to create or open the SQLite database and set up the table
@@ -23,15 +24,85 @@ pub fn setup_database(conn: &Connection) -> Result<()> {
     Ok(())
 }
 
+fn wrap_or_null(v: Option<String>) -> String {
+    match v {
+        None => "NULL".to_owned(),
+        Some(v) => format!("\"{}\"", v),
+    }
+}
+
 // Function to insert a file record into the database
-pub fn insert_file(conn: &Connection, path: &String, file: &BookData) -> Result<()> {
-    conn.execute(
+pub fn insert_file(conn: &Mutex<Connection>, path: &String, file: &BookData) -> Result<()> {
+    let mut db = conn.lock().unwrap();
+
+    db.execute(
         "INSERT INTO files(path, title, author, year, myRating, cover, isbn13)
-        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
         ON CONFLICT(path) DO UPDATE SET
         title=excluded.title, author=excluded.author, year=excluded.year, myRating=excluded.myRating, cover=excluded.cover, isbn13=excluded.isbn13;",
-        params![path, file.title, file.author, file.year, file.myRating, file.cover, file.isbn13],
+        (path, file.title.clone(), file.author.clone(), file.year, file.myRating, file.cover.clone(), file.isbn13),
     )?;
+
+    match &file.tags {
+        None => db.execute("DELETE FROM tags WHERE path=$1", params![path])?,
+        Some(t) => {
+            db.execute(
+                "DELETE FROM tags WHERE path=?1 AND tag NOT IN (?2)",
+                (path, t.join(",")),
+            )?;
+
+            let pairs: Vec<String> = t
+                .iter()
+                .map(|tag| format!("(\"{}\",\"{}\")", path, tag))
+                .collect();
+
+            let q = format!("INSERT INTO tags(path, tag) VALUES {}", pairs.join(","));
+            db.execute(&q, params!())?
+        }
+    };
+
+    match &file.read {
+        None => db.execute("DELETE FROM read WHERE path=$1", params![path])?,
+        Some(t) => {
+            let pairs_deletion: Vec<String> = t
+                .iter()
+                .map(|dates| {
+                    format!(
+                        "(started = {} AND finished ={})",
+                        wrap_or_null(dates.started.clone()),
+                        wrap_or_null(dates.finished.clone())
+                    )
+                })
+                .collect();
+
+            let q_del = format!(
+                "DELETE FROM read WHERE path=\"{}\" AND NOT ({})",
+                path,
+                pairs_deletion.join(" OR ")
+            );
+
+            db.execute(&q_del, params!())?;
+
+            let pairs_insertion: Vec<String> = t
+                .iter()
+                .map(|dates| {
+                    format!(
+                        "(\"{}\", {}, {})",
+                        path,
+                        wrap_or_null(dates.started.clone()),
+                        wrap_or_null(dates.finished.clone())
+                    )
+                })
+                .collect();
+
+            let q_in = format!(
+                "INSERT INTO read(path, started, finished) VALUES {}",
+                pairs_insertion.join(",")
+            );
+
+            db.execute(&q_in, params!())?
+        }
+    };
 
     Ok(())
 }
@@ -56,7 +127,7 @@ pub struct BookData {
     isbn13: Option<u64>,
 }
 
-pub fn cache_all_files<P: AsRef<Path>>(dir: P, conn: &Connection) -> Result<()> {
+pub fn cache_all_files<P: AsRef<Path>>(dir: P, conn: &Mutex<Connection>) -> Result<()> {
     let matter = Matter::<YAML>::new();
     for entry in WalkDir::new(dir).into_iter().filter_map(Result::ok) {
         if entry.file_type().is_file() {
@@ -75,12 +146,6 @@ pub fn cache_all_files<P: AsRef<Path>>(dir: P, conn: &Connection) -> Result<()> 
                         }
 
                         println!("{:?}", result.data);
-
-                        /*
-                        let result_with_struct =
-                            matter.parse_with_struct::<BookData>(&string_value).unwrap();
-                        insert_file(conn, &path_str, &result_with_struct.data)?;
-                        */
                     }
                 }
             }
