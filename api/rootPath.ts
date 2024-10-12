@@ -36,7 +36,6 @@ export const selectAndSetRootPath = async () => {
 };
 
 export const getRootPath = async () => {
-  console.log('get rp');
   if (process.env['FORCE_USER_PATH']) {
     return process.env['FORCE_USER_PATH'];
   }

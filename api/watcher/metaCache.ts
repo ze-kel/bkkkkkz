@@ -2,7 +2,6 @@ import Database from '@tauri-apps/plugin-sql';
 import type { IWatcherModule } from './watcherCore';
 import type { IBookData } from '../books';
 import { apiEventsEmitter } from '~/api/events';
-import * as path from '@tauri-apps/api/path';
 
 let db: Database | null = null;
 const getDb = async () => {
@@ -124,7 +123,7 @@ export interface IBookFromDb {
 const getFilesAbstract = async (whereClause: string) => {
   const db = await getDb();
   const res = (await db.select(
-    `SELECT * FROM files 
+    `SELECT path, title, author, year, myRating, readRaw, tagsRaw, cover, isbn13 FROM files 
     LEFT JOIN 
     (SELECT tags.path as tagPath, GROUP_CONCAT(tags.tag, ',') AS tagsRaw FROM tags GROUP BY tags.path)
     ON files.path = tagPath
@@ -147,8 +146,6 @@ const getFilesAbstract = async (whereClause: string) => {
     }
   });
 
-  console.log('where', whereClause, res);
-
   return res;
 };
 
@@ -157,11 +154,6 @@ export const getFilesByTag = async (tag: string) => {
 };
 
 export const getFilesByPath = async (path: string) => {
-  const db = await getDb();
-
-  const all = await db.select('SELECT * FROM files');
-  console.log('all', all);
-
   return await getFilesAbstract(
     `WHERE files.path LIKE concat('%', '${path}', '%') GROUP BY files.path`,
   );

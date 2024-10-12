@@ -5,6 +5,8 @@ import type { IOpenedPath, IOpenedTag } from '~/api/openedTabs';
 import { getFilesByPath, getFilesByTag, type IBookFromDb } from '~/api/watcher/metaCache';
 import { useApiEventListener } from '~/api/events';
 
+import { invoke } from '@tauri-apps/api/core';
+
 export const useFilesList = (
   opened: IOpenedPath | IOpenedTag,
   onLoaded?: () => void | Promise<void>,
@@ -16,10 +18,12 @@ export const useFilesList = (
   const loadContent = async () => {
     loading.value = true;
     if (opened.type === 'folder') {
-      files.value = await getFilesByPath(opened.thing);
+      files.value = await invoke('c_get_files_path', { path: opened.thing });
     }
     if (opened.type === 'tag') {
-      files.value = await getFilesByTag(opened.thing);
+      files.value = await invoke('c_get_files_tag', { tag: opened.thing });
+
+      // files.value = await getFilesByTag(opened.thing);
     }
 
     nextTick(() => {

@@ -122,7 +122,6 @@ const TheWatcher: IWatcher = {
         }
 
         if (t.modify.kind === 'rename') {
-          console.log('kind rename');
           // Rename is called two times: for original name and for new name
           // (This might be not true for debounced watcher, but rn I use immediate one)
           // Move to bin is also rename, but we only get original name(cause we don't watch bin folder)

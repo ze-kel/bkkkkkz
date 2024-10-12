@@ -1,47 +1,51 @@
-use tauri_plugin_store::StoreExt;
 mod metacache;
 use rusqlite::Connection;
 mod filewatcher;
 use filewatcher::watch_path;
-use metacache::{cache_all_files, setup_database};
-use once_cell::sync::OnceCell;
-use tauri::{AppHandle, Emitter, Manager};
+use metacache::{cache_all_files, create_db_tables};
+use tauri::AppHandle;
 
-use std::sync::Mutex;
+use std::thread;
 
-static DB_CONNECTION: OnceCell<Mutex<Connection>> = OnceCell::new();
-fn get_db_connection() -> &'static Mutex<Connection> {
-    DB_CONNECTION.get().expect("Database not initialized")
-}
-
-fn db_setup() -> Result<(), rusqlite::Error> {
-    let connection = Connection::open("../files.db")?;
-
-    setup_database(&connection);
-
-    DB_CONNECTION
-        .set(Mutex::new(connection))
-        .expect("Database already initialized");
-
-    Ok(())
-}
+mod db;
+use db::{
+    db_setup, get_all_tags, get_db_connection, get_files_by_path, get_files_by_tag, BookFromDb,
+};
 
 #[tauri::command]
 fn c_setup_db() {
+    println!("c_setup_db");
     db_setup().expect("Error setup db")
 }
 
 #[tauri::command]
-fn c_prepare_cache(app: AppHandle) {
-    let conn = get_db_connection();
+fn c_prepare_cache(_: AppHandle, root_path: String) {
+    create_db_tables();
+    cache_all_files(&root_path).expect("Err when cache all files");
+}
 
-    let store = app.app_handle().store("appData.bin");
+#[tauri::command]
+fn c_start_watcher(_: AppHandle, root_path: String) {
+    println!("c_start_watcher");
 
-    if let Some(ref val) = store.get("ROOT_PATH") {
-        if let Some(ref root_path) = val.as_str() {
-            cache_all_files(&root_path, conn).expect("Err when cache all files");
-        }
-    }
+    thread::spawn(move || {
+        watch_path(&root_path);
+    });
+}
+
+#[tauri::command]
+fn c_get_files_path(_: AppHandle, path: String) -> Result<Vec<BookFromDb>, String> {
+    Ok(get_files_by_path(path).expect("error when get files"))
+}
+
+#[tauri::command]
+fn c_get_files_tag(_: AppHandle, tag: String) -> Result<Vec<BookFromDb>, String> {
+    Ok(get_files_by_tag(tag).expect("error when get files"))
+}
+
+#[tauri::command]
+fn c_get_all_tags() -> Result<Vec<String>, String> {
+    Ok(get_all_tags().expect("error when tags"))
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -51,6 +55,14 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_store::Builder::new().build())
+        .invoke_handler(tauri::generate_handler![
+            c_setup_db,
+            c_prepare_cache,
+            c_start_watcher,
+            c_get_files_path,
+            c_get_files_tag,
+            c_get_all_tags,
+        ])
         .setup(|app| {
             if cfg!(debug_assertions) {
                 app.handle().plugin(
@@ -59,11 +71,8 @@ pub fn run() {
                         .build(),
                 )?;
             }
-
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![c_prepare_cache])
-        .invoke_handler(tauri::generate_handler![c_setup_db])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

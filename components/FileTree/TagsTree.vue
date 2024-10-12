@@ -23,9 +23,11 @@ import { testClasses } from '~/tools/tests/binds';
 import { apiEventsEmitter } from '~/api/events';
 import { getAllTags } from '~/api/watcher/metaCache';
 
+import { invoke } from '@tauri-apps/api/core';
+
 const store = useStore();
 const { data, refresh } = useAsyncData(() => {
-  return getAllTags();
+  return invoke('c_get_all_tags') as Promise<string[]>;
 });
 
 const dataSorted = computed(() =>
