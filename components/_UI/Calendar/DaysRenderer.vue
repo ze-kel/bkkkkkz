@@ -13,7 +13,6 @@ import {
 } from 'date-fns';
 import type { Interval } from 'date-fns';
 import { computed, ref, watch } from 'vue';
-import { testClasses } from '~/tools/tests/binds';
 
 const props = defineProps<{
   cursor: Date;
@@ -63,7 +62,6 @@ const higlight = computed(() =>
   <ShButton
     v-for="day in dates"
     :key="day"
-    v-test-class="!disabled && testClasses.editorCalendarDay"
     class="h-8 w-8"
     :disabled="!inLimit(day)"
     :variant="day === higlight ? 'default' : 'ghost'"

@@ -24,7 +24,6 @@
     </div>
     <div
       v-if="!isRenaming"
-      v-test-class="testClasses.label"
       class="pointer-events-none origin-left truncate transition-transform"
       :class="canDropHere && 'scale-110'"
     >
@@ -48,7 +47,7 @@
 import { cloneDeep as _cloneDeep } from 'lodash';
 import { ChevronDown, FolderIcon, LibraryIcon, HashIcon } from 'lucide-vue-next';
 import { useStore } from '~~/utils/store';
-import { testClasses } from '~/tools/tests/binds';
+
 import { buttonVariants } from '~/components/_shadcn/button';
 import { ref, watch, watchEffect } from 'vue';
 

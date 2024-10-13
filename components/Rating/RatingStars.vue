@@ -5,16 +5,10 @@
     @mouseleave="clearHovered"
     @click="setRating"
   >
-    <div
-      v-for="index in 5"
-      :key="index"
-      v-test-class="testClasses.editorStar"
-      class="relative h-fit"
-    >
+    <div v-for="index in 5" :key="index" class="relative h-fit">
       <div class="absolute h-full w-[50%]" @mouseenter="setHovered(index - 0.5)"></div>
       <div class="absolute left-[50%] h-full w-[50%]" @mouseenter="setHovered(index)"></div>
       <svg
-        v-test-class="testClassMap[getFill(index, displayedValue.value)]"
         xmlns="http://www.w3.org/2000/svg"
         width="24"
         height="24"
@@ -42,7 +36,6 @@
 
 <script lang="ts" setup>
 import { computed, ref } from 'vue';
-import { testClasses } from '~/tools/tests/binds';
 
 const getFill = (index: number, displayedValue: number) => {
   if (index <= displayedValue) {

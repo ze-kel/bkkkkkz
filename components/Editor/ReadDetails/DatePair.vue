@@ -1,7 +1,7 @@
 <template>
-  <DateInput v-model="dateStart" v-test-class="testClasses.editorDateFrom" />
+  <DateInput v-model="dateStart" />
   <MoveRight class="w-4" />
-  <DateInput v-model="dateEnd" v-test-class="testClasses.editorDateTo" />
+  <DateInput v-model="dateEnd" />
 </template>
 
 <script lang="ts" setup>
@@ -9,7 +9,6 @@ import { computed } from 'vue';
 
 import type { PropType } from 'vue';
 import { MoveRight } from 'lucide-vue-next';
-import { testClasses } from '~/tools/tests/binds';
 
 import DateInput from '~/components/_UI/Calendar/DateInput.vue';
 import type { IDateRead } from '~/api/books';

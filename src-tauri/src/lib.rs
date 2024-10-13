@@ -1,35 +1,38 @@
-mod metacache;
-use rusqlite::Connection;
 mod filewatcher;
+mod metacache;
 use filewatcher::watch_path;
-use metacache::{cache_all_files, create_db_tables};
+use metacache::{cache_files_and_folders, create_db_tables};
 use tauri::AppHandle;
 
 use std::thread;
 
 mod db;
-use db::{
-    db_setup, get_all_tags, get_db_connection, get_files_by_path, get_files_by_tag, BookFromDb,
-};
+use db::{db_setup, get_all_tags, get_files_by_path, get_files_by_tag, BookFromDb};
 
 #[tauri::command]
-fn c_setup_db() {
-    println!("c_setup_db");
-    db_setup().expect("Error setup db")
+fn c_setup_db() -> Result<(), String> {
+    match db_setup() {
+        Ok(_) => Ok(()),
+        Err(e) => Err(e.to_string()),
+    }
 }
 
 #[tauri::command]
-fn c_prepare_cache(_: AppHandle, root_path: String) {
-    create_db_tables();
-    cache_all_files(&root_path).expect("Err when cache all files");
+fn c_prepare_cache(_: AppHandle, root_path: String) -> Result<(), String> {
+    let tables = create_db_tables();
+
+    if let Err(e) = tables {
+        return Err(e.to_string());
+    }
+
+    cache_files_and_folders(&root_path).expect("Err when cache all files");
+    Ok(())
 }
 
 #[tauri::command]
-fn c_start_watcher(_: AppHandle, root_path: String) {
-    println!("c_start_watcher");
-
+fn c_start_watcher(app: AppHandle, root_path: String) {
     thread::spawn(move || {
-        watch_path(&root_path);
+        watch_path(&root_path, app);
     });
 }
 
@@ -45,7 +48,10 @@ fn c_get_files_tag(_: AppHandle, tag: String) -> Result<Vec<BookFromDb>, String>
 
 #[tauri::command]
 fn c_get_all_tags() -> Result<Vec<String>, String> {
-    Ok(get_all_tags().expect("error when tags"))
+    match get_all_tags() {
+        Ok(tags) => Ok(tags),
+        Err(e) => Err(e.to_string()),
+    }
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]

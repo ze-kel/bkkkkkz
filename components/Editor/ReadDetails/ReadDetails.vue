@@ -12,22 +12,11 @@
           :date-format="store.settings.dateFormat"
           @update:model-value="(val) => updateValue(index, val)"
         />
-        <ShButton
-          v-test-class="testClasses.editorDateRemove"
-          variant="ghost"
-          size="icon"
-          @click="removeDate(index)"
-        >
+        <ShButton variant="ghost" size="icon" @click="removeDate(index)">
           <XIcon class="w-4 opacity-50" />
         </ShButton>
       </div>
-      <ShButton
-        v-test-class="testClasses.editorDateAdd"
-        variant="ghost"
-        size="sm"
-        class="mt-2"
-        @click="addNewDate"
-      >
+      <ShButton variant="ghost" size="sm" class="mt-2" @click="addNewDate">
         Log new reading
       </ShButton>
     </div>
@@ -40,7 +29,7 @@ import DatePair from './DatePair.vue';
 import { format } from 'date-fns';
 import { XIcon } from 'lucide-vue-next';
 import { useStore } from '~~/utils/store';
-import { testClasses } from '~/tools/tests/binds';
+
 import type { IDateRead } from '~/api/books';
 
 const store = useStore();

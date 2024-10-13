@@ -43,7 +43,6 @@
 </template>
 
 <script setup lang="ts">
-import TheWatcher from '~/api/watcher/watcherCore';
 import TagsTree from '~/components/FileTree/TagsTree.vue';
 import TabsSelector from '~/components/ViewCore/TabsSelector.vue';
 
@@ -57,18 +56,11 @@ watch(
       await navigateTo('/welcome');
       return;
     }
-    await TheWatcher.init();
     await store.fetchSetting();
     await store.fetchOpened();
   },
   { immediate: true },
 );
-
-onUnmounted(async () => {
-  if (TheWatcher.unwatchFunction) {
-    TheWatcher.unwatchFunction();
-  }
-});
 
 // Resizing loginc
 const fileTreeSize = ref<number>(200);

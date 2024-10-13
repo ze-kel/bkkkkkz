@@ -8,11 +8,7 @@
         : 'bg-neutral-200 text-neutral-600 hover:bg-neutral-300 dark:bg-neutral-900 dark:text-neutral-600 dark:hover:bg-neutral-800',
     ]"
   >
-    <div
-      v-test-class="testClasses.label"
-      class="truncate"
-      :class="isNewAndAnimating && 'animate-new'"
-    >
+    <div class="truncate" :class="isNewAndAnimating && 'animate-new'">
       {{ text }}
     </div>
 
@@ -24,7 +20,7 @@
 
 <script lang="ts" setup>
 import { XIcon } from 'lucide-vue-next';
-import { testClasses } from '~/tools/tests/binds';
+
 import type { IOpened } from '~/api/openedTabs';
 import { computed, type PropType } from 'vue';
 import { useStore } from '~~/utils/store';

@@ -3,7 +3,6 @@
     <template v-for="(tag, index) in tags" :key="index">
       <ContentEditable
         ref="tagRefs"
-        v-test-class="testClasses.editorTag"
         :model-value="tag"
         tag="div"
         spellcheck="false"
@@ -15,12 +14,7 @@
         @returned="createNewTag"
       />
     </template>
-    <div
-      v-test-class="testClasses.editorAddTag"
-      class="cursor-pointer"
-      :class="classes()"
-      @click="createNewTag"
-    >
+    <div class="cursor-pointer" :class="classes()" @click="createNewTag">
       <PlusIcon
         class="w-3 fill-neutral-200 pr-0.5 opacity-50 transition-colors group-hover:fill-neutral-400"
       />
@@ -35,7 +29,6 @@ import type { PropType, Ref } from 'vue';
 import ContentEditable from '~/components/_UI/ContentEditable.vue';
 import { PlusIcon } from 'lucide-vue-next';
 import { cva } from 'class-variance-authority';
-import { testClasses } from '~/tools/tests/binds';
 
 const classes = cva([
   'text-foreground inline-flex items-center rounded-md  px-2.5 py-0.5 text-xs font-semibold transition-all h-6',

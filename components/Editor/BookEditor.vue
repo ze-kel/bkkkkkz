@@ -30,7 +30,6 @@
 
           <BasicInput
             v-model="openedFile.isbn13"
-            v-test-class="testClasses.editorIsbn"
             type="number"
             class="min-w-[100px] text-center opacity-50 focus:opacity-100"
             theme="hidden"
@@ -42,7 +41,6 @@
           <div class="flex w-full items-center gap-3">
             <BasicInput
               v-model="openedFile.name"
-              v-test-class="testClasses.editorFilename"
               spellcheck="false"
               class="w-full min-w-[100px] opacity-50 focus:opacity-100"
               placeholder="Filename"
@@ -52,7 +50,6 @@
 
           <BasicInput
             v-model="openedFile.title"
-            v-test-class="testClasses.editorTitle"
             spellcheck="false"
             class="line-clamp-1 min-w-[100px] text-4xl font-light leading-none"
             placeholder="Title"
@@ -60,7 +57,6 @@
           />
           <BasicInput
             v-model="openedFile.author"
-            v-test-class="testClasses.editorAuthor"
             spellcheck="false"
             class="font-regular -mt-1 w-fit min-w-[100px] text-2xl leading-none"
             theme="hidden"
@@ -70,7 +66,6 @@
           <div class="flex items-center gap-3">
             <BasicInput
               v-model="openedFile.year"
-              v-test-class="testClasses.editorYear"
               type="number"
               theme="hidden"
               class="w-[75px]"
@@ -127,7 +122,7 @@ import {
 } from '~/api/files';
 import type { IOpenedFile } from '~/api/openedTabs';
 import { useStore } from '~~/utils/store';
-import { testClasses } from '~/tools/tests/binds';
+
 import { useApiEventListener } from '~/api/events';
 import { toast } from 'vue-sonner';
 import type { EditorView } from '@codemirror/view';

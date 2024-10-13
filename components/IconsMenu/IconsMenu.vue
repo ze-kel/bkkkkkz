@@ -6,17 +6,12 @@
     </ShDialogContent>
   </ShDialog>
   <div class="flex items-center justify-start py-2">
-    <ShButton
-      v-test-class="testClasses.menuSettings"
-      variant="ghost"
-      size="icon"
-      @click="() => (settingsOpened = !settingsOpened)"
-    >
+    <ShButton variant="ghost" size="icon" @click="() => (settingsOpened = !settingsOpened)">
       <Settings2Icon stroke-width="1" />
     </ShButton>
 
     <IconsMenuBookAdder>
-      <ShButton v-test-class="testClasses.menuAddBook" variant="ghost" size="icon">
+      <ShButton>
         <PlusIcon stroke-width="1" />
       </ShButton>
     </IconsMenuBookAdder>
@@ -25,7 +20,6 @@
 
 <script lang="ts" setup>
 import Settings from '../Settings/SettingsPage.vue';
-import { testClasses } from '~/tools/tests/binds';
 
 import { PlusIcon, Settings2Icon } from 'lucide-vue-next';
 

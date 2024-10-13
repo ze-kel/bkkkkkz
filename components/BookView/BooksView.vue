@@ -24,8 +24,6 @@ import ViewControls from './ViewControls.vue';
 import type { PropType } from 'vue';
 import type { IOpenedPath, IOpenedTag } from '~/api/openedTabs';
 import EmptyBooksPlaceholder from '~/components/Placeholders/EmptyBooksPlaceholder.vue';
-import { getFilesByPath, getFilesByTag, type IBookFromDb } from '~/api/watcher/metaCache';
-import { useApiEventListener } from '~/api/events';
 import { useFilesList } from './useFileList';
 import TableRender from './TableRender.vue';
 

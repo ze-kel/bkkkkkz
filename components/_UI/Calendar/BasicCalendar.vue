@@ -18,7 +18,6 @@ import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-vue-next';
 import DaysRenderer from '~/components/_UI/Calendar/DaysRenderer.vue';
 
 import BasicInput from '~/components/_UI/BasicInput.vue';
-import { testClasses } from '~/tools/tests/binds';
 
 const store = useStore();
 
@@ -189,7 +188,6 @@ watch(cursor, () => {
         <ShSelectTrigger
           class="h-6 w-24 justify-center border-none px-0 py-0 text-center"
           hide-icon
-          v-test-class="testClasses.editorCalendarMonthSelectorButton"
         >
           {{ currentMonthString }}
         </ShSelectTrigger>
@@ -200,7 +198,6 @@ watch(cursor, () => {
             variant="outline"
             :key="month"
             :value="month"
-            v-test-class="testClasses.editorCalendarMonthSelectorMonth"
           >
             {{ month }}
           </ShSelectItem>
@@ -209,7 +206,6 @@ watch(cursor, () => {
 
       <BasicInput
         v-model="currentYearInputValue"
-        v-test-class="testClasses.editorCalendarYearInput"
         type="number"
         theme="hidden"
         class="w-16 text-center"

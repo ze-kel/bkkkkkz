@@ -13,7 +13,7 @@
 
 <script setup lang="ts">
 import { debounce as _debounce } from 'lodash';
-import { useApiEventListener } from './api/events';
+import { useListenToEvent } from './api/tauriEvents';
 
 const store = useStore();
 
@@ -24,7 +24,7 @@ onBeforeMount(async () => {
 const colorMode = useColorMode();
 
 // Global hook for deleted files
-useApiEventListener('FILE_REMOVE', ({ path }: { path: string }) => {
+useListenToEvent('file_remove', (path) => {
   if (store.openedItem?.thing === path) {
     store.closeOpened();
   }

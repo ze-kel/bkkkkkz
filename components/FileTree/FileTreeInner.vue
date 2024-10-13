@@ -2,7 +2,6 @@
   <ShContextMenu>
     <ShContextMenuTrigger>
       <TreeCell
-        v-test-class="testClasses.fileTreeItems"
         :draggable="!isRoot"
         :is-root="isRoot"
         :can-be-folded="foldable"
@@ -63,7 +62,7 @@ import {
 } from '~/api/files';
 const { $trpc } = useNuxtApp();
 import { useStore } from '~~/utils/store';
-import { testClasses } from '~/tools/tests/binds';
+
 import TreeCell from './TreeCell.vue';
 import { apiEventsEmitter } from '~/api/events';
 
@@ -239,7 +238,7 @@ const saveName = async (newName: string) => {
 };
 
 ///
-/// Creating new folder 
+/// Creating new folder
 ///
 const isCreating = ref(false);
 
