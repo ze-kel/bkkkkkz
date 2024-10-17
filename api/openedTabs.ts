@@ -110,7 +110,7 @@ export const getOpenedTabs = async () => {
 
     return ZOpenedTabs.parse(f);
   } catch (e) {
-    return { tabs: [] };
+    return { tabs: [], activeId: '' };
   }
 };
 

@@ -34,6 +34,8 @@ fn wrap_or_null(v: Option<String>) -> String {
 pub fn insert_file(file: &BookFromDb) -> Result<(), rusqlite::Error> {
     let db: std::sync::MutexGuard<'_, Connection> = get_db_connection().lock().unwrap();
 
+    let path = file.path.as_ref().unwrap();
+
     db.execute(
         "INSERT INTO files(path, title, author, year, myRating, cover, isbn13)
         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
@@ -43,7 +45,7 @@ pub fn insert_file(file: &BookFromDb) -> Result<(), rusqlite::Error> {
     )?;
 
     match &file.tags {
-        None => db.execute("DELETE FROM tags WHERE path=$1", params![file.path])?,
+        None => db.execute("DELETE FROM tags WHERE path=$1", params![path])?,
         Some(t) => {
             db.execute(
                 "DELETE FROM tags WHERE path = ?1 AND ind > ?2",
@@ -53,7 +55,7 @@ pub fn insert_file(file: &BookFromDb) -> Result<(), rusqlite::Error> {
             let pairs: Vec<String> = t
                 .iter()
                 .enumerate()
-                .map(|(ind, tag)| format!("({},\"{}\",\"{}\")", ind, file.path, tag))
+                .map(|(ind, tag)| format!("({},\"{}\",\"{}\")", ind, path, tag))
                 .collect();
 
             let q = format!(
@@ -66,33 +68,37 @@ pub fn insert_file(file: &BookFromDb) -> Result<(), rusqlite::Error> {
     };
 
     match &file.read {
-        None => db.execute("DELETE FROM read WHERE path=$1", params![file.path])?,
+        None => {
+            db.execute("DELETE FROM read WHERE path=$1", params![path])?;
+        }
         Some(t) => {
-            db.execute(
-                "DELETE FROM read WHERE path=?1 AND ind > ?2",
-                (file.path.clone(), t.len() - 1),
-            )?;
+            if (t.len() > 0) {
+                db.execute(
+                    "DELETE FROM read WHERE path=?1 AND ind > ?2",
+                    (path.clone(), t.len() - 1),
+                )?;
 
-            let pairs_insertion: Vec<String> = t
-                .iter()
-                .enumerate()
-                .map(|(ind, dates)| {
-                    format!(
-                        "({},\"{}\", {}, {})",
-                        ind,
-                        file.path,
-                        wrap_or_null(dates.started.clone()),
-                        wrap_or_null(dates.finished.clone())
-                    )
-                })
-                .collect();
+                let pairs_insertion: Vec<String> = t
+                    .iter()
+                    .enumerate()
+                    .map(|(ind, dates)| {
+                        format!(
+                            "({},\"{}\", {}, {})",
+                            ind,
+                            path,
+                            wrap_or_null(dates.started.clone()),
+                            wrap_or_null(dates.finished.clone())
+                        )
+                    })
+                    .collect();
 
-            let q_in = format!(
+                let q_in = format!(
                 "INSERT INTO read(ind,path, started, finished) VALUES {} ON CONFLICT(ind,path) DO UPDATE SET started=excluded.started, finished=excluded.finished",
                 pairs_insertion.join(",")
             );
 
-            db.execute(&q_in, ())?
+                db.execute(&q_in, ())?;
+            }
         }
     };
 
@@ -115,16 +121,16 @@ fn get_file_by_path(path_str: &str) -> Result<BookFromDb, String> {
             Some(text) => match matter.parse(&text).data {
                 Some(data) => {
                     let mut des: BookFromDb = data.deserialize().unwrap();
-                    des.path = p;
+                    des.path = Some(p);
                     Ok(des)
                 }
                 None => Ok(BookFromDb {
-                    path: p,
+                    path: Some(p),
                     ..Default::default()
                 }),
             },
             _ => Ok(BookFromDb {
-                path: p,
+                path: Some(p),
                 ..Default::default()
             }),
         },
@@ -219,7 +225,15 @@ pub fn cache_folder(path: &Path) -> Result<usize, rusqlite::Error> {
 pub fn remove_folder_from_cache(path: &Path) -> Result<usize, rusqlite::Error> {
     let db = get_db_connection().lock().unwrap();
     db.execute(
-        "DELETE FROM folders WHERE path=?1",
+        "DELETE FROM folders WHERE path LIKE concat(?1, '%')",
+        params![path.to_string_lossy().to_string()],
+    )
+}
+
+pub fn remove_files_in_folder_rom_cache(path: &Path) -> Result<usize, rusqlite::Error> {
+    let db = get_db_connection().lock().unwrap();
+    db.execute(
+        "DELETE FROM files WHERE path LIKE concat(?1, '%')",
         params![path.to_string_lossy().to_string()],
     )
 }

@@ -123,7 +123,6 @@ import {
 import type { IOpenedFile } from '~/api/openedTabs';
 import { useStore } from '~~/utils/store';
 
-import { useApiEventListener } from '~/api/events';
 import { toast } from 'vue-sonner';
 import type { EditorView } from '@codemirror/view';
 
@@ -237,7 +236,7 @@ const updateHandlerApi = ({ file }: { file: IFile }) => {
   });
 };
 
-useApiEventListener('FILE_UPDATE', updateHandlerApi);
+//useListenToEvent('file_update', updateHandlerApi)
 
 //
 // File drag & drop

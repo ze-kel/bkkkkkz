@@ -7,7 +7,9 @@ use tauri::AppHandle;
 use std::thread;
 
 mod db;
-use db::{db_setup, get_all_tags, get_files_by_path, get_files_by_tag, BookFromDb};
+use db::{
+    db_setup, get_all_folders, get_all_tags, get_files_by_path, get_files_by_tag, BookFromDb,
+};
 
 #[tauri::command]
 fn c_setup_db() -> Result<(), String> {
@@ -54,6 +56,14 @@ fn c_get_all_tags() -> Result<Vec<String>, String> {
     }
 }
 
+#[tauri::command]
+fn c_get_all_folders(_: AppHandle) -> Result<Vec<String>, String> {
+    match get_all_folders() {
+        Ok(tags) => Ok(tags),
+        Err(e) => Err(e.to_string()),
+    }
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -68,6 +78,7 @@ pub fn run() {
             c_get_files_path,
             c_get_files_tag,
             c_get_all_tags,
+            c_get_all_folders
         ])
         .setup(|app| {
             if cfg!(debug_assertions) {

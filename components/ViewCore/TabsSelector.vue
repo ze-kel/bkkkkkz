@@ -34,10 +34,6 @@
     <div
       v-for="(item, index) in store.openedTabs"
       :key="item.id"
-      v-test-class="[
-        testClasses.tab,
-        item.id === store.openedTabsActiveId && testClasses.openedTab,
-      ]"
       :class="[
         'absolute left-0 top-0 select-none',
         item.id !== store.openedTabsActiveId && 'cursor-pointer',

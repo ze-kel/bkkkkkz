@@ -1,6 +1,6 @@
 import type { ISortByOption } from '~/api/openedTabs';
 import { getDateReducerSingle } from './getDateReducer';
-import type { IBookFromDb } from '~/api/watcher/metaCache';
+import type { IBookFromDb } from '~/api/tauriEvents';
 
 export type IBookGroup = {
   label: string;

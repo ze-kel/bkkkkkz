@@ -1,7 +1,6 @@
 <template>
   <ShContextMenu>
     <ShContextMenuTrigger
-      as-child
       v-bind="$attrs"
       class="cursor-pointer"
       :draggable="true"
@@ -33,8 +32,6 @@
 <script setup lang="ts">
 import { debounce as _debounce } from 'lodash';
 
-import type { PropType } from 'vue';
-import type { IViewStyle } from '~/api/openedTabs';
 import { useStore } from '~~/utils/store';
 
 import { remove } from '@tauri-apps/plugin-fs';

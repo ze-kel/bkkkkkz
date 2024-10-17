@@ -56,7 +56,7 @@ const capitalize = (string: string) => {
 const text = computed(() => {
   if (!store.rootPath || !props.item) return '';
   if (props.item.type === 'folder') {
-    if (props.item.thing === store.rootPath) {
+    if (props.item.thing === store.rootPath || !props.item.thing.length) {
       return 'All Books';
     }
     return props.item.thing.replace(store.rootPath, '').replace(/[\\/]/, '');

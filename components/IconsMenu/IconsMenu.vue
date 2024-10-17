@@ -11,7 +11,7 @@
     </ShButton>
 
     <IconsMenuBookAdder>
-      <ShButton>
+      <ShButton variant="ghost" size="icon">
         <PlusIcon stroke-width="1" />
       </ShButton>
     </IconsMenuBookAdder>

@@ -9,7 +9,8 @@ use std::time::Duration;
 use tauri::{AppHandle, Emitter};
 
 use crate::metacache::{
-    cache_file, cache_folder, remove_file_from_cache, remove_folder_from_cache,
+    cache_file, cache_files_and_folders, cache_folder, remove_file_from_cache,
+    remove_files_in_folder_rom_cache, remove_folder_from_cache,
 };
 
 pub fn watch_path(path: &str, app: AppHandle) -> Result<()> {
@@ -39,7 +40,6 @@ pub fn watch_path(path: &str, app: AppHandle) -> Result<()> {
 }
 
 pub fn handle_events(rx: Receiver<notify::Result<notify::Event>>, app: AppHandle) {
-    // Event loop to listen for file changes
     loop {
         match rx.recv() {
             Ok(Ok(event)) => handle_event(event, &app),
@@ -73,17 +73,24 @@ fn handle_file_update(app: &AppHandle, path: &Path, ext: &OsStr) {
     }
 }
 
+// Folder remove and folder add are called only for folder that was modified.
+// This means that renaming folder -> folder_renamed will cause only folder events
+// Even if there are sub-folders and files we will not get events for them
+// Therefore we need to remove\add all files in that directory
 fn handle_folder_remove(app: &AppHandle, path: &Path) {
     remove_folder_from_cache(path);
+    remove_files_in_folder_rom_cache(path);
     app.emit("folder_remove", path.to_string_lossy()).unwrap();
 }
 
 fn handle_folder_add(app: &AppHandle, path: &Path) {
     cache_folder(path);
+    cache_files_and_folders(path);
     app.emit("folder_add", path.to_string_lossy()).unwrap();
 }
 
 fn handle_event(event: Event, app: &AppHandle) {
+    println!("{:?}", event);
     for (index, path) in event.paths.iter().enumerate() {
         match event.kind {
             EventKind::Create(kind) => match (kind, path.extension()) {

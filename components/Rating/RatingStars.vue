@@ -46,12 +46,6 @@ const getFill = (index: number, displayedValue: number) => {
   return 'none';
 };
 
-const testClassMap = {
-  '#fff': testClasses.editorStarFilled,
-  'url(#grad)': testClasses.editorStarHalf,
-  none: testClasses.editorStarEmpty,
-};
-
 const props = defineProps({
   modelValue: {
     type: Number,

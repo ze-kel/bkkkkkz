@@ -17,7 +17,6 @@ import {
   mkdir,
   remove,
 } from '@tauri-apps/plugin-fs';
-import { FileUpdates } from '~/api/watcher/fileUpdates';
 import { add } from 'date-fns';
 
 export type IFolderTree = {
@@ -54,30 +53,6 @@ export type IFiles = {
   [key: string]: IFile;
 };
 
-export const getFileTree = async (basePath: string) => {
-  const files = await readDir(basePath);
-
-  const baseName = await path.basename(basePath);
-
-  const output: IFolderTree = {
-    type: 'folder',
-    name: baseName,
-    path: basePath,
-    content: {},
-  };
-
-  await Promise.all(
-    files.map(async (entry) => {
-      if (entry.isDirectory && !DOTFILE_REGEX.test(entry.name) && !DOTDIR_REGEX.test(entry.name)) {
-        const r = await getFileTree(await path.join(basePath, entry.name));
-        output.content[entry.name] = r;
-      }
-    }),
-  );
-
-  return output;
-};
-
 export const getFileContent = async (filePath: string): Promise<ISavedFile> => {
   const ex = await exists(filePath);
   if (!ex) {
@@ -88,57 +63,12 @@ export const getFileContent = async (filePath: string): Promise<ISavedFile> => {
   return result;
 };
 
-export const loadFilesFromFolder = async ({
-  basePath,
-  recursive,
-}: {
-  basePath: string;
-  recursive?: boolean;
-}): Promise<IFiles> => {
-  const ex = await exists(basePath);
-  if (!ex) {
-    throw new Error('Directory does not exist');
-  }
-
-  const files = await readDir(basePath);
-
-  const result: IFiles = {};
-
-  await Promise.all(
-    files.map(async (entry) => {
-      const fullPath = await path.join(basePath, entry.name);
-      if (DOTFILE_REGEX.test(entry.name)) return;
-
-      if (entry.isDirectory) {
-        if (recursive) {
-          const moreFiles = await loadFilesFromFolder({ basePath: fullPath, recursive });
-          Object.entries(moreFiles).forEach(async ([path, content]) => {
-            result[path] = content;
-          });
-        }
-      } else {
-        if ((await path.extname(entry.name)) === 'md') {
-          const fileContent = await getFileContent(fullPath);
-          result[fullPath] = fileContent;
-        } else {
-        }
-      }
-    }),
-  );
-
-  return result;
-};
-
-export const loadFilesFromTag = async (tag: string): Promise<IFiles> => {
-  return {};
-};
-
 export const saveFileContent = async (
   file: ISavedFile,
   dontBlockWatcher?: boolean,
 ): Promise<void> => {
   if (!dontBlockWatcher) {
-    FileUpdates.ignored[file.path] = add(new Date(), { seconds: 2 });
+    // FileUpdates.ignored[file.path] = add(new Date(), { seconds: 2 });
   }
   const encoded = makeEncodedBook(file);
   await writeTextFile(file.path, encoded);
@@ -324,4 +254,11 @@ export const fetchCover = async ({ bookFilePath }: { bookFilePath: string }) => 
   const savedCoverPath = await saveCoverFromBlob(String(book.isbn13) + '.jpg', cover);
   book.cover = await path.basename(savedCoverPath);
   saveFileContent(book, true);
+};
+
+// NEW SHIT
+
+export const removeFolderOrFile = async (pathRelativeToRoot: string) => {
+  const fullPath = await path.join(rootPathFromStore(), pathRelativeToRoot);
+  await remove(fullPath);
 };

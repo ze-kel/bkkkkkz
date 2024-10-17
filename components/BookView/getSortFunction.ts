@@ -1,6 +1,6 @@
 import type { ISortDirection, ISortByOption } from '~/api/openedTabs';
 import { getDateReducerSingle } from './getDateReducer';
-import type { IBookFromDb } from '~/api/watcher/metaCache';
+import type { IBookFromDb } from '~/api/tauriEvents';
 
 type ISortFuction = (a: IBookFromDb, b: IBookFromDb, direction: ISortDirection) => number;
 

@@ -10,8 +10,8 @@
         :is-folded="isFolded"
         :selected="isOpened"
         :is-renaming="isRenaming"
-        @dragstart="startDrag($event, content.path)"
-        @drop="onDrop($event, content.path)"
+        @dragstart="startDrag($event, content.rawPath)"
+        @drop="onDrop($event, content.rawPath)"
         @dragenter="dragEnter"
         @dragleave="dragLeave"
         @dragover.prevent
@@ -38,7 +38,7 @@
 
   <div v-if="!isFolded || isCreating" :class="(foldable || isCreating) && 'pl-5'">
     <FileTreeInner
-      v-for="item in content.content"
+      v-for="item in content.children"
       :key="item.path"
       :content="item"
       :depth="depth + 10"
@@ -57,6 +57,7 @@ import {
   createFolder,
   moveToFolder,
   removeEntity,
+  removeFolderOrFile,
   renameEntity,
   type IFolderTree,
 } from '~/api/files';
@@ -65,12 +66,15 @@ import { useStore } from '~~/utils/store';
 
 import TreeCell from './TreeCell.vue';
 import { apiEventsEmitter } from '~/api/events';
+import type { FolderNode } from './filePathsToTree';
+import { listen, once } from '@tauri-apps/api/event';
+import { remove } from '@tauri-apps/plugin-fs';
 
 const store = useStore();
 
 const props = defineProps({
   content: {
-    type: Object as PropType<IFolderTree>,
+    type: Object as PropType<FolderNode>,
     required: true,
   },
   depth: {
@@ -95,17 +99,17 @@ watchEffect(() => {
   }
 
   isOpened.value =
-    store.openedItem.type === 'folder' && store.openedItem.thing === props.content.path;
+    store.openedItem.type === 'folder' && store.openedItem.thing === props.content.rawPath;
 });
 
-const foldable = computed(() => Object.keys(props.content.content).length > 0 && !isRoot);
+const foldable = computed(() => props.content.children.length > 0 && !isRoot);
 
 const makeNewOpenedAndSelect = (params: OpenNewOneParams) => {
   store.openNewOne(
     {
       id: store.generateRandomId(),
       type: 'folder',
-      thing: props.content.path,
+      thing: props.content.rawPath,
       scrollPosition: 0,
       settings: getDefaultViewSettings(),
       recursive: isRoot,
@@ -199,22 +203,17 @@ const startRenaming = () => {
   isRenaming.value = true;
 };
 
-const resetLockFromSubscription = () => {
-  renameLock.value = false;
-  apiEventsEmitter.removeListener('TREE_UPDATE', resetLockFromSubscription);
-};
-
 const saveName = async (newName: string) => {
   isRenaming.value = false;
   // Locks isOpened value
   renameLock.value = true;
 
   if (newName && newName !== props.content.name) {
-    const oldPath = props.content.path;
+    const oldPath = props.content.rawPath;
 
     const newPath = await renameEntity({
       newName: newName,
-      srcPath: props.content.path,
+      srcPath: oldPath,
     });
 
     if (!store.openedTabs) return;
@@ -234,7 +233,9 @@ const saveName = async (newName: string) => {
   }
 
   // Unlocks isOpened value when our fs watcher sends updated FileTree data
-  apiEventsEmitter.addListener('TREE_UPDATE', resetLockFromSubscription);
+  once('folder_add', () => {
+    renameLock.value = false;
+  });
 };
 
 ///
@@ -250,12 +251,14 @@ const saveNewFolder = async (name: string) => {
   if (!name) {
     isCreating.value = false;
   } else {
-    await createFolder({ name, pathForFolder: props.content.path });
+    await createFolder({ name, pathForFolder: props.content.rawPath });
     flipOnNext.value = true;
   }
 };
 
-const deleteFolder = () => props.content.path;
+const deleteFolder = async () => {
+  await remove(props.content.rawPath, { recursive: true });
+};
 </script>
 
 <style lang="postcss"></style>

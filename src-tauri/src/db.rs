@@ -23,11 +23,11 @@ pub fn db_setup() -> Result<(), rusqlite::Error> {
 
 #[derive(serde::Serialize, serde::Deserialize, Clone)]
 pub struct BookFromDb {
-    pub path: String,
+    pub path: Option<String>,
     pub title: Option<String>,
     pub author: Option<String>,
     pub year: Option<u16>,
-    pub myRating: Option<u16>,
+    pub myRating: Option<f64>,
     pub read: Option<Vec<crate::metacache::DateRead>>,
     pub tags: Option<Vec<String>>,
     pub cover: Option<String>,
@@ -37,7 +37,7 @@ pub struct BookFromDb {
 impl Default for BookFromDb {
     fn default() -> BookFromDb {
         BookFromDb {
-            path: "".to_string(),
+            path: None,
             title: None,
             author: None,
             year: None,
@@ -64,33 +64,40 @@ pub fn get_files_abstact(where_clause: String) -> Result<Vec<BookFromDb>, rusqli
     let mut query = db.prepare(&q)?;
 
     let result_iter = query.query_map([], |row| {
-        let read_raw: String = row.get(5).expect("no read from db");
-        let read: Vec<DateRead> = read_raw
-            .split(',')
-            .map(|dd| {
-                let mut parts = dd.split('|');
-                let started = parts.next().filter(|s| !s.is_empty()).map(String::from);
-                let finished = parts.next().filter(|f| !f.is_empty()).map(String::from);
-                DateRead {
-                    started: started,
-                    finished: finished,
-                }
-            })
-            .collect();
+        let reads_from_db: Result<String, rusqlite::Error> = row.get(6);
+        let reads: Option<Vec<DateRead>> = match reads_from_db {
+            Ok(v) => Some(
+                v.split(',')
+                    .map(|dd| {
+                        let mut parts = dd.split('|');
+                        let started = parts.next().filter(|s| !s.is_empty()).map(String::from);
+                        let finished = parts.next().filter(|f| !f.is_empty()).map(String::from);
+                        DateRead {
+                            started: started,
+                            finished: finished,
+                        }
+                    })
+                    .collect(),
+            ),
+            Err(_) => None,
+        };
 
-        let tags_raw: String = row.get(6).expect("no tags from db");
-        let tags: Vec<String> = tags_raw.split(",").map(|s| s.to_string()).collect();
+        let tags_from_db: Result<String, rusqlite::Error> = row.get(6);
+        let tags: Option<Vec<String>> = match tags_from_db {
+            Ok(v) => Some(v.split(",").map(|s| s.to_string()).collect()),
+            Err(_) => None,
+        };
 
         Ok(BookFromDb {
             path: row.get(0).expect("No path from db"),
-            title: row.get(1).expect("No title from db"),
-            author: row.get(2).expect("No author from db"),
-            year: row.get(3).expect("no year from db"),
-            myRating: row.get(4).expect("no rating from db"),
-            read: Some(read),
-            tags: Some(tags),
-            cover: row.get(7).expect("no cover from db"),
-            isbn13: row.get(8).expect("no isbn from db"),
+            title: row.get(1).unwrap_or(None),
+            author: row.get(2).unwrap_or(None),
+            year: row.get(3).unwrap_or(None),
+            myRating: row.get(4).unwrap_or(None),
+            read: reads,
+            tags: tags,
+            cover: row.get(7).unwrap_or(None),
+            isbn13: row.get(8).unwrap_or(None),
         })
     })?;
 
@@ -122,6 +129,21 @@ pub fn get_all_tags() -> Result<Vec<String>, rusqlite::Error> {
         .query_map((), |row| Ok(row.get(0).expect("empty tag")))?
         .filter_map(|t| t.ok())
         .collect();
+
+    Ok(result)
+}
+
+pub fn get_all_folders() -> Result<Vec<String>, rusqlite::Error> {
+    let db = get_db_connection().lock().unwrap();
+
+    let mut q = db.prepare("SELECT DISTINCT path FROM folders")?;
+
+    let result: Vec<String> = q
+        .query_map((), |row| Ok(row.get(0).expect("empty tag")))?
+        .filter_map(|t| t.ok())
+        .collect();
+
+    //   let replaced: Vec<String> = result.iter().map(|s| s.replace(root_path, "")).collect();
 
     Ok(result)
 }

@@ -1,12 +1,32 @@
 <template>
-  <div ref="scrollRoot" class="flex h-full w-full flex-col overflow-y-auto px-2 pr-4">
-    <ViewControls class="sticky top-0 z-10 bg-neutral-50 pt-2 dark:bg-neutral-950" />
+  <div v-bind="containerProps" class="relative h-full w-full px-2 pr-4">
+    <div v-bind="wrapperProps">
+      <ViewControls class="sticky top-0 z-10 bg-neutral-50 pt-2 dark:bg-neutral-950" />
 
-    <!--When looking at All Books and we have zero books show placeholder-->
-    <EmptyBooksPlaceholder v-if="files.length === 0 && !loading" />
+      <EmptyBooksPlaceholder v-if="files.length === 0 && !loading" class="mt-40" />
 
-    <div v-else class="h-4">
-      <TableRender :files="files"></TableRender>
+      <div
+        v-for="file in list"
+        :key="file.index"
+        class="gap-4 border-b border-neutral-200 p-4 transition-colors hover:bg-neutral-100/50 data-[state=selected]:bg-neutral-100 dark:border-neutral-800 dark:hover:bg-neutral-800/50 dark:data-[state=selected]:bg-neutral-800"
+      >
+        <BookViewBookContextMenu :path="file.data.path">
+          <div class="flex flex-row justify-between">
+            <div class="w-[60%] truncate">
+              <template v-if="file.data.title">
+                {{ file.data.title }}
+              </template>
+              <template v-else> Unknown title </template>
+            </div>
+            <div class="w-[20%]">
+              {{ file.data.author }}
+            </div>
+            <div class="w-[20%]">
+              {{ file.data.year }}
+            </div>
+          </div>
+        </BookViewBookContextMenu>
+      </div>
     </div>
   </div>
 </template>
@@ -26,6 +46,8 @@ import type { IOpenedPath, IOpenedTag } from '~/api/openedTabs';
 import EmptyBooksPlaceholder from '~/components/Placeholders/EmptyBooksPlaceholder.vue';
 import { useFilesList } from './useFileList';
 import TableRender from './TableRender.vue';
+import { useVirtualizer } from '@tanstack/vue-virtual';
+import { useVirtualList } from '@vueuse/core';
 
 const store = useStore();
 
@@ -71,11 +93,9 @@ const sortedFiles = computed(() => {
 // Scroll position
 //
 
-const scrollRoot = useTemplateRef('scrollRoot');
+const { list, containerProps, wrapperProps } = useVirtualList(sortedFiles, { itemHeight: 59 });
 
-onMounted(() => {
-  console.log(scrollRoot.value);
-});
+const scrollRoot = containerProps.ref;
 
 const setScrollPositionFromSaved = () => {
   if (!scrollRoot.value) return;

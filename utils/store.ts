@@ -4,9 +4,14 @@ import { clamp as _clamp, cloneDeep } from 'lodash';
 import { cloneDeep as _cloneDeep } from 'lodash';
 import ShortUniqueId from 'short-unique-id';
 
-import type { IOpenedTabs, IOpened, IViewSettings } from '~/api/openedTabs';
+import {
+  type IOpenedTabs,
+  type IOpened,
+  type IViewSettings,
+  setOpenedTabs,
+  getOpenedTabs,
+} from '~/api/openedTabs';
 import { getRootPath } from '~/api/rootPath';
-import type { IFolderTree } from '~/api/files';
 import { getSettings, type ISettings } from '~/api/settings';
 
 const uid = new ShortUniqueId({ length: 10 });
@@ -15,7 +20,6 @@ export type StateType = {
   rootPath: string | null;
   openedTabs: IOpenedTabs['tabs'];
   openedTabsActiveId: IOpenedTabs['activeId'];
-  folderTree: IFolderTree | null;
   settings: ISettings | null;
 };
 
@@ -35,7 +39,6 @@ export const useStore = defineStore('main', {
     return {
       rootPath: null,
       settings: null,
-      folderTree: null,
       openedTabs: [],
       openedTabsActiveId: '',
     };
@@ -95,13 +98,12 @@ export const useStore = defineStore('main', {
         activeId: this.openedTabsActiveId,
       });
 
-      //await $trpc.setOpenedTabs.mutate(clone);
+      setOpenedTabs(clone);
     },
     async fetchOpened() {
-      /*
+      const res = await getOpenedTabs();
       this.openedTabs = res.tabs;
       this.openedTabsActiveId = res.activeId;
-      */
     },
     async fetchSetting() {
       this.settings = await getSettings();
@@ -136,13 +138,9 @@ export const useStore = defineStore('main', {
     //
     // Updates
     //
-    updateFolderTree(data: IFolderTree) {
-      this.folderTree = data;
-    },
     updateSettings(data: ISettings) {
       this.settings = data;
     },
-    updateTags() {},
     updateOpened(data: IOpenedTabs['tabs']) {
       this.openedTabs = data;
     },

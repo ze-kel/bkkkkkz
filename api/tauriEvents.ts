@@ -1,5 +1,4 @@
 import { listen, type UnlistenFn } from '@tauri-apps/api/event';
-import type { IBookFromDb } from '~/api/watcher/metaCache';
 
 type EventPayloads = {
   file_remove: string;
@@ -16,7 +15,7 @@ export const useListenToEvent = <E extends keyof EventPayloads>(
   const u = ref<UnlistenFn>();
 
   onMounted(async () => {
-    const a = await listen(name, (event) => {
+    u.value = await listen(name, (event) => {
       callback(event.payload as EventPayloads[E]);
     });
   });
@@ -27,3 +26,18 @@ export const useListenToEvent = <E extends keyof EventPayloads>(
     }
   });
 };
+
+export interface IBookFromDb {
+  path: string;
+  title: string;
+  author: string;
+  year: number;
+  myRating: number;
+  cover: string;
+  isbn13: string;
+  tags: string[];
+  read: {
+    started?: string | undefined;
+    finished?: string | undefined;
+  }[];
+}

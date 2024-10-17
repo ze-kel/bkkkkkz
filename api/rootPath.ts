@@ -43,7 +43,6 @@ export const getRootPath = async () => {
   const store = await getStore();
 
   const res = await store.get(KEY);
-  console.log('root path is', res);
 
   if (typeof res !== 'string') return null;
 
