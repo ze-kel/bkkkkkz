@@ -1,10 +1,13 @@
 use gray_matter::engine::YAML;
 use gray_matter::Matter;
+
 use rusqlite::{params, Connection, Result};
 use serde::Deserialize;
+use serde_json::Error;
 use std::fs::File;
 use std::io::{self, BufRead, BufReader};
 use std::path::Path;
+use std::usize;
 use walkdir::WalkDir;
 
 use crate::db::{get_db_connection, BookFromDb};
@@ -34,14 +37,17 @@ fn wrap_or_null(v: Option<String>) -> String {
 pub fn insert_file(file: &BookFromDb) -> Result<(), rusqlite::Error> {
     let db: std::sync::MutexGuard<'_, Connection> = get_db_connection().lock().unwrap();
 
-    let path = file.path.as_ref().unwrap();
+    let path = match file.path.as_ref() {
+        Some(p) => p,
+        None => return Ok(()),
+    };
 
     db.execute(
         "INSERT INTO files(path, title, author, year, myRating, cover, isbn13)
         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
         ON CONFLICT(path) DO UPDATE SET
         title=excluded.title, author=excluded.author, year=excluded.year, myRating=excluded.myRating, cover=excluded.cover, isbn13=excluded.isbn13;",
-        (file.path.clone(), file.title.clone(), file.author.clone(), file.year, file.myRating, file.cover.clone(), file.isbn13),
+        (file.path.clone(), file.title.clone(), file.author.clone(), file.year, file.my_rating, file.cover.clone(), file.isbn13),
     )?;
 
     match &file.tags {
@@ -68,11 +74,9 @@ pub fn insert_file(file: &BookFromDb) -> Result<(), rusqlite::Error> {
     };
 
     match &file.read {
-        None => {
-            db.execute("DELETE FROM read WHERE path=$1", params![path])?;
-        }
+        None => db.execute("DELETE FROM read WHERE path=$1", params![path]),
         Some(t) => {
-            if (t.len() > 0) {
+            if t.len() > 0 {
                 db.execute(
                     "DELETE FROM read WHERE path=?1 AND ind > ?2",
                     (path.clone(), t.len() - 1),
@@ -93,14 +97,16 @@ pub fn insert_file(file: &BookFromDb) -> Result<(), rusqlite::Error> {
                     .collect();
 
                 let q_in = format!(
-                "INSERT INTO read(ind,path, started, finished) VALUES {} ON CONFLICT(ind,path) DO UPDATE SET started=excluded.started, finished=excluded.finished",
-                pairs_insertion.join(",")
-            );
+                    "INSERT INTO read(ind,path, started, finished) VALUES {} ON CONFLICT(ind,path) DO UPDATE SET started=excluded.started, finished=excluded.finished",
+                    pairs_insertion.join(",")
+
+                );
 
                 db.execute(&q_in, ())?;
             }
+            return Ok(());
         }
-    };
+    }?;
 
     Ok(())
 }
@@ -120,9 +126,14 @@ fn get_file_by_path(path_str: &str) -> Result<BookFromDb, String> {
         Ok(v) => match v {
             Some(text) => match matter.parse(&text).data {
                 Some(data) => {
-                    let mut des: BookFromDb = data.deserialize().unwrap();
-                    des.path = Some(p);
-                    Ok(des)
+                    let des: Result<BookFromDb, Error> = data.deserialize();
+                    match des {
+                        Ok(mut book) => {
+                            book.path = Some(p);
+                            Ok(book)
+                        }
+                        Err(e) => Err(e.to_string()),
+                    }
                 }
                 None => Ok(BookFromDb {
                     path: Some(p),
@@ -134,17 +145,17 @@ fn get_file_by_path(path_str: &str) -> Result<BookFromDb, String> {
                 ..Default::default()
             }),
         },
-        Err(e) => return Err(format!("Error when parsing file: {}", e.to_string())),
+        Err(e) => return Err(e.to_string()),
     }
 }
 
 pub fn cache_file(path: &Path) -> Result<BookFromDb, String> {
     match get_file_by_path(&path.to_string_lossy()) {
         Ok(file) => match insert_file(&file) {
-            Ok(f) => Ok(file),
+            Ok(_) => Ok(file),
             Err(e) => Err(format!("Error when caching file: {}", e.to_string())),
         },
-        Err(e) => Err(format!("Error when reading file: {}", e.to_string())),
+        Err(e) => Err(format!("Error when reading file: {}", e)),
     }
 }
 
@@ -156,20 +167,32 @@ pub fn remove_file_from_cache(path: &Path) -> Result<usize, rusqlite::Error> {
     )
 }
 
-pub fn cache_files_and_folders<P: AsRef<Path>>(dir: P) -> Result<()> {
+pub fn cache_files_and_folders<P: AsRef<Path>>(dir: P) -> Result<(), Vec<String>> {
+    let mut errs: Vec<String> = vec![];
+
     for entry in WalkDir::new(dir).into_iter().filter_map(Result::ok) {
         if entry.file_type().is_file() {
             if let Some(extension) = entry.path().extension() {
                 if extension == "md" {
-                    cache_file(&entry.path());
+                    match cache_file(&entry.path()) {
+                        Ok(_) => (),
+                        Err(e) => errs.push(e),
+                    }
                 }
             }
         }
         if entry.file_type().is_dir() {
-            cache_folder(&entry.path()).expect("folder insert fail");
+            match cache_folder(&entry.path()) {
+                Ok(_) => (),
+                Err(e) => errs.push(e.to_string()),
+            }
         }
     }
-    Ok(())
+
+    match errs.len() {
+        0 => Ok(()),
+        _ => Err(errs),
+    }
 }
 
 pub fn read_front_matter(file_path: &str) -> io::Result<Option<String>> {

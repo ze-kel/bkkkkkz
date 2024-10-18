@@ -8,34 +8,52 @@ use std::thread;
 use std::time::Duration;
 use tauri::{AppHandle, Emitter};
 
+use crate::errorhandling::{send_err_to_frontend, ErrorFromRust};
 use crate::metacache::{
     cache_file, cache_files_and_folders, cache_folder, remove_file_from_cache,
     remove_files_in_folder_rom_cache, remove_folder_from_cache,
 };
 
-pub fn watch_path(path: &str, app: AppHandle) -> Result<()> {
+pub fn watch_path(path: &str, app: AppHandle) {
     let (tx, rx) = channel();
 
-    let mut watcher: RecommendedWatcher = Watcher::new(
+    let wr: Result<RecommendedWatcher> = Watcher::new(
         tx,
         Config::default().with_poll_interval(Duration::from_secs(2)),
-    )?;
+    );
 
-    let path = Path::new(path);
+    match wr {
+        Ok(mut www) => match www.watch(Path::new(path), RecursiveMode::Recursive) {
+            Ok(_) => {
+                thread::spawn(move || {
+                    handle_events(rx, app);
+                });
 
-    if let Err(e) = watcher.watch(path, RecursiveMode::Recursive) {
-        eprintln!("Failed to start watching: {}", e);
-        return Err(e);
-    }
-
-    println!("Watching for changes in: {}", path.display());
-
-    thread::spawn(move || {
-        handle_events(rx, app);
-    });
-
-    loop {
-        thread::park();
+                loop {
+                    thread::park();
+                }
+            }
+            Err(e) => {
+                send_err_to_frontend(
+                    &app,
+                    &ErrorFromRust::new(
+                       "Error: watcher process stopped".to_string(),
+                       format!(
+                        "Without watcher process app will not be able to process changes \n\nRaw Error: {}", e.to_string()
+                    )
+                    ).action("c_start_watcher".to_string(), "Restart watcher".to_string()),
+                );
+            }
+        },
+        Err(e) => send_err_to_frontend(
+            &app,
+            &ErrorFromRust::new(
+                "Error: watcher process unable to initialize".to_string(),
+                format!(
+                 "Without watcher process app will not be able to process changes \n\nRaw Error: {}", e.to_string()
+             )
+             ).action("c_start_watcher".to_string(), "Restart watcher".to_string())
+        ),
     }
 }
 
@@ -52,41 +70,92 @@ pub fn handle_events(rx: Receiver<notify::Result<notify::Event>>, app: AppHandle
     }
 }
 
+fn send_generic_watch_process_err(app: &AppHandle, place: String, raw_err_string: String) {
+    send_err_to_frontend(
+        app,
+        &ErrorFromRust::new(
+            "Watcher encountered an error".to_string(),
+            format!("Location: {} \n\nRawError: {}", place, raw_err_string),
+        ),
+    );
+}
+
 fn handle_file_remove(app: &AppHandle, path: &Path, ext: &OsStr) {
     if ext == "md" {
-        remove_file_from_cache(path);
-        app.emit("file_remove", path.to_string_lossy()).unwrap()
+        match remove_file_from_cache(path) {
+            Ok(_) => app.emit("file_remove", path.to_string_lossy()).unwrap(),
+            Err(e) => send_generic_watch_process_err(
+                app,
+                format!("file_remove {}", path.to_string_lossy()),
+                e.to_string(),
+            ),
+        };
     }
 }
 
 fn handle_file_add(app: &AppHandle, path: &Path, ext: &OsStr) {
     if ext == "md" {
-        let v = cache_file(path).unwrap();
-        app.emit("file_add", v).unwrap()
+        match cache_file(path) {
+            Ok(v) => app.emit("file_add", v).unwrap(),
+            Err(e) => send_generic_watch_process_err(
+                app,
+                format!("file_add {}", path.to_string_lossy()),
+                e.to_string(),
+            ),
+        }
     }
 }
 
 fn handle_file_update(app: &AppHandle, path: &Path, ext: &OsStr) {
     if ext == "md" {
-        let v = cache_file(path).unwrap();
-        app.emit("file_update", v).unwrap()
+        match cache_file(path) {
+            Ok(v) => app.emit("file_update", v).unwrap(),
+            Err(e) => send_generic_watch_process_err(
+                app,
+                format!("file_update {}", path.to_string_lossy()),
+                e.to_string(),
+            ),
+        }
     }
 }
 
-// Folder remove and folder add are called only for folder that was modified.
-// This means that renaming folder -> folder_renamed will cause only folder events
-// Even if there are sub-folders and files we will not get events for them
+// Folder remove and folder add are called only for exact folder that was modified.
+// This means that renaming folder -> folder_renamed will cause events for sub folders and sub files
 // Therefore we need to remove\add all files in that directory
 fn handle_folder_remove(app: &AppHandle, path: &Path) {
-    remove_folder_from_cache(path);
-    remove_files_in_folder_rom_cache(path);
-    app.emit("folder_remove", path.to_string_lossy()).unwrap();
+    match remove_folder_from_cache(path) {
+        Err(e) => send_generic_watch_process_err(
+            app,
+            format!("folder_remove {}", path.to_string_lossy()),
+            e.to_string(),
+        ),
+        Ok(_) => match remove_files_in_folder_rom_cache(path) {
+            Err(e) => send_generic_watch_process_err(
+                app,
+                format!("folder_remove {}", path.to_string_lossy()),
+                e.to_string(),
+            ),
+            Ok(_) => app.emit("folder_remove", path.to_string_lossy()).unwrap(),
+        },
+    };
 }
 
 fn handle_folder_add(app: &AppHandle, path: &Path) {
-    cache_folder(path);
-    cache_files_and_folders(path);
-    app.emit("folder_add", path.to_string_lossy()).unwrap();
+    match cache_folder(path) {
+        Err(e) => send_generic_watch_process_err(
+            app,
+            format!("folder_remove {}", path.to_string_lossy()),
+            e.to_string(),
+        ),
+        Ok(_) => match cache_files_and_folders(path) {
+            Err(e) => send_generic_watch_process_err(
+                app,
+                format!("folder_remove {}", path.to_string_lossy()),
+                e.join(","),
+            ),
+            Ok(_) => app.emit("folder_add", path.to_string_lossy()).unwrap(),
+        },
+    };
 }
 
 fn handle_event(event: Event, app: &AppHandle) {

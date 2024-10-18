@@ -27,7 +27,8 @@ pub struct BookFromDb {
     pub title: Option<String>,
     pub author: Option<String>,
     pub year: Option<u16>,
-    pub myRating: Option<f64>,
+    #[serde(rename = "myRating")]
+    pub my_rating: Option<f64>,
     pub read: Option<Vec<crate::metacache::DateRead>>,
     pub tags: Option<Vec<String>>,
     pub cover: Option<String>,
@@ -41,7 +42,7 @@ impl Default for BookFromDb {
             title: None,
             author: None,
             year: None,
-            myRating: None,
+            my_rating: None,
             read: None,
             tags: None,
             cover: None,
@@ -93,7 +94,7 @@ pub fn get_files_abstact(where_clause: String) -> Result<Vec<BookFromDb>, rusqli
             title: row.get(1).unwrap_or(None),
             author: row.get(2).unwrap_or(None),
             year: row.get(3).unwrap_or(None),
-            myRating: row.get(4).unwrap_or(None),
+            my_rating: row.get(4).unwrap_or(None),
             read: reads,
             tags: tags,
             cover: row.get(7).unwrap_or(None),
@@ -142,8 +143,6 @@ pub fn get_all_folders() -> Result<Vec<String>, rusqlite::Error> {
         .query_map((), |row| Ok(row.get(0).expect("empty tag")))?
         .filter_map(|t| t.ok())
         .collect();
-
-    //   let replaced: Vec<String> = result.iter().map(|s| s.replace(root_path, "")).collect();
 
     Ok(result)
 }

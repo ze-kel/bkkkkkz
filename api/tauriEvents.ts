@@ -1,4 +1,13 @@
+import { invoke } from '@tauri-apps/api/core';
 import { listen, type UnlistenFn } from '@tauri-apps/api/event';
+import { toast } from 'vue-sonner';
+
+type ErrorFromRust = {
+  title: string;
+  description: string;
+  actionInvoke: string;
+  actionLabel: string;
+};
 
 type EventPayloads = {
   file_remove: string;
@@ -6,6 +15,22 @@ type EventPayloads = {
   file_update: IBookFromDb;
   folder_add: string;
   folder_remove: string;
+  error_occured: ErrorFromRust;
+};
+
+export const handleErrorsFromRust = () => {
+  const handler = (e: ErrorFromRust) => {
+    toast.error(e.title, {
+      description: e.description,
+      action: e.actionInvoke
+        ? {
+            label: e.actionLabel,
+            onClick: () => invoke(e.actionInvoke),
+          }
+        : undefined,
+    });
+  };
+  useListenToEvent('error_occured', handler);
 };
 
 export const useListenToEvent = <E extends keyof EventPayloads>(

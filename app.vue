@@ -1,5 +1,6 @@
 <template>
   <div
+    id="app"
     class="flex h-screen flex-col bg-neutral-50 text-neutral-950 dark:bg-neutral-950 dark:text-neutral-50"
   >
     <NuxtLayout>
@@ -13,7 +14,7 @@
 
 <script setup lang="ts">
 import { debounce as _debounce } from 'lodash';
-import { useListenToEvent } from './api/tauriEvents';
+import { handleErrorsFromRust, useListenToEvent } from './api/tauriEvents';
 
 const store = useStore();
 
@@ -22,6 +23,8 @@ onBeforeMount(async () => {
 });
 
 const colorMode = useColorMode();
+
+handleErrorsFromRust();
 
 // Global hook for deleted files
 useListenToEvent('file_remove', (path) => {
@@ -64,8 +67,7 @@ useHead({
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 
-  background-color: var(--bg-main);
-  color: var(--text-main);
+  user-select: none;
 }
 
 ::-webkit-scrollbar {

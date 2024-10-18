@@ -1,14 +1,34 @@
 <template>
   <div class="flex h-full w-full flex-col items-center justify-center">
-    <div class="text-lg">Initializing</div>
+    <div
+      class="bg-card text-card-foreground w-[350px] max-w-80 rounded-lg border border-neutral-300 px-6 py-4 shadow-sm dark:border-neutral-600"
+    >
+      <div class="text-2xl">Initializing</div>
 
-    <div class="flex flex-col">
-      <div>Db setup: {{ dbSetup }}</div>
-      <div>Cache setup: {{ cacheSetup }}</div>
-      <div>Watcher setup: {{ watcherSetup }}</div>
-    </div>
-    <div>
-      <ShButton @click="initLoop"> Initialize </ShButton>
+      <div class="mt-2 flex flex-col gap-1 font-light">
+        <div class="flex justify-between">
+          Database
+          <div>
+            <CheckIcon v-if="dbSetup" />
+            <LoaderCircle v-else class="animate-spin" />
+          </div>
+        </div>
+        <div class="flex justify-between">
+          Cache
+          <div>
+            <CheckIcon v-if="cacheSetup" />
+            <LoaderCircle v-else class="animate-spin" />
+          </div>
+        </div>
+        <div class="flex justify-between">
+          File watcher
+          <div>
+            <CheckIcon v-if="watcherSetup" />
+            <LoaderCircle v-else class="animate-spin" />
+          </div>
+        </div>
+      </div>
+      <ShButton class="mt-4 w-full" variant="outline" @click="initLoop"> Restart </ShButton>
     </div>
   </div>
 </template>
@@ -16,6 +36,7 @@
 <script lang="ts" setup>
 import { useStore } from '~~/utils/store';
 import { invoke } from '@tauri-apps/api/core';
+import { CheckIcon, LoaderCircle } from 'lucide-vue-next';
 
 const store = useStore();
 

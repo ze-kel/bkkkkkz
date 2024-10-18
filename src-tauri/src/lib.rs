@@ -1,5 +1,7 @@
+mod errorhandling;
 mod filewatcher;
 mod metacache;
+use errorhandling::{send_err_to_frontend, ErrorFromRust};
 use filewatcher::watch_path;
 use metacache::{cache_files_and_folders, create_db_tables};
 use tauri::AppHandle;
@@ -20,48 +22,102 @@ fn c_setup_db() -> Result<(), String> {
 }
 
 #[tauri::command]
-fn c_prepare_cache(_: AppHandle, root_path: String) -> Result<(), String> {
-    let tables = create_db_tables();
-
-    if let Err(e) = tables {
-        return Err(e.to_string());
+fn c_prepare_cache(app: AppHandle, root_path: String) -> bool {
+    match create_db_tables() {
+        Err(e) => {
+            send_err_to_frontend(
+                &app,
+                &ErrorFromRust::new("Error when creating tables in cache db".to_string(),
+                format!("This should not happen. Try restarting the app, else report as bug\n\nRaw Error: {}", e.to_string()),)
+                
+            );
+            return false;
+        }
+        Ok(_) => match cache_files_and_folders(&root_path) {
+            Err(e) => {
+                send_err_to_frontend(
+                    &app,
+                    &ErrorFromRust::new(
+                    "Error when caching files".to_string(),
+                    format!(
+                        "These files will not be visible in app. \n\n Raw Error: {}",
+                        e.join(",")
+                    ))
+                );
+                return false;
+            }
+            Ok(_) => return true,
+        },
     }
-
-    cache_files_and_folders(&root_path).expect("Err when cache all files");
-    Ok(())
 }
 
 #[tauri::command]
 fn c_start_watcher(app: AppHandle, root_path: String) {
-    thread::spawn(move || {
-        watch_path(&root_path, app);
-    });
+    thread::spawn(move || watch_path(&root_path, app));
 }
 
 #[tauri::command]
-fn c_get_files_path(_: AppHandle, path: String) -> Result<Vec<BookFromDb>, String> {
-    Ok(get_files_by_path(path).expect("error when get files"))
+fn c_get_files_path(app: AppHandle, path: String) -> Vec<BookFromDb> {
+    return match get_files_by_path(path) {
+        Ok(files) => files,
+        Err(e) => {
+            send_err_to_frontend(
+                &app,
+                &ErrorFromRust::new(
+                "Error when getting files by path".to_string(),
+                e.to_string()),
+            );
+            vec![]
+        }
+    };
 }
 
 #[tauri::command]
-fn c_get_files_tag(_: AppHandle, tag: String) -> Result<Vec<BookFromDb>, String> {
-    Ok(get_files_by_tag(tag).expect("error when get files"))
+fn c_get_files_tag(app: AppHandle, tag: String) -> Vec<BookFromDb> {
+    return match get_files_by_tag(tag) {
+        Ok(files) => files,
+        Err(e) => {
+            send_err_to_frontend(
+                &app,
+                &ErrorFromRust::new(
+                "Error when getting files by tag".to_string(),
+                e.to_string()),
+            );
+            vec![]
+        }
+    };
 }
 
 #[tauri::command]
-fn c_get_all_tags() -> Result<Vec<String>, String> {
-    match get_all_tags() {
-        Ok(tags) => Ok(tags),
-        Err(e) => Err(e.to_string()),
-    }
+fn c_get_all_tags(app: AppHandle) -> Vec<String> {
+    return match get_all_tags() {
+        Ok(r) => r,
+        Err(e) => {
+            send_err_to_frontend(
+                &app,
+                &ErrorFromRust::new(
+                "Error when getting all tags".to_string(),
+                e.to_string()),
+            );
+            vec![]
+        }
+    };
 }
 
 #[tauri::command]
-fn c_get_all_folders(_: AppHandle) -> Result<Vec<String>, String> {
-    match get_all_folders() {
-        Ok(tags) => Ok(tags),
-        Err(e) => Err(e.to_string()),
-    }
+fn c_get_all_folders(app: AppHandle) -> Vec<String> {
+    return match get_all_folders() {
+        Ok(r) => r,
+        Err(e) => {
+            send_err_to_frontend(
+                &app,
+                &ErrorFromRust::new(
+                "Error when getting folder tree".to_string(),
+                e.to_string()),
+            );
+            vec![]
+        }
+    };
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]

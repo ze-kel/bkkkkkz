@@ -6,6 +6,7 @@ dist
 dist-electron
 *.local
 thumbs.db
+*.db
 
 .output
 
