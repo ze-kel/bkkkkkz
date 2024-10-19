@@ -1,3 +1,11 @@
+<template>
+  <div
+    ref="editorWrapper"
+    class="editorRoot editorStyling h-full"
+    :class="colorMode.value === 'dark' && 'dark'"
+  ></div>
+</template>
+
 <script lang="ts" setup>
 import {
   keymap,
@@ -66,14 +74,6 @@ onMounted(() => {
 const colorMode = useColorMode();
 </script>
 
-<template>
-  <div
-    ref="editorWrapper"
-    class="root editorStyling h-full"
-    :class="colorMode.value === 'dark' && 'dark'"
-  ></div>
-</template>
-
 <style>
 .root {
   /* Neutral */
@@ -89,7 +89,7 @@ const colorMode = useColorMode();
   --neutral-900: hsl(0 0% 9%);
   --neutral-950: hsl(0 0% 3.9%);
 
-  --font:                                         
+  --font:                                           
 ;
 }
 

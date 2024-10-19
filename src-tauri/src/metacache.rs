@@ -1,16 +1,10 @@
-use gray_matter::engine::YAML;
-use gray_matter::Matter;
-
 use rusqlite::{params, Connection, Result};
-use serde::Deserialize;
-use serde_json::Error;
-use std::fs::File;
-use std::io::{self, BufRead, BufReader};
 use std::path::Path;
 use std::usize;
 use walkdir::WalkDir;
 
 use crate::db::{get_db_connection, BookFromDb};
+use crate::files::{read_file_by_path, FileReadMode};
 
 // Function to create or open the SQLite database and set up the table
 pub fn create_db_tables() -> Result<(), rusqlite::Error> {
@@ -21,7 +15,7 @@ pub fn create_db_tables() -> Result<(), rusqlite::Error> {
         DROP TABLE IF EXISTS read;
         DROP TABLE IF EXISTS folders;
         CREATE TABLE folders (path TEXT PRIMARY KEY, name TEXT);
-        CREATE TABLE files (path TEXT PRIMARY KEY, title TEXT, author TEXT, year INTEGER, myRating INTEGER, cover TEXT, isbn13 INTEGER);
+        CREATE TABLE files (path TEXT PRIMARY KEY, modified TEXT, title TEXT, author TEXT, year INTEGER, myRating INTEGER, cover TEXT, isbn13 INTEGER);
         CREATE TABLE tags (id INTEGER PRIMARY KEY, ind INTEGER, path TEXT, tag TEXT, UNIQUE(ind,path) FOREIGN KEY (path) REFERENCES files (path) ON DELETE CASCADE);
         CREATE TABLE read (id INTEGER PRIMARY KEY, ind INTEGER, path TEXT, started TEXT, finished TEXT, UNIQUE(ind,path) FOREIGN KEY (path) REFERENCES files (path) ON DELETE CASCADE);")
 }
@@ -43,11 +37,11 @@ pub fn insert_file(file: &BookFromDb) -> Result<(), rusqlite::Error> {
     };
 
     db.execute(
-        "INSERT INTO files(path, title, author, year, myRating, cover, isbn13)
-        VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
+        "INSERT INTO files(path, modified, title, author, year, myRating, cover, isbn13)
+        VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)
         ON CONFLICT(path) DO UPDATE SET
-        title=excluded.title, author=excluded.author, year=excluded.year, myRating=excluded.myRating, cover=excluded.cover, isbn13=excluded.isbn13;",
-        (file.path.clone(), file.title.clone(), file.author.clone(), file.year, file.my_rating, file.cover.clone(), file.isbn13),
+        modified=excluded.modified, title=excluded.title, author=excluded.author, year=excluded.year, myRating=excluded.myRating, cover=excluded.cover, isbn13=excluded.isbn13;",
+        (file.path.clone(), file.modified.clone(), file.title.clone(), file.author.clone(), file.year, file.my_rating, file.cover.clone(), file.isbn13),
     )?;
 
     match &file.tags {
@@ -110,47 +104,8 @@ pub fn insert_file(file: &BookFromDb) -> Result<(), rusqlite::Error> {
 
     Ok(())
 }
-
-#[derive(Deserialize, Debug, serde::Serialize, Clone)]
-pub struct DateRead {
-    pub started: Option<String>,
-    pub finished: Option<String>,
-}
-
-fn get_file_by_path(path_str: &str) -> Result<BookFromDb, String> {
-    let matter = Matter::<YAML>::new();
-    let front_matter = read_front_matter(&path_str);
-    let p = path_str.to_string();
-
-    match front_matter {
-        Ok(v) => match v {
-            Some(text) => match matter.parse(&text).data {
-                Some(data) => {
-                    let des: Result<BookFromDb, Error> = data.deserialize();
-                    match des {
-                        Ok(mut book) => {
-                            book.path = Some(p);
-                            Ok(book)
-                        }
-                        Err(e) => Err(e.to_string()),
-                    }
-                }
-                None => Ok(BookFromDb {
-                    path: Some(p),
-                    ..Default::default()
-                }),
-            },
-            _ => Ok(BookFromDb {
-                path: Some(p),
-                ..Default::default()
-            }),
-        },
-        Err(e) => return Err(e.to_string()),
-    }
-}
-
 pub fn cache_file(path: &Path) -> Result<BookFromDb, String> {
-    match get_file_by_path(&path.to_string_lossy()) {
+    match read_file_by_path(&path.to_string_lossy(), FileReadMode::OnlyMeta) {
         Ok(file) => match insert_file(&file) {
             Ok(_) => Ok(file),
             Err(e) => Err(format!("Error when caching file: {}", e.to_string())),
@@ -193,38 +148,6 @@ pub fn cache_files_and_folders<P: AsRef<Path>>(dir: P) -> Result<(), Vec<String>
         0 => Ok(()),
         _ => Err(errs),
     }
-}
-
-pub fn read_front_matter(file_path: &str) -> io::Result<Option<String>> {
-    let file = File::open(file_path)?;
-    let reader = BufReader::new(file);
-
-    let mut front_matter = String::new();
-    let mut inside_front_matter = false;
-
-    for line in reader.lines() {
-        let line = line?;
-
-        if line.trim() == "---" {
-            if inside_front_matter {
-                front_matter.push_str(&line);
-                front_matter.push('\n');
-                return Ok(Some(front_matter));
-            } else {
-                front_matter.push_str(&line);
-                front_matter.push('\n');
-                inside_front_matter = true;
-                continue;
-            }
-        }
-
-        if inside_front_matter {
-            front_matter.push_str(&line);
-            front_matter.push('\n');
-        }
-    }
-
-    Ok(None)
 }
 
 pub fn cache_folder(path: &Path) -> Result<usize, rusqlite::Error> {

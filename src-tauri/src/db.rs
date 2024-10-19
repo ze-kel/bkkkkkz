@@ -3,8 +3,6 @@ use rusqlite::Connection;
 
 use std::sync::Mutex;
 
-use crate::metacache::DateRead;
-
 static DB_CONNECTION: OnceCell<Mutex<Connection>> = OnceCell::new();
 pub fn get_db_connection() -> &'static Mutex<Connection> {
     DB_CONNECTION.get().expect("Database not initialized")
@@ -21,15 +19,25 @@ pub fn db_setup() -> Result<(), rusqlite::Error> {
     Ok(())
 }
 
+#[derive(serde::Deserialize, Debug, serde::Serialize, Clone)]
+pub struct DateRead {
+    pub started: Option<String>,
+    pub finished: Option<String>,
+}
+
 #[derive(serde::Serialize, serde::Deserialize, Clone)]
 pub struct BookFromDb {
     pub path: Option<String>,
+    pub modified: Option<String>,
+    // Markdown without frontmatter. Is not saved to db.
+    pub markdown: Option<String>,
+
     pub title: Option<String>,
     pub author: Option<String>,
     pub year: Option<u16>,
     #[serde(rename = "myRating")]
     pub my_rating: Option<f64>,
-    pub read: Option<Vec<crate::metacache::DateRead>>,
+    pub read: Option<Vec<DateRead>>,
     pub tags: Option<Vec<String>>,
     pub cover: Option<String>,
     pub isbn13: Option<u64>,
@@ -38,6 +46,7 @@ pub struct BookFromDb {
 impl Default for BookFromDb {
     fn default() -> BookFromDb {
         BookFromDb {
+            modified: None,
             path: None,
             title: None,
             author: None,
@@ -47,6 +56,7 @@ impl Default for BookFromDb {
             tags: None,
             cover: None,
             isbn13: None,
+            markdown: None,
         }
     }
 }
@@ -54,7 +64,7 @@ impl Default for BookFromDb {
 pub fn get_files_abstact(where_clause: String) -> Result<Vec<BookFromDb>, rusqlite::Error> {
     let db = get_db_connection().lock().unwrap();
 
-    let q = format!("SELECT path, title, author, year, myRating, readRaw, tagsRaw, cover, isbn13 FROM files 
+    let q = format!("SELECT path, modified, title, author, year, myRating, readRaw, tagsRaw, cover, isbn13 FROM files 
     LEFT JOIN 
     (SELECT tags.path as tagPath, GROUP_CONCAT(tags.tag, ',') AS tagsRaw FROM tags GROUP BY tags.path)
     ON files.path = tagPath
@@ -65,7 +75,7 @@ pub fn get_files_abstact(where_clause: String) -> Result<Vec<BookFromDb>, rusqli
     let mut query = db.prepare(&q)?;
 
     let result_iter = query.query_map([], |row| {
-        let reads_from_db: Result<String, rusqlite::Error> = row.get(6);
+        let reads_from_db: Result<String, rusqlite::Error> = row.get(7);
         let reads: Option<Vec<DateRead>> = match reads_from_db {
             Ok(v) => Some(
                 v.split(',')
@@ -90,15 +100,17 @@ pub fn get_files_abstact(where_clause: String) -> Result<Vec<BookFromDb>, rusqli
         };
 
         Ok(BookFromDb {
-            path: row.get(0).expect("No path from db"),
-            title: row.get(1).unwrap_or(None),
-            author: row.get(2).unwrap_or(None),
-            year: row.get(3).unwrap_or(None),
-            my_rating: row.get(4).unwrap_or(None),
+            path: row.get(0).unwrap_or(None),
+            modified: row.get(1).unwrap_or(None),
+            title: row.get(2).unwrap_or(None),
+            author: row.get(3).unwrap_or(None),
+            year: row.get(4).unwrap_or(None),
+            my_rating: row.get(5).unwrap_or(None),
             read: reads,
             tags: tags,
-            cover: row.get(7).unwrap_or(None),
-            isbn13: row.get(8).unwrap_or(None),
+            cover: row.get(8).unwrap_or(None),
+            isbn13: row.get(9).unwrap_or(None),
+            ..Default::default()
         })
     })?;
 

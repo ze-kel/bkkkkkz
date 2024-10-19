@@ -159,7 +159,6 @@ fn handle_folder_add(app: &AppHandle, path: &Path) {
 }
 
 fn handle_event(event: Event, app: &AppHandle) {
-    println!("{:?}", event);
     for (index, path) in event.paths.iter().enumerate() {
         match event.kind {
             EventKind::Create(kind) => match (kind, path.extension()) {

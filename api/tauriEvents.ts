@@ -54,6 +54,8 @@ export const useListenToEvent = <E extends keyof EventPayloads>(
 
 export interface IBookFromDb {
   path: string;
+  modified: string;
+
   title: string;
   author: string;
   year: number;

@@ -1,7 +1,9 @@
 mod errorhandling;
 mod filewatcher;
 mod metacache;
+mod files;
 use errorhandling::{send_err_to_frontend, ErrorFromRust};
+use files::{read_file_by_path, FileReadMode};
 use filewatcher::watch_path;
 use metacache::{cache_files_and_folders, create_db_tables};
 use tauri::AppHandle;
@@ -120,6 +122,14 @@ fn c_get_all_folders(app: AppHandle) -> Vec<String> {
     };
 }
 
+#[tauri::command]
+fn c_read_file_by_path(_: AppHandle, path: String) -> Result<BookFromDb, String> {
+     match read_file_by_path(&path, FileReadMode::FullFile) {
+        Ok(r) => Ok(r),
+        Err(e) =>  Err(e) 
+    }
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -134,7 +144,8 @@ pub fn run() {
             c_get_files_path,
             c_get_files_tag,
             c_get_all_tags,
-            c_get_all_folders
+            c_get_all_folders,
+            c_read_file_by_path
         ])
         .setup(|app| {
             if cfg!(debug_assertions) {
