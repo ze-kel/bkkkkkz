@@ -1,6 +1,3 @@
-use gray_matter::engine::YAML;
-use gray_matter::Matter;
-
 use chrono::offset::Utc;
 use chrono::DateTime;
 
@@ -29,40 +26,29 @@ fn get_file_modified_time(path_str: &str) -> Result<String, String> {
 }
 
 pub fn read_file_by_path(path_str: &str, read_mode: FileReadMode) -> Result<BookFromDb, String> {
-    let matter = Matter::<YAML>::new();
-
     let file_modified = match get_file_modified_time(path_str) {
         Ok(v) => v,
         Err(e) => return Err(e),
     };
 
-    let file_content = match read_mode {
-        FileReadMode::OnlyMeta => read_front_matter(&path_str),
-        FileReadMode::FullFile => fs::read_to_string(&path_str),
-    };
     let p = path_str.to_string();
 
-    match file_content {
-        Ok(text) => {
-            let parsed = matter.parse(&text);
-            match parsed.data {
-                Some(data) => {
-                    let des: Result<BookFromDb, serde_json::Error> = data.deserialize();
-                    match des {
-                        Ok(mut book) => {
-                            book.path = Some(p);
-                            book.modified = Some(file_modified);
+    match read_file(&path_str, &read_mode) {
+        Ok(fmc) => {
+            let parsed2: Result<BookFromDb, serde_yml::Error> = serde_yml::from_str(&fmc.0);
+            match parsed2 {
+                Ok(mut book) => {
+                    book.path = Some(p);
+                    book.modified = Some(file_modified);
 
-                            if matches!(read_mode, FileReadMode::FullFile) {
-                                book.markdown = Some(parsed.content)
-                            }
-
-                            Ok(book)
-                        }
-                        Err(e) => Err(e.to_string()),
+                    if matches!(read_mode, FileReadMode::FullFile) {
+                        book.markdown = Some(fmc.1)
                     }
+
+                    Ok(book)
                 }
-                None => Ok(BookFromDb {
+                // TODO: When error on parsing send notification to frontend that you might lose data on edit
+                Err(_) => Ok(BookFromDb {
                     path: Some(p),
                     ..Default::default()
                 }),
@@ -72,35 +58,84 @@ pub fn read_file_by_path(path_str: &str, read_mode: FileReadMode) -> Result<Book
     }
 }
 
-pub fn read_front_matter(file_path: &str) -> io::Result<String> {
+pub fn save_file(book: BookFromDb) -> Result<String, String> {
+    // TODO: handle case when we file content is newer than our stuff
+
+    let mut book_for_serializing = book.to_owned();
+
+    let path = match book.path {
+        Some(v) => v,
+        None => return Err("No path in book".to_string()),
+    };
+
+    let markdown = book.markdown.unwrap_or("".to_string());
+
+    // Omitting fields can be done via serde skip, however then the structure that gets saved to file
+    // needs to be different from structure that's sent to frontend(because it serializes too)
+    book_for_serializing.markdown = None;
+    book_for_serializing.modified = None;
+    book_for_serializing.path = None;
+
+    let yaml = match serde_yml::to_string(&book_for_serializing) {
+        Ok(v) => v,
+        Err(e) => return Err(e.to_string()),
+    };
+    let file = format!("---\n{yaml}---\n{markdown}");
+
+    match fs::write(path.clone(), file) {
+        Ok(_) => (),
+        Err(e) => return Err(e.to_string()),
+    };
+
+    match get_file_modified_time(&path.clone().as_str()) {
+        Ok(v) => Ok(v),
+        Err(e) => return Err(e.to_string()),
+    }
+}
+
+pub fn read_file(file_path: &str, read_mode: &FileReadMode) -> io::Result<(String, String)> {
     let file = File::open(file_path)?;
     let reader = BufReader::new(file);
 
     let mut front_matter = String::new();
+    let mut content = String::new();
+
     let mut inside_front_matter = false;
+    let mut frontmatter_found = false;
 
     for line in reader.lines() {
         // TODO: handle cases with no frontmatter better
         let line = line?;
 
-        if line.trim() == "---" {
-            if inside_front_matter {
-                front_matter.push_str(&line);
-                front_matter.push('\n');
-                return Ok(front_matter);
-            } else {
-                front_matter.push_str(&line);
-                front_matter.push('\n');
+        match (line.trim() == "---", inside_front_matter, frontmatter_found) {
+            // Found frontmatter start
+            (true, false, false) => {
                 inside_front_matter = true;
-                continue;
+                content = "".to_string();
             }
-        }
-
-        if inside_front_matter {
-            front_matter.push_str(&line);
-            front_matter.push('\n');
+            // Inside
+            (false, true, _) => {
+                front_matter.push_str(&line);
+                front_matter.push('\n');
+            }
+            // Found end
+            (true, true, _) => {
+                inside_front_matter = false;
+                frontmatter_found = true;
+                match read_mode {
+                    FileReadMode::OnlyMeta => return Ok((front_matter, content)),
+                    FileReadMode::FullFile => (),
+                }
+            }
+            // Anything after frontmatter
+            (_, _, true) => {
+                content.push_str(&line);
+                content.push('\n');
+            }
+            // Ignore anything before frontmatter
+            (false, false, false) => (),
         }
     }
 
-    Ok(front_matter)
+    Ok((front_matter, content))
 }

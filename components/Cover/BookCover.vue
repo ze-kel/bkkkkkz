@@ -33,12 +33,12 @@ import { debounce as _debounce } from 'lodash';
 import { convertFileSrc } from '@tauri-apps/api/core';
 
 import type { PropType } from 'vue';
-import type { IBookData } from '~/api/books';
 import { locateCover } from '~/api/files';
+import type { IBookFromDb } from '~/api/tauriEvents';
 
 const props = defineProps({
   file: {
-    type: Object as PropType<IBookData>,
+    type: Object as PropType<IBookFromDb>,
     required: true,
   },
 });

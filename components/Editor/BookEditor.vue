@@ -1,17 +1,13 @@
 <template>
-  <div v-if="!loading" class="flex h-full w-full flex-col overflow-y-auto overflow-x-hidden">
-    <div class="mx-auto w-full max-w-2xl">
+  <div class="flex h-full w-full flex-col overflow-y-auto overflow-x-hidden">
+    <div class="mx-auto h-fit w-full max-w-2xl">
+      <EditorMetaEditor v-if="file" v-model="file" />
       <div class="h-full min-h-[200px] border-t border-neutral-300 py-4 dark:border-neutral-800">
-        <Editor2
-          ref="markdown"
-          :initial-value="openedFile.content"
-          @change="
-            () => {
-              unsavedMarkdownChanges++;
-              debouncedSave();
-            }
-          "
-        />
+        <div
+          ref="editorWrapper"
+          class="editorRoot editorStyling h-full"
+          :class="colorMode.value === 'dark' && 'dark'"
+        ></div>
       </div>
     </div>
   </div>
@@ -22,23 +18,10 @@ import { cloneDeep as _cloneDeep } from 'lodash';
 import { debounce as _debounce } from 'lodash';
 
 import type { PropType } from 'vue';
-import {
-  fetchCover,
-  getFileContent,
-  removeCover,
-  renameEntity,
-  saveFileContent,
-  setCover,
-  type IFile,
-  type ISavedFile,
-} from '~/api/files';
+
 import type { IOpenedFile } from '~/api/openedTabs';
-import { useStore } from '~~/utils/store';
 
-import { toast } from 'vue-sonner';
-import type { EditorView } from '@codemirror/view';
-
-const store = useStore();
+import { useBookEditor } from './useFileState';
 
 const props = defineProps({
   opened: {
@@ -47,68 +30,45 @@ const props = defineProps({
   },
 });
 
-const openedFile = ref<ISavedFile>({ name: '', path: '' });
-const previousName = ref('');
-const loading = ref(true);
+const editorWrapper = useTemplateRef('editorWrapper');
 
-const markdownRef = useTemplateRef('markdown');
+const colorMode = useColorMode();
 
-
-const unsavedMarkdownChanges = ref(0);
-
-const save = async () => {
-  const file = openedFile.value;
-  if (!file.path || !file.name) return;
-  let sc = 0;
-  if (markdownRef.value && markdownRef.value.$.exposed) {
-    const { editor } = markdownRef.value.$.exposed as { editor: Ref<EditorView | null> };
-
-    if (editor.value) {
-      file.content = editor.value?.state.doc.toString();
-      sc = unsavedMarkdownChanges.value;
-    }
-  }
-
-  await saveFileContent(file);
-  unsavedMarkdownChanges.value = unsavedMarkdownChanges.value - sc;
-};
-
-const rename = async (newName: string) => {
-  if (!openedFile.value.path) return;
-  const newPath = await renameEntity({ srcPath: openedFile.value.path, newName });
-  store.openNewOne({ ...props.opened, thing: newPath }, { place: 'current' });
-};
-
-const debouncedSave = _debounce(save, 500);
-const debouncedRename = _debounce(rename, 500);
-
-onBeforeUnmount(async () => {
-  debouncedRename.cancel();
-  if (unsavedMarkdownChanges.value > 0) {
-    debouncedSave();
-  }
-  debouncedSave.flush();
-});
-
-watch(
-  openedFile,
-  (newFile, oldFile) => {
-    if (!oldFile || !newFile || loading.value) return;
-
-    // Can't check against oldFile because after mutation it will be the same
-    // OldFile is still useful to eliminate initial load case
-    if (newFile.name && newFile.name !== previousName.value) {
-      debouncedRename(newFile.name);
-    } else {
-      debouncedSave();
-    }
-  },
-  { deep: true },
-);
+const { file, error } = useBookEditor(props.opened, editorWrapper);
 </script>
 
 <style scoped>
 .customTopGrid {
   grid-template-columns: minmax(min-content, max-content) 3fr 1fr;
+}
+
+.editorRoot {
+  /* Neutral */
+  --neutral-50: hsl(0 0% 98%);
+  --neutral-100: hsl(0 0% 96.1%);
+  --neutral-200: hsl(0 0% 89.8%);
+  --neutral-300: hsl(0 0% 83.1%);
+  --neutral-400: hsl(0 0% 63.9%);
+  --neutral-500: hsl(0 0% 45.1%);
+  --neutral-600: hsl(0 0% 32.2%);
+  --neutral-700: hsl(0 0% 25.1%);
+  --neutral-800: hsl(0 0% 14.9%);
+  --neutral-900: hsl(0 0% 9%);
+  --neutral-950: hsl(0 0% 3.9%);
+}
+
+.editorStyling {
+  --text: var(--neutral-950);
+  --cursor: var(--neutral-800);
+  --selection: var(--neutral-300);
+
+  --fold: var(--neutral-800);
+}
+
+.dark.editorStyling {
+  --text: var(--neutral-50);
+  --cursor: var(--neutral-200);
+  --selection: var(--neutral-800);
+  --fold: var(--neutral-200);
 }
 </style>

@@ -8,7 +8,7 @@
             :draggable="true"
             @dragstart="startDrag($event)"
           >
-            <Cover :file="openedFile" />
+            <CoverBookCover :file="openedFile" />
           </div>
         </ShContextMenuTrigger>
         <ShContextMenuContent>
@@ -24,10 +24,10 @@
         </ShContextMenuContent>
       </ShContextMenu>
 
-      <Rating v-model="openedFile.myRating" class="mt-3 place-content-center self-center" />
+      <RatingStars v-model="openedFile.myRating" class="mt-3 place-content-center self-center" />
 
-      <BasicInput
-        v-model="openedFile.isbn13"
+      <UiBasicInput
+        v-model="openedFile.ISBN13"
         type="number"
         class="min-w-[100px] text-center opacity-50 focus:opacity-100"
         theme="hidden"
@@ -36,14 +36,14 @@
     </div>
 
     <div class="flex flex-col gap-2">
-      <BasicInput
+      <UiBasicInput
         v-model="openedFile.title"
         spellcheck="false"
         class="line-clamp-1 min-w-[100px] text-4xl font-light leading-none"
         placeholder="Title"
         theme="hidden"
       />
-      <BasicInput
+      <UiBasicInput
         v-model="openedFile.author"
         spellcheck="false"
         class="font-regular -mt-1 w-fit min-w-[100px] text-2xl leading-none"
@@ -52,7 +52,7 @@
       />
 
       <div class="flex items-center gap-3">
-        <BasicInput
+        <UiBasicInput
           v-model="openedFile.year"
           type="number"
           theme="hidden"
@@ -61,13 +61,13 @@
         />
       </div>
 
-      <TagsEditor v-model="openedFile.tags" class="" />
+      <EditorTagsEditor v-model="openedFile.tags" class="" />
       <ReadDetails v-model="openedFile.read" class="mt-3" />
     </div>
   </div>
 
   <div ref="forDrag" class="absolute top-[-500px]">
-    <DragDisplay> {{ dragging }} </DragDisplay>
+    <UiDragDisplay> {{ dragging }} </UiDragDisplay>
   </div>
 </template>
 
@@ -76,6 +76,7 @@ import { useVModel } from '@vueuse/core';
 import { toast } from 'vue-sonner';
 import { fetchCover, removeCover, setCover } from '~/api/files';
 import type { IBookFromDb } from '~/api/tauriEvents';
+import ReadDetails from './ReadDetails/ReadDetails.vue';
 
 const props = defineProps({
   modelValue: {
@@ -103,7 +104,7 @@ const setCoverHandle = () => {
 };
 
 const fetchCoverHandle = async () => {
-  if (!openedFile.value.isbn13) {
+  if (!openedFile.value.ISBN13) {
     toast.error("Can't fetch cover without isbn13", {
       description: 'Please specify ISBN and try again',
     });

@@ -25,11 +25,13 @@ pub struct DateRead {
     pub finished: Option<String>,
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Clone, Debug)]
 pub struct BookFromDb {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub modified: Option<String>,
-    // Markdown without frontmatter. Is not saved to db.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub markdown: Option<String>,
 
     pub title: Option<String>,
@@ -40,6 +42,7 @@ pub struct BookFromDb {
     pub read: Option<Vec<DateRead>>,
     pub tags: Option<Vec<String>>,
     pub cover: Option<String>,
+    #[serde(rename = "ISBN13")]
     pub isbn13: Option<u64>,
 }
 
