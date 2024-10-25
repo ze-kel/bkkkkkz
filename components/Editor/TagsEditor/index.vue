@@ -26,9 +26,9 @@
 <script lang="ts" setup>
 import { computed, nextTick, ref, watch } from 'vue';
 import type { PropType, Ref } from 'vue';
-import ContentEditable from '~/components/_UI/ContentEditable.vue';
 import { PlusIcon } from 'lucide-vue-next';
 import { cva } from 'class-variance-authority';
+import ContentEditable from '~/components/_ui/ContentEditable.vue';
 
 const classes = cva([
   'text-foreground inline-flex items-center rounded-md  px-2.5 py-0.5 text-xs font-semibold transition-all h-6',
@@ -36,40 +36,23 @@ const classes = cva([
   'focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-neutral-950 dark:focus-visible:ring-neutral-300',
 ]);
 
-const props = defineProps({
-  modelValue: {
-    type: Array as PropType<string[]>,
-    default: () => [],
-  },
-});
+const tags = defineModel<string[] | null>({ required: true });
 
-const emit = defineEmits<{
-  (e: 'update:modelValue', data: string[]): void;
-}>();
-
-const tags = computed({
-  get: () => {
-    const tags = props.modelValue;
-    return tags;
-  },
-  set: (val) => {
-    emit('update:modelValue', val);
-  },
-});
+const emit = defineEmits(['change']);
 
 const saveTag = (index: number, tag: string) => {
-  console.log('save tag', index, tag);
-  const newTags = [...tags.value];
-  if (!tag) {
-    newTags.splice(index, 1);
+  if (!tags.value) {
+    tags.value = [tag];
+  } else if (!tag) {
+    tags.value.splice(index, 1);
   } else {
-    newTags[index] = tag;
+    tags.value[index] = tag;
   }
-  tags.value = newTags;
+  emit('change');
 
   if (!tag) {
     nextTick(() => {
-      if (!tags.value.length) return;
+      if (!tags.value || !tags.value.length) return;
 
       // When deleting first tag jump to second otherwise jump to previous
       const indexToSet = index === 0 ? 0 : index - 1;
@@ -116,7 +99,7 @@ const selectElement = (element: HTMLElement, place?: 'end' | 'start') => {
 };
 
 const createNewTag = () => {
-  saveTag(tags.value.length, `tag${tags.value.length + 1}`);
+  saveTag(tags.value?.length || 0, `tag${(tags.value?.length || 0) + 1}`);
 
   // Focus and select all
   nextTick(() => {
@@ -128,7 +111,8 @@ const createNewTag = () => {
 };
 
 const keyDownHandler = (e: KeyboardEvent, index: number) => {
-  const tagValue = props.modelValue[index];
+  if (!tags.value || !tags.value.length) return;
+  const tagValue = tags.value[index];
 
   if (e.code !== 'ArrowRight' && e.code !== 'ArrowLeft') return;
   const dir = e.code === 'ArrowLeft' ? -1 : 1;
@@ -146,7 +130,7 @@ const keyDownHandler = (e: KeyboardEvent, index: number) => {
 
   if (selection.focusOffset >= tagValue.length && dir === 1) {
     e.preventDefault();
-    if (index === props.modelValue.length - 1) return;
+    if (index === tags.value.length - 1) return;
     const tag = tagRefs.value[index + 1].element;
     selectElement(tag, 'start');
     return;

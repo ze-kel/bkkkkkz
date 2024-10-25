@@ -24,10 +24,15 @@
         </ShContextMenuContent>
       </ShContextMenu>
 
-      <RatingStars v-model="openedFile.myRating" class="mt-3 place-content-center self-center" />
+      <RatingStars
+        v-model="openedFile.myRating"
+        @update:model-value="emit('change')"
+        class="mt-3 place-content-center self-center"
+      />
 
       <UiBasicInput
         v-model="openedFile.ISBN13"
+        @update:model-value="emit('change')"
         type="number"
         class="min-w-[100px] text-center opacity-50 focus:opacity-100"
         theme="hidden"
@@ -38,6 +43,7 @@
     <div class="flex flex-col gap-2">
       <UiBasicInput
         v-model="openedFile.title"
+        @update:model-value="emit('change')"
         spellcheck="false"
         class="line-clamp-1 min-w-[100px] text-4xl font-light leading-none"
         placeholder="Title"
@@ -45,6 +51,7 @@
       />
       <UiBasicInput
         v-model="openedFile.author"
+        @update:model-value="emit('change')"
         spellcheck="false"
         class="font-regular -mt-1 w-fit min-w-[100px] text-2xl leading-none"
         theme="hidden"
@@ -54,6 +61,7 @@
       <div class="flex items-center gap-3">
         <UiBasicInput
           v-model="openedFile.year"
+          @update:model-value="emit('change')"
           type="number"
           theme="hidden"
           class="w-[75px]"
@@ -61,8 +69,8 @@
         />
       </div>
 
-      <EditorTagsEditor v-model="openedFile.tags" class="" />
-      <ReadDetails v-model="openedFile.read" class="mt-3" />
+      <EditorTagsEditor v-model="openedFile.tags" class="" @change="emit('change')" />
+      <ReadDetails v-model="openedFile.read" class="mt-3" @update:model-value="emit('change')" />
     </div>
   </div>
 
@@ -72,23 +80,16 @@
 </template>
 
 <script setup lang="ts">
-import { useVModel } from '@vueuse/core';
 import { toast } from 'vue-sonner';
 import { fetchCover, removeCover, setCover } from '~/api/files';
 import type { IBookFromDb } from '~/api/tauriEvents';
 import ReadDetails from './ReadDetails/ReadDetails.vue';
 
-const props = defineProps({
-  modelValue: {
-    type: Object as PropType<IBookFromDb>,
-    required: true,
-  },
+const openedFile = defineModel<IBookFromDb>({
+  required: true,
 });
-const emit = defineEmits<{
-  (e: 'update:modelValue', val: IBookFromDb): void;
-}>();
 
-const openedFile = useVModel(props, 'modelValue', emit);
+const emit = defineEmits(['change']);
 
 ///
 /// Cover Right click

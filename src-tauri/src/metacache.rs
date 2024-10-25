@@ -106,8 +106,8 @@ pub fn insert_file(file: &BookFromDb) -> Result<(), rusqlite::Error> {
 }
 pub fn cache_file(path: &Path) -> Result<BookFromDb, String> {
     match read_file_by_path(&path.to_string_lossy(), FileReadMode::OnlyMeta) {
-        Ok(file) => match insert_file(&file) {
-            Ok(_) => Ok(file),
+        Ok(file) => match insert_file(&file.book) {
+            Ok(_) => Ok(file.book),
             Err(e) => Err(format!("Error when caching file: {}", e.to_string())),
         },
         Err(e) => Err(format!("Error when reading file: {}", e)),

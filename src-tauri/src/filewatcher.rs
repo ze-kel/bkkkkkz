@@ -107,6 +107,7 @@ fn handle_file_add(app: &AppHandle, path: &Path, ext: &OsStr) {
 }
 
 fn handle_file_update(app: &AppHandle, path: &Path, ext: &OsStr) {
+    println!("file update {:?}", path);
     if ext == "md" {
         match cache_file(path) {
             Ok(v) => app.emit("file_update", v).unwrap(),
@@ -160,6 +161,7 @@ fn handle_folder_add(app: &AppHandle, path: &Path) {
 
 fn handle_event(event: Event, app: &AppHandle) {
     for (index, path) in event.paths.iter().enumerate() {
+        println!("{:?}", event);
         match event.kind {
             EventKind::Create(kind) => match (kind, path.extension()) {
                 (CreateKind::File, Some(ext)) => handle_file_add(app, &path, ext),

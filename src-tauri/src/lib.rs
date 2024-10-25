@@ -15,6 +15,8 @@ use db::{
     db_setup, get_all_folders, get_all_tags, get_files_by_path, get_files_by_tag, BookFromDb,
 };
 
+
+
 #[tauri::command]
 fn c_setup_db() -> Result<(), String> {
     match db_setup() {
@@ -123,7 +125,7 @@ fn c_get_all_folders(app: AppHandle) -> Vec<String> {
 }
 
 #[tauri::command]
-fn c_read_file_by_path(_: AppHandle, path: String) -> Result<BookFromDb, String> {
+fn c_read_file_by_path(_: AppHandle, path: String) -> Result<files::BookReadResult, String> {
      match read_file_by_path(&path, FileReadMode::FullFile) {
         Ok(v) => Ok(v),
         Err(e) =>  Err(e) 
@@ -132,8 +134,8 @@ fn c_read_file_by_path(_: AppHandle, path: String) -> Result<BookFromDb, String>
 
 
 #[tauri::command]
-fn c_save_file(_: AppHandle, book: BookFromDb) -> Result<String, String> {
-     match save_file(book) {
+fn c_save_file(_: AppHandle, book: BookFromDb, forced: bool) -> Result<files::BookSaveResult, String> {
+     match save_file(book, forced) {
         Ok(r) => Ok(r),
         Err(e) =>  Err(e) 
     }
@@ -158,6 +160,7 @@ pub fn run() {
             c_save_file
         ])
         .setup(|app| {
+            db_setup()?;
             if cfg!(debug_assertions) {
                 app.handle().plugin(
                     tauri_plugin_log::Builder::default()

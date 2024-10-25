@@ -25,7 +25,16 @@ fn get_file_modified_time(path_str: &str) -> Result<String, String> {
     }
 }
 
-pub fn read_file_by_path(path_str: &str, read_mode: FileReadMode) -> Result<BookFromDb, String> {
+#[derive(serde::Serialize, serde::Deserialize)]
+pub struct BookReadResult {
+    pub book: BookFromDb,
+    pub parsing_error: Option<String>,
+}
+
+pub fn read_file_by_path(
+    path_str: &str,
+    read_mode: FileReadMode,
+) -> Result<BookReadResult, String> {
     let file_modified = match get_file_modified_time(path_str) {
         Ok(v) => v,
         Err(e) => return Err(e),
@@ -45,12 +54,22 @@ pub fn read_file_by_path(path_str: &str, read_mode: FileReadMode) -> Result<Book
                         book.markdown = Some(fmc.1)
                     }
 
-                    Ok(book)
+                    Ok(BookReadResult {
+                        book: book,
+                        parsing_error: None,
+                    })
                 }
-                // TODO: When error on parsing send notification to frontend that you might lose data on edit
-                Err(_) => Ok(BookFromDb {
-                    path: Some(p),
-                    ..Default::default()
+                Err(e) => Ok(BookReadResult {
+                    book: BookFromDb {
+                        path: Some(p),
+                        modified: Some(file_modified),
+                        markdown: match read_mode {
+                            FileReadMode::OnlyMeta => None,
+                            FileReadMode::FullFile => Some(fmc.1),
+                        },
+                        ..Default::default()
+                    },
+                    parsing_error: Some(e.to_string()),
                 }),
             }
         }
@@ -58,15 +77,35 @@ pub fn read_file_by_path(path_str: &str, read_mode: FileReadMode) -> Result<Book
     }
 }
 
-pub fn save_file(book: BookFromDb) -> Result<String, String> {
-    // TODO: handle case when we file content is newer than our stuff
+#[derive(serde::Serialize, serde::Deserialize)]
+pub struct BookSaveResult {
+    pub path: String,
+    pub modified: String,
+}
 
+pub fn save_file(book: BookFromDb, forced: bool) -> Result<BookSaveResult, String> {
     let mut book_for_serializing = book.to_owned();
 
     let path = match book.path {
         Some(v) => v,
         None => return Err("No path in book".to_string()),
     };
+
+    if !forced {
+        match book.modified {
+            Some(v) => {
+                let modified_before = match get_file_modified_time(&path.clone().as_str()) {
+                    Ok(v) => v,
+                    Err(e) => return Err(e.to_string()),
+                };
+
+                if v != modified_before {
+                    return Err("File was modified by something else.".to_string());
+                }
+            }
+            None => (),
+        }
+    }
 
     let markdown = book.markdown.unwrap_or("".to_string());
 
@@ -88,7 +127,10 @@ pub fn save_file(book: BookFromDb) -> Result<String, String> {
     };
 
     match get_file_modified_time(&path.clone().as_str()) {
-        Ok(v) => Ok(v),
+        Ok(v) => Ok(BookSaveResult {
+            path: path,
+            modified: v,
+        }),
         Err(e) => return Err(e.to_string()),
     }
 }

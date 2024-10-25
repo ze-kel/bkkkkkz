@@ -7,6 +7,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { useListenToEvent, type IBookFromDb } from '~/api/tauriEvents';
 import { useThrottledEvents } from '~/utils/useTrottledEvents';
 import path from 'path-browserify';
+import { c_get_files_path, c_get_files_tag } from '~/api/tauriActions';
 
 export const useFilesList = (
   opened: IOpenedPath | IOpenedTag,
@@ -19,10 +20,10 @@ export const useFilesList = (
   const loadContent = async () => {
     loading.value = true;
     if (opened.type === 'folder') {
-      files.value = await invoke('c_get_files_path', { path: opened.thing });
+      files.value = await c_get_files_path(opened.thing);
     }
     if (opened.type === 'tag') {
-      files.value = await invoke('c_get_files_tag', { tag: opened.thing });
+      files.value = await c_get_files_tag(opened.thing);
     }
 
     nextTick(() => {
