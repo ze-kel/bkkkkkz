@@ -25,6 +25,7 @@ export const useFilesList = (
     if (opened.type === 'tag') {
       files.value = await c_get_files_tag(opened.thing);
     }
+    console.log('new files value', files.value);
 
     nextTick(() => {
       loading.value = false;

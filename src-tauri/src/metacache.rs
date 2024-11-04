@@ -5,19 +5,71 @@ use walkdir::WalkDir;
 
 use crate::db::{get_db_connection, BookFromDb};
 use crate::files::{read_file_by_path, FileReadMode};
+use crate::schema::{get_schema, AttrValue};
 
 // Function to create or open the SQLite database and set up the table
 pub fn create_db_tables() -> Result<(), rusqlite::Error> {
     let db = get_db_connection().lock().unwrap();
+
+    let files_schema = get_schema();
+
     db.execute_batch(
-        "DROP TABLE IF EXISTS tags;
+        "DROP TABLE IF EXISTS folders;
+        CREATE TABLE folders (path TEXT PRIMARY KEY, name TEXT);",
+    )?;
+
+    let mut columns: Vec<String> = Vec::new();
+
+    let mut side_tables: Vec<String> = Vec::new();
+    let mut side_tables_names: Vec<String> = Vec::new();
+
+    for schema_i in files_schema {
+        let name = schema_i.name;
+        match schema_i.value {
+            crate::schema::AttrKey::Text => {
+                columns.push(format!("{} TEXT", name));
+            }
+
+            crate::schema::AttrKey::Number => {
+                columns.push(format!("{} INTEGER", name));
+            }
+            crate::schema::AttrKey::TextCollection => {
+                side_tables.push(format!(
+                    "CREATE TABLE {} 
+                    (id INTEGER PRIMARY KEY, ind INTEGER, path TEXT, value TEXT, 
+                    UNIQUE(ind,path) FOREIGN KEY (path) 
+                    REFERENCES files (path) ON DELETE CASCADE);",
+                    name
+                ));
+                side_tables_names.push(name);
+            }
+            crate::schema::AttrKey::DatesPairCollection => {
+                side_tables.push(format!(
+                    "CREATE TABLE {} 
+                    (id INTEGER PRIMARY KEY, ind INTEGER, path TEXT, started TEXT, finished TEXT,
+                    UNIQUE(ind,path) FOREIGN KEY (path) 
+                    REFERENCES files (path) ON DELETE CASCADE);",
+                    name
+                ));
+                side_tables_names.push(name);
+            }
+        }
+    }
+
+    let drops: Vec<String> = side_tables_names
+        .iter()
+        .map(|t_name| format!("DROP TABLE IF EXISTS {};", t_name))
+        .collect();
+
+    db.execute_batch(&format!(
+        "{}
         DROP TABLE IF EXISTS files;
-        DROP TABLE IF EXISTS read;
-        DROP TABLE IF EXISTS folders;
-        CREATE TABLE folders (path TEXT PRIMARY KEY, name TEXT);
-        CREATE TABLE files (path TEXT PRIMARY KEY, modified TEXT, title TEXT, author TEXT, year INTEGER, myRating INTEGER, cover TEXT, isbn13 INTEGER);
-        CREATE TABLE tags (id INTEGER PRIMARY KEY, ind INTEGER, path TEXT, tag TEXT, UNIQUE(ind,path) FOREIGN KEY (path) REFERENCES files (path) ON DELETE CASCADE);
-        CREATE TABLE read (id INTEGER PRIMARY KEY, ind INTEGER, path TEXT, started TEXT, finished TEXT, UNIQUE(ind,path) FOREIGN KEY (path) REFERENCES files (path) ON DELETE CASCADE);")
+        CREATE TABLE files (path TEXT PRIMARY KEY, modified TEXT, {});
+        {}",
+        drops.join(" "),
+        columns.join(", "),
+        side_tables.join(" "),
+    ))
 }
 
 fn wrap_or_null(v: Option<String>) -> String {
@@ -25,6 +77,11 @@ fn wrap_or_null(v: Option<String>) -> String {
         None => "NULL".to_owned(),
         Some(v) => format!("\"{}\"", v),
     }
+}
+
+enum InsertValues {
+    Text(String),
+    Number(f64),
 }
 
 // Function to insert a file record into the database
@@ -36,47 +93,86 @@ pub fn insert_file(file: &BookFromDb) -> Result<(), rusqlite::Error> {
         None => return Ok(()),
     };
 
-    db.execute(
-        "INSERT INTO files(path, modified, title, author, year, myRating, cover, isbn13)
-        VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)
-        ON CONFLICT(path) DO UPDATE SET
-        modified=excluded.modified, title=excluded.title, author=excluded.author, year=excluded.year, myRating=excluded.myRating, cover=excluded.cover, isbn13=excluded.isbn13;",
-        (file.path.clone(), file.modified.clone(), file.title.clone(), file.author.clone(), file.year, file.my_rating, file.cover.clone(), file.isbn13),
-    )?;
+    let mut insert_keys: Vec<String> = Vec::new();
+    let mut insert_values: Vec<InsertValues> = Vec::new();
 
-    match &file.tags {
-        None => db.execute("DELETE FROM tags WHERE path=$1", params![path])?,
-        Some(t) => {
-            db.execute(
-                "DELETE FROM tags WHERE path = ?1 AND ind > ?2",
-                params![file.path.clone(), t.len() - 1],
-            )?;
+    // Don't forget to add ";" at the end of statements you push here
+    let mut separate_statements: Vec<String> = Vec::new();
 
-            let pairs: Vec<String> = t
-                .iter()
-                .enumerate()
-                .map(|(ind, tag)| format!("({},\"{}\",\"{}\")", ind, path, tag))
-                .collect();
+    let files_schema = get_schema();
 
-            let q = format!(
-                "INSERT INTO tags(ind, path, tag) VALUES {} ON CONFLICT(ind,path) DO UPDATE SET tag=excluded.tag",
-                pairs.join(",")
-            );
+    for schema_i in files_schema {
+        let name = schema_i.name;
+        match schema_i.value {
+            crate::schema::AttrKey::Text => {
+                let v = match file.attrs.get(&name) {
+                    Some(v) => match v {
+                        AttrValue::Text(v) => v,
+                        _ => "",
+                    },
+                    None => "",
+                };
+                insert_keys.push(name);
+                insert_values.push(InsertValues::Text(v.to_string()));
+            }
+            crate::schema::AttrKey::Number => {
+                let v = match file.attrs.get(&name).unwrap_or(&AttrValue::Number(0.0)) {
+                    AttrValue::Number(v) => v,
+                    _ => &0.0,
+                };
+                insert_keys.push(name);
+                insert_values.push(InsertValues::Number(v.to_owned()));
+            }
+            crate::schema::AttrKey::TextCollection => {
+                let v = match file.attrs.get(&name) {
+                    Some(v) => match v {
+                        AttrValue::TextCollection(v) => v,
+                        _ => &Vec::new(),
+                    },
+                    None => &Vec::new(),
+                };
 
-            db.execute(&q, ())?
-        }
-    };
+                separate_statements.push(format!(
+                    "DELETE FROM tags WHERE path = '{}' AND ind >= {};",
+                    path,
+                    v.len(),
+                ));
 
-    match &file.read {
-        None => db.execute("DELETE FROM read WHERE path=$1", params![path]),
-        Some(t) => {
-            if t.len() > 0 {
-                db.execute(
-                    "DELETE FROM read WHERE path=?1 AND ind > ?2",
-                    (path.clone(), t.len() - 1),
-                )?;
+                if v.len() == 0 {
+                    continue;
+                }
 
-                let pairs_insertion: Vec<String> = t
+                let pairs: Vec<String> = v
+                    .iter()
+                    .enumerate()
+                    .map(|(ind, tag)| format!("({},\"{}\",\"{}\")", ind, path, tag))
+                    .collect();
+
+                separate_statements.push(format!(
+                        "INSERT INTO tags(ind, path, value) VALUES {} ON CONFLICT(ind,path) DO UPDATE SET value=excluded.value",
+                        pairs.join(",")
+                    ));
+            }
+            crate::schema::AttrKey::DatesPairCollection => {
+                let v = match file.attrs.get(&name) {
+                    Some(v) => match v {
+                        AttrValue::DatesPairCollection(v) => v,
+                        _ => &Vec::new(),
+                    },
+                    None => &Vec::new(),
+                };
+
+                separate_statements.push(format!(
+                    "DELETE FROM read WHERE path='{}' AND ind >= {};",
+                    path,
+                    v.len()
+                ));
+
+                if v.len() == 0 {
+                    continue;
+                }
+
+                let pairs_insertion: Vec<String> = v
                     .iter()
                     .enumerate()
                     .map(|(ind, dates)| {
@@ -91,16 +187,44 @@ pub fn insert_file(file: &BookFromDb) -> Result<(), rusqlite::Error> {
                     .collect();
 
                 let q_in = format!(
-                    "INSERT INTO read(ind,path, started, finished) VALUES {} ON CONFLICT(ind,path) DO UPDATE SET started=excluded.started, finished=excluded.finished",
+                    "INSERT INTO read(ind,path, started, finished) VALUES {} ON CONFLICT(ind,path) DO UPDATE SET started=excluded.started, finished=excluded.finished;",
                     pairs_insertion.join(",")
-
                 );
 
-                db.execute(&q_in, ())?;
+                separate_statements.push(q_in);
             }
-            return Ok(());
         }
-    }?;
+    }
+
+    let vals_as_text: Vec<String> = insert_values
+        .iter()
+        .map(|f| match f {
+            InsertValues::Text(v) => format!("'{}'", v.replace("'", "\\'")),
+            InsertValues::Number(v) => format!("{}", v),
+        })
+        .collect();
+
+    let vals_as_exclude: Vec<String> = insert_keys
+        .iter()
+        .map(|f| format!("{}=excluded.{}", f, f))
+        .collect();
+
+    let main_q = format!(
+        "INSERT INTO files(path, modified, {})
+        VALUES ('{}', '{}', {})
+        ON CONFLICT(path) DO UPDATE SET
+        modified=excluded.modified, {};",
+        insert_keys.join(", "),
+        path,
+        file.modified.clone().unwrap_or(String::new()),
+        vals_as_text.join(", "),
+        vals_as_exclude.join(", ")
+    );
+
+    println!("{:?} {:?}", main_q, separate_statements);
+
+    db.execute_batch(&main_q)?;
+    db.execute_batch(&separate_statements.join(" "))?;
 
     Ok(())
 }
@@ -122,8 +246,13 @@ pub fn remove_file_from_cache(path: &Path) -> Result<usize, rusqlite::Error> {
     )
 }
 
-pub fn cache_files_and_folders<P: AsRef<Path>>(dir: P) -> Result<(), Vec<String>> {
-    let mut errs: Vec<String> = vec![];
+pub struct CacheBatchErr {
+    pub filename: String,
+    pub error_text: String,
+}
+
+pub fn cache_files_and_folders<P: AsRef<Path>>(dir: P) -> Result<(), Vec<CacheBatchErr>> {
+    let mut errs: Vec<CacheBatchErr> = vec![];
 
     for entry in WalkDir::new(dir).into_iter().filter_map(Result::ok) {
         if entry.file_type().is_file() {
@@ -131,7 +260,10 @@ pub fn cache_files_and_folders<P: AsRef<Path>>(dir: P) -> Result<(), Vec<String>
                 if extension == "md" {
                     match cache_file(&entry.path()) {
                         Ok(_) => (),
-                        Err(e) => errs.push(e),
+                        Err(e) => errs.push(CacheBatchErr {
+                            error_text: e.to_string(),
+                            filename: entry.file_name().to_string_lossy().to_string(),
+                        }),
                     }
                 }
             }
@@ -139,7 +271,10 @@ pub fn cache_files_and_folders<P: AsRef<Path>>(dir: P) -> Result<(), Vec<String>
         if entry.file_type().is_dir() {
             match cache_folder(&entry.path()) {
                 Ok(_) => (),
-                Err(e) => errs.push(e.to_string()),
+                Err(e) => errs.push(CacheBatchErr {
+                    error_text: e.to_string(),
+                    filename: entry.file_name().to_string_lossy().to_string(),
+                }),
             }
         }
     }

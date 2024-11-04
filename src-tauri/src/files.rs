@@ -1,10 +1,12 @@
 use chrono::offset::Utc;
 use chrono::DateTime;
 
+use std::collections::HashMap;
 use std::fs::{self, File};
 use std::io::{self, BufRead, BufReader};
 
 use crate::db::BookFromDb;
+use crate::schema::{get_schema, AttrKey, AttrValue, DateRead};
 
 pub enum FileReadMode {
     OnlyMeta,
@@ -40,22 +42,87 @@ pub fn read_file_by_path(
         Err(e) => return Err(e),
     };
 
+    let files_schema = get_schema();
+
     let p = path_str.to_string();
 
     match read_file(&path_str, &read_mode) {
         Ok(fmc) => {
-            let parsed2: Result<BookFromDb, serde_yml::Error> = serde_yml::from_str(&fmc.0);
-            match parsed2 {
-                Ok(mut book) => {
-                    book.path = Some(p);
-                    book.modified = Some(file_modified);
+            let parsed2: Result<HashMap<String, serde_yml::Value>, serde_yml::Error> =
+                serde_yml::from_str(&fmc.0);
 
-                    if matches!(read_mode, FileReadMode::FullFile) {
-                        book.markdown = Some(fmc.1)
+            match parsed2 {
+                Ok(prsd) => {
+                    let mut hm: HashMap<String, AttrValue> = HashMap::new();
+
+                    for schema_i in files_schema {
+                        let name = schema_i.name;
+                        match prsd.get(&name) {
+                            Some(v) => match (v, schema_i.value) {
+                                (serde_yml::Value::String(s), AttrKey::Text) => {
+                                    hm.insert(name, AttrValue::Text(s.to_owned()));
+                                }
+                                (serde_yml::Value::Number(n), AttrKey::Number) => {
+                                    hm.insert(name, AttrValue::Number(n.as_f64().unwrap_or(0.0)));
+                                }
+                                (serde_yml::Value::Sequence(vec), AttrKey::TextCollection) => {
+                                    let clear = vec
+                                        .iter()
+                                        .filter_map(|f| match f {
+                                            serde_yml::Value::String(s) => Some(s.to_owned()),
+                                            _ => None,
+                                        })
+                                        .collect();
+
+                                    hm.insert(name, AttrValue::TextCollection(clear));
+                                }
+                                (serde_yml::Value::Sequence(vec), AttrKey::DatesPairCollection) => {
+                                    let clear = vec
+                                        .iter()
+                                        .filter_map(|f| match f {
+                                            serde_yml::Value::Mapping(mm) => Some(DateRead {
+                                                started: match mm.get("started") {
+                                                    Some(v) => match v {
+                                                        serde_yml::Value::String(v) => {
+                                                            Some(v.to_owned())
+                                                        }
+                                                        _ => None,
+                                                    },
+                                                    None => None,
+                                                },
+                                                finished: match mm.get("finished") {
+                                                    Some(v) => match v {
+                                                        serde_yml::Value::String(v) => {
+                                                            Some(v.to_owned())
+                                                        }
+                                                        _ => None,
+                                                    },
+                                                    None => None,
+                                                },
+                                            }),
+                                            _ => None,
+                                        })
+                                        .collect();
+                                    hm.insert(name, AttrValue::DatesPairCollection(clear));
+                                }
+
+                                _ => (),
+                            },
+                            None => (),
+                        };
                     }
 
                     Ok(BookReadResult {
-                        book: book,
+                        book: BookFromDb {
+                            path: Some(p),
+                            markdown: match read_mode {
+                                FileReadMode::OnlyMeta => None,
+                                FileReadMode::FullFile => Some(fmc.1),
+                            },
+                            modified: Some(file_modified),
+                            attrs: hm,
+                            ..Default::default()
+                        },
                         parsing_error: None,
                     })
                 }

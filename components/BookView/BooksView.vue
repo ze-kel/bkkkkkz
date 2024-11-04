@@ -45,7 +45,6 @@ import type { PropType } from 'vue';
 import type { IOpenedPath, IOpenedTag } from '~/api/openedTabs';
 import EmptyBooksPlaceholder from '~/components/Placeholders/EmptyBooksPlaceholder.vue';
 import { useFilesList } from './useFileList';
-import TableRender from './TableRender.vue';
 import { useVirtualizer } from '@tanstack/vue-virtual';
 import { useVirtualList } from '@vueuse/core';
 

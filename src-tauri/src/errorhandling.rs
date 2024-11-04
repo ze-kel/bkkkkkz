@@ -27,5 +27,5 @@ impl ErrorFromRust {
 }
 
 pub fn send_err_to_frontend(app: &AppHandle, e: &ErrorFromRust) {
-    app.emit("error", e).expect("Error when send err");
+    app.emit("error_happened", e).expect("Error when send err");
 }

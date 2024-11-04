@@ -15,7 +15,7 @@ type EventPayloads = {
   file_update: IBookFromDb;
   folder_add: string;
   folder_remove: string;
-  error_occured: ErrorFromRust;
+  error_happened: ErrorFromRust;
 };
 
 export const handleErrorsFromRust = () => {
@@ -30,7 +30,7 @@ export const handleErrorsFromRust = () => {
         : undefined,
     });
   };
-  useListenToEvent('error_occured', handler);
+  useListenToEvent('error_happened', handler);
 };
 
 export const useListenToEvent = <E extends keyof EventPayloads>(

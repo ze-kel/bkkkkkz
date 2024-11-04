@@ -2,6 +2,8 @@ mod errorhandling;
 mod filewatcher;
 mod metacache;
 mod files;
+mod schema;
+
 use errorhandling::{send_err_to_frontend, ErrorFromRust};
 use files::{read_file_by_path, save_file, FileReadMode};
 use filewatcher::watch_path;
@@ -29,6 +31,7 @@ fn c_setup_db() -> Result<(), String> {
 fn c_prepare_cache(app: AppHandle, root_path: String) -> bool {
     match create_db_tables() {
         Err(e) => {
+            print!("ERROR WHEN CREATE DB TABLES {}", e.to_string());
             send_err_to_frontend(
                 &app,
                 &ErrorFromRust::new("Error when creating tables in cache db".to_string(),
@@ -39,13 +42,14 @@ fn c_prepare_cache(app: AppHandle, root_path: String) -> bool {
         }
         Ok(_) => match cache_files_and_folders(&root_path) {
             Err(e) => {
+            let a: Vec<String> =  e.iter().map(|ee| format!("{}: {}", ee.filename, ee.error_text)).collect();
                 send_err_to_frontend(
                     &app,
                     &ErrorFromRust::new(
-                    "Error when caching files".to_string(),
+                    "Error when caching".to_string(),
                     format!(
-                        "These files will not be visible in app. \n\n Raw Error: {}",
-                        e.join(",")
+                        "These files/folders will not be visible in app. \n\n {}", 
+                       a.join("\n"),
                     ))
                 );
                 return false;

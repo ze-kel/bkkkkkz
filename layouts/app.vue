@@ -14,7 +14,7 @@
       <div class="z-2 h-full">
         <IconsMenu />
 
-        <div class="overflow-y-auto overflow-x-hidden">
+        <div class="overflow-y-auto overflow-x-hidden overscroll-none">
           <FileTree />
 
           <hr

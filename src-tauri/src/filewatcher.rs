@@ -149,11 +149,17 @@ fn handle_folder_add(app: &AppHandle, path: &Path) {
             e.to_string(),
         ),
         Ok(_) => match cache_files_and_folders(path) {
-            Err(e) => send_generic_watch_process_err(
-                app,
-                format!("folder_remove {}", path.to_string_lossy()),
-                e.join(","),
-            ),
+            Err(e) => {
+                let a: Vec<String> = e
+                    .iter()
+                    .map(|ee| format!("{}: {}", ee.filename, ee.error_text))
+                    .collect();
+                send_generic_watch_process_err(
+                    app,
+                    format!("folder_remove {}", path.to_string_lossy()),
+                    a.join("\n"),
+                )
+            }
             Ok(_) => app.emit("folder_add", path.to_string_lossy()).unwrap(),
         },
     };

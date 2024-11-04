@@ -1,7 +1,10 @@
 use once_cell::sync::OnceCell;
 use rusqlite::Connection;
+use serde::{Deserialize, Serialize};
 
-use std::sync::Mutex;
+use std::{collections::HashMap, sync::Mutex};
+
+use crate::schema::{get_schema, AttrValue, DateRead};
 
 static DB_CONNECTION: OnceCell<Mutex<Connection>> = OnceCell::new();
 pub fn get_db_connection() -> &'static Mutex<Connection> {
@@ -19,13 +22,7 @@ pub fn db_setup() -> Result<(), rusqlite::Error> {
     Ok(())
 }
 
-#[derive(serde::Deserialize, Debug, serde::Serialize, Clone)]
-pub struct DateRead {
-    pub started: Option<String>,
-    pub finished: Option<String>,
-}
-
-#[derive(serde::Serialize, serde::Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct BookFromDb {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
@@ -34,31 +31,15 @@ pub struct BookFromDb {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub markdown: Option<String>,
 
-    pub title: Option<String>,
-    pub author: Option<String>,
-    pub year: Option<u16>,
-    #[serde(rename = "myRating")]
-    pub my_rating: Option<f64>,
-    pub read: Option<Vec<DateRead>>,
-    pub tags: Option<Vec<String>>,
-    pub cover: Option<String>,
-    #[serde(rename = "ISBN13")]
-    pub isbn13: Option<u64>,
+    pub attrs: HashMap<String, AttrValue>,
 }
 
 impl Default for BookFromDb {
     fn default() -> BookFromDb {
         BookFromDb {
+            attrs: HashMap::new(),
             modified: None,
             path: None,
-            title: None,
-            author: None,
-            year: None,
-            my_rating: None,
-            read: None,
-            tags: None,
-            cover: None,
-            isbn13: None,
             markdown: None,
         }
     }
@@ -67,52 +48,104 @@ impl Default for BookFromDb {
 pub fn get_files_abstact(where_clause: String) -> Result<Vec<BookFromDb>, rusqlite::Error> {
     let db = get_db_connection().lock().unwrap();
 
-    let q = format!("SELECT path, modified, title, author, year, myRating, readRaw, tagsRaw, cover, isbn13 FROM files 
-    LEFT JOIN 
-    (SELECT tags.path as tagPath, GROUP_CONCAT(tags.tag, ',') AS tagsRaw FROM tags GROUP BY tags.path)
-    ON files.path = tagPath
-    LEFT JOIN 
-    (SELECT read.path as readPath, GROUP_CONCAT(IFNULL(read.started,'') || '|' || IFNULL(read.finished,''), ',') as readRaw FROM read GROUP BY read.path)
-    ON files.path = readPath {}", where_clause);
+    let files_schema = get_schema();
+
+    let mut joins: Vec<String> = Vec::new();
+    let mut selects: Vec<String> = Vec::new();
+
+    for schema_i in files_schema.clone() {
+        match schema_i.value {
+            crate::schema::AttrKey::TextCollection => {
+                let name = schema_i.name.to_owned();
+                selects.push(schema_i.name);
+                joins.push(format!(
+                    "LEFT JOIN
+                    (SELECT {}.path as {}_path, GROUP_CONCAT({}.value, ',') 
+                    AS {} FROM {} GROUP BY {}.path) 
+                    ON files.path = {}_path",
+                    name, name, name, name, name, name, name
+                ));
+            }
+            crate::schema::AttrKey::DatesPairCollection => {
+                let name = schema_i.name.to_owned();
+                selects.push(schema_i.name);
+                joins.push(format!(
+                    "LEFT JOIN 
+                    (SELECT {}.path as {}_path, 
+                    GROUP_CONCAT(IFNULL({}.started,'') || '|' || IFNULL({}.finished,''), ',') 
+                    AS {} FROM {} GROUP BY {}.path)
+                    ON files.path = {}_path",
+                    name, name, name, name, name, name, name, name,
+                ));
+            }
+            _ => selects.push(schema_i.name),
+        }
+    }
+
+    let q = format!(
+        "SELECT path, modified, {} FROM files {} {}",
+        selects.join(", "),
+        joins.join(" "),
+        where_clause
+    );
+
+    println!("\n{}\n", q);
 
     let mut query = db.prepare(&q)?;
 
     let result_iter = query.query_map([], |row| {
-        let reads_from_db: Result<String, rusqlite::Error> = row.get(7);
-        let reads: Option<Vec<DateRead>> = match reads_from_db {
-            Ok(v) => Some(
-                v.split(',')
-                    .map(|dd| {
-                        let mut parts = dd.split('|');
-                        let started = parts.next().filter(|s| !s.is_empty()).map(String::from);
-                        let finished = parts.next().filter(|f| !f.is_empty()).map(String::from);
-                        DateRead {
-                            started: started,
-                            finished: finished,
-                        }
-                    })
-                    .collect(),
-            ),
-            Err(_) => None,
-        };
+        let mut hm: HashMap<String, AttrValue> = HashMap::new();
 
-        let tags_from_db: Result<String, rusqlite::Error> = row.get(6);
-        let tags: Option<Vec<String>> = match tags_from_db {
-            Ok(v) => Some(v.split(",").map(|s| s.to_string()).collect()),
-            Err(_) => None,
-        };
+        let index_offset = 2;
+
+        for (i, schema_i) in files_schema.clone().into_iter().enumerate() {
+            let name = schema_i.name.to_owned();
+            match schema_i.value {
+                crate::schema::AttrKey::Text => {
+                    let v = row.get(i + index_offset).unwrap_or("".to_owned());
+                    hm.insert(name, AttrValue::Text(v));
+                }
+                crate::schema::AttrKey::Number => {
+                    let v = row.get(i + index_offset).unwrap_or(0.0);
+                    hm.insert(name, AttrValue::Number(v));
+                }
+                crate::schema::AttrKey::TextCollection => {
+                    let v = row.get(i + index_offset).unwrap_or("".to_owned());
+                    hm.insert(
+                        name,
+                        AttrValue::TextCollection(v.split(",").map(|s| s.to_string()).collect()),
+                    );
+                }
+                crate::schema::AttrKey::DatesPairCollection => {
+                    let v = row.get(i + index_offset).unwrap_or("".to_owned());
+                    hm.insert(
+                        name,
+                        AttrValue::DatesPairCollection(
+                            v.split(',')
+                                .map(|dd| {
+                                    let mut parts = dd.split('|');
+                                    DateRead {
+                                        started: parts
+                                            .next()
+                                            .filter(|s| !s.is_empty())
+                                            .map(String::from),
+                                        finished: parts
+                                            .next()
+                                            .filter(|f| !f.is_empty())
+                                            .map(String::from),
+                                    }
+                                })
+                                .collect(),
+                        ),
+                    );
+                }
+            }
+        }
 
         Ok(BookFromDb {
+            attrs: hm,
             path: row.get(0).unwrap_or(None),
             modified: row.get(1).unwrap_or(None),
-            title: row.get(2).unwrap_or(None),
-            author: row.get(3).unwrap_or(None),
-            year: row.get(4).unwrap_or(None),
-            my_rating: row.get(5).unwrap_or(None),
-            read: reads,
-            tags: tags,
-            cover: row.get(8).unwrap_or(None),
-            isbn13: row.get(9).unwrap_or(None),
             ..Default::default()
         })
     })?;
@@ -131,7 +164,7 @@ pub fn get_files_by_path(path: String) -> Result<Vec<BookFromDb>, rusqlite::Erro
 
 pub fn get_files_by_tag(tag: String) -> Result<Vec<BookFromDb>, rusqlite::Error> {
     get_files_abstact(format!(
-        "WHERE files.path IN (SELECT path FROM tags WHERE tag='{}')",
+        "WHERE files.path IN (SELECT path FROM tags WHERE value='{}')",
         tag
     ))
 }
