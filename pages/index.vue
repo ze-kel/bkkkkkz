@@ -57,7 +57,11 @@ const initLoop = async () => {
   await store.fetchRootPath();
   const rp = store.rootPath;
 
-  const res = (await invoke('c_setup_db')) as boolean;
+  dbSetup.value = false;
+  cacheSetup.value = false;
+  watcherSetup.value = false;
+
+  const res = (await invoke('c_init_once')) as boolean;
   if (!res) {
     running.value = false;
     return;
@@ -69,7 +73,7 @@ const initLoop = async () => {
     return;
   }
   cacheSetup.value = true;
-  const res3 = (await invoke('c_start_watcher', { rootPath: rp })) as boolean;
+  const res3 = (await invoke('c_watch_paths', { rootPath: rp })) as boolean;
   if (!res3) {
     running.value = false;
     return;
