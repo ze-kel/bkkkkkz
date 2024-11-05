@@ -1,76 +1,15 @@
 use notify::event::{CreateKind, ModifyKind, RemoveKind, RenameMode};
-use notify::{Config, EventKind, RecursiveMode, Result, Watcher};
-use notify::{Event, RecommendedWatcher};
+use notify::Event;
+use notify::EventKind;
 use std::ffi::OsStr;
 use std::path::Path;
-use std::time::Duration;
 use tauri::{AppHandle, Emitter};
-use tokio::sync::mpsc;
-use tokio::task;
 
 use crate::cache::write::{
     cache_file, cache_files_and_folders, cache_folder, remove_file_from_cache,
     remove_files_in_folder_rom_cache, remove_folder_from_cache,
 };
 use crate::utils::errorhandling::{send_err_to_frontend, ErrorFromRust};
-
-#[tokio::main]
-pub async fn watch_path(path: &str, app: AppHandle) {
-    let (tx, mut rx) = mpsc::channel(100);
-
-    let wr: Result<RecommendedWatcher> = Watcher::new(
-        move |res| {
-            // Send the event through the async channel
-            let _ = tx.blocking_send(res);
-        },
-        Config::default().with_poll_interval(Duration::from_secs(2)),
-    );
-
-    match wr {
-        Ok(mut www) => match www.watch(Path::new(path), RecursiveMode::Recursive) {
-            Ok(_) => {
-                task::spawn(async move {
-                    handle_events(&mut rx, app).await;
-                });
-
-                loop {
-                    std::thread::park();
-                    //tokio::time::sleep(Duration::from_secs(60 * 60)).await;
-                }
-            }
-            Err(e) => {
-                send_err_to_frontend(
-                    &app,
-                    &ErrorFromRust::new(
-                       "Error: watcher process stopped".to_string(),
-                       format!(
-                        "Without watcher process app will not be able to process changes \n\nRaw Error: {}", e.to_string()
-                    )
-                    ).action("c_start_watcher".to_string(), "Restart watcher".to_string()),
-                );
-            }
-        },
-        Err(e) => send_err_to_frontend(
-            &app,
-            &ErrorFromRust::new(
-                "Error: watcher process unable to initialize".to_string(),
-                format!(
-                 "Without watcher process app will not be able to process changes \n\nRaw Error: {}", e.to_string()
-             )
-             ).action("c_start_watcher".to_string(), "Restart watcher".to_string())
-        ),
-    }
-}
-
-pub async fn handle_events(rx: &mut mpsc::Receiver<notify::Result<notify::Event>>, app: AppHandle) {
-    loop {
-        match rx.recv().await {
-            Some(Ok(event)) => handle_event(event, &app).await,
-            Some(Err(e)) => println!("Error while processing event: {:?}", e),
-            None => (),
-        }
-    }
-}
 
 fn send_generic_watch_process_err(app: &AppHandle, place: String, raw_err_string: String) {
     send_err_to_frontend(
@@ -167,7 +106,7 @@ async fn handle_folder_add(app: &AppHandle, path: &Path) {
     };
 }
 
-async fn handle_event(event: Event, app: &AppHandle) {
+pub async fn handle_event(event: Event, app: &AppHandle) {
     for (index, path) in event.paths.iter().enumerate() {
         println!("{:?}", event);
         match event.kind {

@@ -1,14 +1,22 @@
 mod utils;
-mod filewatcher;
+mod watcher;
 mod files;
 mod schema;
 mod cache;
 
 use cache::{create_tables::create_db_tables, dbconn::db_setup, query::{get_all_folders, get_all_tags, get_files_by_path, BookFromDb, BookListGetResult}, write::cache_files_and_folders};
+use serde::{Deserialize, Serialize};
 use utils::errorhandling::{send_err_to_frontend, ErrorFromRust};
 use files::{read_file_by_path, save_file, FileReadMode};
-use filewatcher::watch_path;
 use tauri::AppHandle;
+use watcher::process::watch_path;
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(tag = "type", content = "value")]
+enum ResultStringJson {
+    Ok(String),
+    Err(String),
+}
 
 
 #[tauri::command]
@@ -33,7 +41,6 @@ async fn c_setup_db(app: AppHandle) -> bool {
 async fn c_prepare_cache(app: AppHandle, root_path: String) -> bool {
     match create_db_tables().await {
         Err(e) => {
-            print!("ERROR WHEN CREATE DB TABLES {}", e.to_string());
             send_err_to_frontend(
                 &app,
                 &ErrorFromRust::new("Error when creating tables in cache db".to_string(),
@@ -42,23 +49,27 @@ async fn c_prepare_cache(app: AppHandle, root_path: String) -> bool {
             );
             return false;
         }
-        Ok(_) => match cache_files_and_folders(&root_path).await {
-            Err(e) => {
-            let a: Vec<String> =  e.iter().map(|ee| format!("{}: {}", ee.filename, ee.error_text)).collect();
-                send_err_to_frontend(
-                    &app,
-                    &ErrorFromRust::new(
-                    "Error when caching".to_string(),
-                    format!(
-                        "These files/folders will not be visible in app. \n\n {}", 
-                       a.join("\n"),
-                    ))
-                );
-                return false;
-            }
-            Ok(_) => return true,
-        },
+        Ok(_) => ()
     }
+
+    match cache_files_and_folders(&root_path).await {
+        Err(e) => {
+        let a: Vec<String> =  e.iter().map(|ee| format!("{}: {}", ee.filename, ee.error_text)).collect();
+            send_err_to_frontend(
+                &app,
+                &ErrorFromRust::new(
+                "Error when caching".to_string(),
+                format!(
+                    "These files/folders will not be visible in app. \n\n {}", 
+                   a.join("\n"),
+                ))
+            );
+            return false;
+        }
+        Ok(_) => (),
+    }
+
+    return true
 }
 
 #[tauri::command]
@@ -118,6 +129,7 @@ async fn c_get_all_folders(app: AppHandle) -> Vec<String> {
         }
     };
 }
+
 
 #[tauri::command]
 fn c_read_file_by_path(_: AppHandle, path: String) -> Result<files::BookReadResult, String> {
