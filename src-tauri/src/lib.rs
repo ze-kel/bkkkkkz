@@ -1,44 +1,48 @@
-mod errorhandling;
+mod utils;
 mod filewatcher;
-mod metacache;
 mod files;
 mod schema;
+mod cache;
 
-use errorhandling::{send_err_to_frontend, ErrorFromRust};
+use cache::{create_tables::create_db_tables, dbconn::db_setup, query::{get_all_folders, get_all_tags, get_files_by_path, BookFromDb, BookListGetResult}, write::cache_files_and_folders};
+use utils::errorhandling::{send_err_to_frontend, ErrorFromRust};
 use files::{read_file_by_path, save_file, FileReadMode};
 use filewatcher::watch_path;
-use metacache::{cache_files_and_folders, create_db_tables};
 use tauri::AppHandle;
 
-use std::thread;
-
-mod db;
-use db::{
-    db_setup, get_all_folders, get_all_tags, get_files_by_path, BookFromDb, BookListGetResult,
-};
 
 #[tauri::command]
-fn c_setup_db() -> Result<(), String> {
-    match db_setup() {
-        Ok(_) => Ok(()),
-        Err(e) => Err(e.to_string()),
+async fn c_setup_db(app: AppHandle) -> bool {
+    match db_setup().await {
+        Ok(_) => true,
+        Err(e) => {
+            send_err_to_frontend(
+                &app,
+                &ErrorFromRust::new(
+                "Error when caching".to_string(),
+                format!(
+                    "These files/folders will not be visible in app. Raw Error:{}",  e.to_string()
+                ))
+            );
+            false
+        },
     }
 }
 
 #[tauri::command]
-fn c_prepare_cache(app: AppHandle, root_path: String) -> bool {
-    match create_db_tables() {
+async fn c_prepare_cache(app: AppHandle, root_path: String) -> bool {
+    match create_db_tables().await {
         Err(e) => {
             print!("ERROR WHEN CREATE DB TABLES {}", e.to_string());
             send_err_to_frontend(
                 &app,
                 &ErrorFromRust::new("Error when creating tables in cache db".to_string(),
-                format!("This should not happen. Try restarting the app, else report as bug\n\nRaw Error: {}", e.to_string()),)
+                format!("This should not happen. Try restarting the app, else report as bug. Raw Error: {}", e.to_string()),)
                 
             );
             return false;
         }
-        Ok(_) => match cache_files_and_folders(&root_path) {
+        Ok(_) => match cache_files_and_folders(&root_path).await {
             Err(e) => {
             let a: Vec<String> =  e.iter().map(|ee| format!("{}: {}", ee.filename, ee.error_text)).collect();
                 send_err_to_frontend(
@@ -58,13 +62,15 @@ fn c_prepare_cache(app: AppHandle, root_path: String) -> bool {
 }
 
 #[tauri::command]
-fn c_start_watcher(app: AppHandle, root_path: String) {
-    thread::spawn(move || watch_path(&root_path, app));
+fn c_start_watcher(app: AppHandle, root_path: String) -> bool {
+    std::thread::spawn(move || watch_path(&root_path, app));
+
+    return true
 }
 
 #[tauri::command]
-fn c_get_files_path(app: AppHandle, path: String) -> BookListGetResult {
-    return match get_files_by_path(path) {
+async fn c_get_files_path(app: AppHandle, path: String) -> BookListGetResult {
+    return match get_files_by_path(path).await {
         Ok(files) => files,
         Err(e) => {
             send_err_to_frontend(
@@ -82,8 +88,8 @@ fn c_get_files_path(app: AppHandle, path: String) -> BookListGetResult {
 }
 
 #[tauri::command]
-fn c_get_all_tags(app: AppHandle) -> Vec<String> {
-    return match get_all_tags() {
+async fn c_get_all_tags(app: AppHandle) -> Vec<String> {
+    return match get_all_tags().await {
         Ok(r) => r,
         Err(e) => {
             send_err_to_frontend(
@@ -98,8 +104,8 @@ fn c_get_all_tags(app: AppHandle) -> Vec<String> {
 }
 
 #[tauri::command]
-fn c_get_all_folders(app: AppHandle) -> Vec<String> {
-    return match get_all_folders() {
+async fn c_get_all_folders(app: AppHandle) -> Vec<String> {
+    return match get_all_folders().await {
         Ok(r) => r,
         Err(e) => {
             send_err_to_frontend(
@@ -130,7 +136,6 @@ fn c_save_file(_: AppHandle, book: BookFromDb, forced: bool) -> Result<files::Bo
     }
 }
 
-#[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_sql::Builder::new().build())
@@ -148,7 +153,6 @@ pub fn run() {
             c_save_file
         ])
         .setup(|app| {
-            db_setup()?;
             if cfg!(debug_assertions) {
                 app.handle().plugin(
                     tauri_plugin_log::Builder::default()

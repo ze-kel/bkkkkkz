@@ -1,81 +1,67 @@
 <template>
-  <div class="grid gap-4 py-4" style="grid-template-columns: auto 1fr">
-    <div class="flex flex-col items-center gap-2">
-      <ShContextMenu>
-        <ShContextMenuTrigger class="w-fit">
-          <div
-            class="aspect-[6/9] w-[175px] bg-transparent"
-            :draggable="true"
-            @dragstart="startDrag($event)"
-          >
-            <CoverBookCover :file="openedFile" />
-          </div>
-        </ShContextMenuTrigger>
-        <ShContextMenuContent>
-          <ShContextMenuItem @click="setCoverHandle">
-            {{ openedFile.cover ? 'Change cover' : 'Add cover' }}
-          </ShContextMenuItem>
+  <div class="grid gap-4 py-4">
+    <UiBasicInput
+      v-if="openedFile.attrs.title"
+      v-model="openedFile.attrs.title.Text"
+      @update:model-value="emit('change')"
+      spellcheck="false"
+      class="line-clamp-1 min-w-[100px] text-4xl font-light leading-none"
+      placeholder="Title"
+      theme="hidden"
+    />
+    <UiBasicInput
+      UiBasicInput
+      v-if="openedFile.attrs.author"
+      v-model="openedFile.attrs.author.Text"
+      @update:model-value="emit('change')"
+      spellcheck="false"
+      class="font-regular -mt-1 w-fit min-w-[100px] text-2xl leading-none"
+      theme="hidden"
+      placeholder="Author"
+    />
 
-          <ShContextMenuItem @click="fetchCoverHandle"> Try to fetch cover </ShContextMenuItem>
+    <UiBasicInput
+      v-if="openedFile.attrs.year"
+      v-model="openedFile.attrs.year.Number"
+      @update:model-value="emit('change')"
+      type="number"
+      theme="hidden"
+      class="w-[75px]"
+      placeholder="Year"
+    />
 
-          <ShContextMenuItem v-if="openedFile.cover" @click="removeCoverHandler">
-            Remove cover
-          </ShContextMenuItem>
-        </ShContextMenuContent>
-      </ShContextMenu>
+    <EditorTagsEditor
+      v-if="openedFile.attrs.tags"
+      v-model="openedFile.attrs.tags.TextCollection"
+      class=""
+      @change="emit('change')"
+    />
+    <ReadDetails
+      v-if="openedFile.attrs.read"
+      v-model="openedFile.attrs.read.DatesPairCollection"
+      class="mt-3"
+      @update:model-value="emit('change')"
+    />
+    <RatingStars
+      v-if="openedFile.attrs.myRating"
+      v-model="openedFile.attrs.myRating.Number"
+      @update:model-value="emit('change')"
+      class="mt-3 place-content-center self-center"
+    />
 
-      <RatingStars
-        v-model="openedFile.myRating"
-        @update:model-value="emit('change')"
-        class="mt-3 place-content-center self-center"
-      />
-
-      <UiBasicInput
-        v-model="openedFile.ISBN13"
-        @update:model-value="emit('change')"
-        type="number"
-        class="min-w-[100px] text-center opacity-50 focus:opacity-100"
-        theme="hidden"
-        placeholder="isbn13"
-      />
-    </div>
-
-    <div class="flex flex-col gap-2">
-      <UiBasicInput
-        v-model="openedFile.title"
-        @update:model-value="emit('change')"
-        spellcheck="false"
-        class="line-clamp-1 min-w-[100px] text-4xl font-light leading-none"
-        placeholder="Title"
-        theme="hidden"
-      />
-      <UiBasicInput
-        v-model="openedFile.author"
-        @update:model-value="emit('change')"
-        spellcheck="false"
-        class="font-regular -mt-1 w-fit min-w-[100px] text-2xl leading-none"
-        theme="hidden"
-        placeholder="Author"
-      />
-
-      <div class="flex items-center gap-3">
-        <UiBasicInput
-          v-model="openedFile.year"
-          @update:model-value="emit('change')"
-          type="number"
-          theme="hidden"
-          class="w-[75px]"
-          placeholder="Year"
-        />
-      </div>
-
-      <EditorTagsEditor v-model="openedFile.tags" class="" @change="emit('change')" />
-      <ReadDetails v-model="openedFile.read" class="mt-3" @update:model-value="emit('change')" />
-    </div>
+    <UiBasicInput
+      v-if="openedFile.attrs.ISBN13"
+      v-model="openedFile.attrs.ISBN13.Text"
+      @update:model-value="emit('change')"
+      type="number"
+      class="min-w-[100px] text-center opacity-50 focus:opacity-100"
+      theme="hidden"
+      placeholder="isbn13"
+    />
   </div>
 
   <div ref="forDrag" class="absolute top-[-500px]">
-    <UiDragDisplay> {{ dragging }} </UiDragDisplay>
+    <UiDragDisplay> dragging </UiDragDisplay>
   </div>
 </template>
 
@@ -91,6 +77,7 @@ const openedFile = defineModel<IBookFromDb>({
 
 const emit = defineEmits(['change']);
 
+/*
 ///
 /// Cover Right click
 ///
@@ -136,7 +123,7 @@ const dragging = ref('');
 const forDrag = ref();
 
 const startDrag = (devt: DragEvent) => {
-  /*
+
   if (
     devt.dataTransfer === null ||
     !openedFile.value ||
@@ -160,6 +147,6 @@ const startDrag = (devt: DragEvent) => {
   }, []);
 
   devt.dataTransfer.setData('indexesToUpdate', JSON.stringify(toUpdateIndexes));
-  */
-};
+
+};  */
 </script>

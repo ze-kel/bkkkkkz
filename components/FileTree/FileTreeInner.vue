@@ -53,22 +53,13 @@ import { computed, onUpdated, ref, watchEffect, nextTick } from 'vue';
 import { cloneDeep as _cloneDeep } from 'lodash';
 import { getDefaultViewSettings } from '~/utils/getDefaultViewSettings';
 import type { PropType } from 'vue';
-import {
-  createFolder,
-  moveToFolder,
-  removeEntity,
-  removeFolderOrFile,
-  renameEntity,
-  type IFolderTree,
-} from '~/api/files';
-const { $trpc } = useNuxtApp();
 import { useStore } from '~~/utils/store';
 
 import TreeCell from './TreeCell.vue';
-import { apiEventsEmitter } from '~/api/events';
 import type { FolderNode } from './filePathsToTree';
-import { listen, once } from '@tauri-apps/api/event';
-import { remove } from '@tauri-apps/plugin-fs';
+import { once } from '@tauri-apps/api/event';
+import { mkdir, remove, rename } from '@tauri-apps/plugin-fs';
+import path from 'path-browserify';
 
 const store = useStore();
 
@@ -251,13 +242,34 @@ const saveNewFolder = async (name: string) => {
   if (!name) {
     isCreating.value = false;
   } else {
-    await createFolder({ name, pathForFolder: props.content.rawPath });
+    const newPath = await path.join(props.content.rawPath, name);
+    await mkdir(newPath);
     flipOnNext.value = true;
   }
 };
 
 const deleteFolder = async () => {
   await remove(props.content.rawPath, { recursive: true });
+};
+
+const renameEntity = async ({ srcPath, newName }: { srcPath: string; newName: string }) => {
+  const onlyDir = await path.dirname(srcPath);
+  const targetPath = await path.join(onlyDir, newName);
+  await rename(srcPath, targetPath);
+  return targetPath;
+};
+
+const moveToFolder = async ({
+  moveItemPath,
+  toFolderPath,
+}: {
+  moveItemPath: string;
+  toFolderPath: string;
+}): Promise<string> => {
+  const target = await path.join(toFolderPath, await path.basename(moveItemPath));
+  if (target === moveItemPath) return moveItemPath;
+  await rename(moveItemPath, target);
+  return target;
 };
 </script>
 

@@ -2,10 +2,8 @@ import { throttle } from 'lodash';
 
 /*
  *  When listening for events on a folder it's sometimes impractical to apply all events in place.
- *  For example when listening on all files and user renames a sub folder with 100 files.
- *  This will trigger 100 remove events and 100 add events.
- *  Hook listens for events and throttles their application.
- *  If event queue is over thresholdItems it just does a full refresh.
+ *  For example renaming folder with 100 files, will trigger 100 remove events and 100 add events.
+ *  Hook listens for events and throttles their application. If event queue is over thresholdItems it just does a full refresh.
  */
 export const useThrottledEvents = <TEv>(
   eventProcessor: (v: TEv[]) => void | Promise<void>,

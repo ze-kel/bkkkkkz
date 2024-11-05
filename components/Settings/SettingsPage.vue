@@ -49,7 +49,6 @@
 <script lang="ts" setup>
 import { computed, ref } from 'vue';
 import PathControllerVue from './PathController.vue';
-import { importGoodReadsHTML } from '~/utils/goodreadsHTMLParser';
 
 import { useStore } from '~~/utils/store';
 

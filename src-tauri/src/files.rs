@@ -5,7 +5,7 @@ use std::collections::HashMap;
 use std::fs::{self, File};
 use std::io::{self, BufRead, BufReader};
 
-use crate::db::BookFromDb;
+use crate::cache::query::BookFromDb;
 use crate::schema::{get_schema, AttrKey, AttrValue, DateRead};
 
 pub enum FileReadMode {

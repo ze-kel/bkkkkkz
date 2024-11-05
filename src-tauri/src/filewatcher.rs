@@ -3,34 +3,39 @@ use notify::{Config, EventKind, RecursiveMode, Result, Watcher};
 use notify::{Event, RecommendedWatcher};
 use std::ffi::OsStr;
 use std::path::Path;
-use std::sync::mpsc::{channel, Receiver};
-use std::thread;
 use std::time::Duration;
 use tauri::{AppHandle, Emitter};
+use tokio::sync::mpsc;
+use tokio::task;
 
-use crate::errorhandling::{send_err_to_frontend, ErrorFromRust};
-use crate::metacache::{
+use crate::cache::write::{
     cache_file, cache_files_and_folders, cache_folder, remove_file_from_cache,
     remove_files_in_folder_rom_cache, remove_folder_from_cache,
 };
+use crate::utils::errorhandling::{send_err_to_frontend, ErrorFromRust};
 
-pub fn watch_path(path: &str, app: AppHandle) {
-    let (tx, rx) = channel();
+#[tokio::main]
+pub async fn watch_path(path: &str, app: AppHandle) {
+    let (tx, mut rx) = mpsc::channel(100);
 
     let wr: Result<RecommendedWatcher> = Watcher::new(
-        tx,
+        move |res| {
+            // Send the event through the async channel
+            let _ = tx.blocking_send(res);
+        },
         Config::default().with_poll_interval(Duration::from_secs(2)),
     );
 
     match wr {
         Ok(mut www) => match www.watch(Path::new(path), RecursiveMode::Recursive) {
             Ok(_) => {
-                thread::spawn(move || {
-                    handle_events(rx, app);
+                task::spawn(async move {
+                    handle_events(&mut rx, app).await;
                 });
 
                 loop {
-                    thread::park();
+                    std::thread::park();
+                    //tokio::time::sleep(Duration::from_secs(60 * 60)).await;
                 }
             }
             Err(e) => {
@@ -57,15 +62,12 @@ pub fn watch_path(path: &str, app: AppHandle) {
     }
 }
 
-pub fn handle_events(rx: Receiver<notify::Result<notify::Event>>, app: AppHandle) {
+pub async fn handle_events(rx: &mut mpsc::Receiver<notify::Result<notify::Event>>, app: AppHandle) {
     loop {
-        match rx.recv() {
-            Ok(Ok(event)) => handle_event(event, &app),
-            Ok(Err(e)) => println!("Error while processing event: {:?}", e),
-            Err(e) => {
-                println!("Watch error: {:?}", e);
-                break;
-            }
+        match rx.recv().await {
+            Some(Ok(event)) => handle_event(event, &app).await,
+            Some(Err(e)) => println!("Error while processing event: {:?}", e),
+            None => (),
         }
     }
 }
@@ -80,9 +82,9 @@ fn send_generic_watch_process_err(app: &AppHandle, place: String, raw_err_string
     );
 }
 
-fn handle_file_remove(app: &AppHandle, path: &Path, ext: &OsStr) {
+async fn handle_file_remove(app: &AppHandle, path: &Path, ext: &OsStr) {
     if ext == "md" {
-        match remove_file_from_cache(path) {
+        match remove_file_from_cache(path).await {
             Ok(_) => app.emit("file_remove", path.to_string_lossy()).unwrap(),
             Err(e) => send_generic_watch_process_err(
                 app,
@@ -93,9 +95,9 @@ fn handle_file_remove(app: &AppHandle, path: &Path, ext: &OsStr) {
     }
 }
 
-fn handle_file_add(app: &AppHandle, path: &Path, ext: &OsStr) {
+async fn handle_file_add(app: &AppHandle, path: &Path, ext: &OsStr) {
     if ext == "md" {
-        match cache_file(path) {
+        match cache_file(path).await {
             Ok(v) => app.emit("file_add", v).unwrap(),
             Err(e) => send_generic_watch_process_err(
                 app,
@@ -106,10 +108,10 @@ fn handle_file_add(app: &AppHandle, path: &Path, ext: &OsStr) {
     }
 }
 
-fn handle_file_update(app: &AppHandle, path: &Path, ext: &OsStr) {
+async fn handle_file_update(app: &AppHandle, path: &Path, ext: &OsStr) {
     println!("file update {:?}", path);
     if ext == "md" {
-        match cache_file(path) {
+        match cache_file(path).await {
             Ok(v) => app.emit("file_update", v).unwrap(),
             Err(e) => send_generic_watch_process_err(
                 app,
@@ -123,14 +125,14 @@ fn handle_file_update(app: &AppHandle, path: &Path, ext: &OsStr) {
 // Folder remove and folder add are called only for exact folder that was modified.
 // This means that renaming folder -> folder_renamed will cause events for sub folders and sub files
 // Therefore we need to remove\add all files in that directory
-fn handle_folder_remove(app: &AppHandle, path: &Path) {
-    match remove_folder_from_cache(path) {
+async fn handle_folder_remove(app: &AppHandle, path: &Path) {
+    match remove_folder_from_cache(path).await {
         Err(e) => send_generic_watch_process_err(
             app,
             format!("folder_remove {}", path.to_string_lossy()),
             e.to_string(),
         ),
-        Ok(_) => match remove_files_in_folder_rom_cache(path) {
+        Ok(_) => match remove_files_in_folder_rom_cache(path).await {
             Err(e) => send_generic_watch_process_err(
                 app,
                 format!("folder_remove {}", path.to_string_lossy()),
@@ -141,14 +143,14 @@ fn handle_folder_remove(app: &AppHandle, path: &Path) {
     };
 }
 
-fn handle_folder_add(app: &AppHandle, path: &Path) {
-    match cache_folder(path) {
+async fn handle_folder_add(app: &AppHandle, path: &Path) {
+    match cache_folder(path).await {
         Err(e) => send_generic_watch_process_err(
             app,
             format!("folder_remove {}", path.to_string_lossy()),
             e.to_string(),
         ),
-        Ok(_) => match cache_files_and_folders(path) {
+        Ok(_) => match cache_files_and_folders(path).await {
             Err(e) => {
                 let a: Vec<String> = e
                     .iter()
@@ -165,13 +167,13 @@ fn handle_folder_add(app: &AppHandle, path: &Path) {
     };
 }
 
-fn handle_event(event: Event, app: &AppHandle) {
+async fn handle_event(event: Event, app: &AppHandle) {
     for (index, path) in event.paths.iter().enumerate() {
         println!("{:?}", event);
         match event.kind {
             EventKind::Create(kind) => match (kind, path.extension()) {
-                (CreateKind::File, Some(ext)) => handle_file_add(app, &path, ext),
-                (CreateKind::Folder, _) => handle_folder_add(app, &path),
+                (CreateKind::File, Some(ext)) => handle_file_add(app, &path, ext).await,
+                (CreateKind::Folder, _) => handle_folder_add(app, &path).await,
                 k => {
                     println!("unknown create event {:?}", k)
                 }
@@ -185,23 +187,27 @@ fn handle_event(event: Event, app: &AppHandle) {
                     path.is_dir(),
                     index,
                 ) {
-                    (RenameMode::From, _, Some(ext), _, _, _) => handle_file_remove(app, path, ext),
-                    (RenameMode::From, _, _, _, _, _) => handle_folder_remove(app, path),
-                    (RenameMode::To, _, Some(ext), true, _, _) => handle_file_add(app, &path, ext),
-                    (RenameMode::To, _, _, _, true, _) => handle_folder_add(app, &path),
+                    (RenameMode::From, _, Some(ext), _, _, _) => {
+                        handle_file_remove(app, path, ext).await
+                    }
+                    (RenameMode::From, _, _, _, _, _) => handle_folder_remove(app, path).await,
+                    (RenameMode::To, _, Some(ext), true, _, _) => {
+                        handle_file_add(app, &path, ext).await
+                    }
+                    (RenameMode::To, _, _, _, true, _) => handle_folder_add(app, &path).await,
                     (RenameMode::Both, _, Some(ext), _, _, 0) => {
-                        handle_file_remove(app, &path, ext)
+                        handle_file_remove(app, &path, ext).await
                     }
-                    (RenameMode::Both, _, _, _, _, 0) => handle_folder_remove(app, &path),
+                    (RenameMode::Both, _, _, _, _, 0) => handle_folder_remove(app, &path).await,
                     (RenameMode::Both, _, Some(ext), true, _, 1) => {
-                        handle_file_add(app, &path, ext)
+                        handle_file_add(app, &path, ext).await
                     }
-                    (RenameMode::Both, _, _, _, true, 1) => handle_folder_add(app, &path),
-                    // finder on mac call with RenameMode::Any
-                    (_, Ok(false), None, _, _, _) => handle_folder_remove(app, &path),
-                    (_, Ok(false), Some(ext), _, _, _) => handle_file_remove(app, &path, ext),
-                    (_, Ok(true), None, _, true, _) => handle_folder_add(app, &path),
-                    (_, Ok(true), Some(ext), true, _, _) => handle_file_add(app, &path, ext),
+                    (RenameMode::Both, _, _, _, true, 1) => handle_folder_add(app, &path).await,
+                    // finder on mac calls with RenameMode::Any
+                    (_, Ok(false), None, _, _, _) => handle_folder_remove(app, &path).await,
+                    (_, Ok(false), Some(ext), _, _, _) => handle_file_remove(app, &path, ext).await,
+                    (_, Ok(true), None, _, true, _) => handle_folder_add(app, &path).await,
+                    (_, Ok(true), Some(ext), true, _, _) => handle_file_add(app, &path, ext).await,
                     (a, b, c, d, e, f) => {
                         println!(
                             "unknown rename event {:?} {:?} {:?} {} {} {}",
@@ -211,14 +217,14 @@ fn handle_event(event: Event, app: &AppHandle) {
                 },
                 // Data is always file
                 ModifyKind::Data(_) => match path.extension() {
-                    Some(ext) => handle_file_update(app, &path, ext),
+                    Some(ext) => handle_file_update(app, &path, ext).await,
                     _ => (),
                 },
                 _ => (),
             },
             EventKind::Remove(kind) => match (kind, path.extension()) {
-                (RemoveKind::File, Some(ext)) => handle_file_remove(app, &path, ext),
-                (RemoveKind::Folder, _) => handle_folder_remove(app, &path),
+                (RemoveKind::File, Some(ext)) => handle_file_remove(app, &path, ext).await,
+                (RemoveKind::Folder, _) => handle_folder_remove(app, &path).await,
                 _ => (),
             },
             _ => (),

@@ -10,21 +10,23 @@
           Database
           <div>
             <CheckIcon v-if="dbSetup" />
-            <LoaderCircle v-else class="animate-spin" />
+            <LoaderCircle v-else-if="running" class="animate-spin" />
           </div>
         </div>
         <div class="flex justify-between">
           Cache
           <div>
             <CheckIcon v-if="cacheSetup" />
-            <LoaderCircle v-else class="animate-spin" />
+            <LoaderCircle v-else-if="running" class="animate-spin" />
+            <XIcon v-else />
           </div>
         </div>
         <div class="flex justify-between">
           File watcher
           <div>
             <CheckIcon v-if="watcherSetup" />
-            <LoaderCircle v-else class="animate-spin" />
+            <LoaderCircle v-else-if="running" class="animate-spin" />
+            <XIcon v-else />
           </div>
         </div>
       </div>
@@ -36,7 +38,7 @@
 <script lang="ts" setup>
 import { useStore } from '~~/utils/store';
 import { invoke } from '@tauri-apps/api/core';
-import { CheckIcon, LoaderCircle } from 'lucide-vue-next';
+import { CheckIcon, LoaderCircle, XIcon } from 'lucide-vue-next';
 
 const store = useStore();
 
@@ -44,19 +46,34 @@ const dbSetup = ref(false);
 const cacheSetup = ref(false);
 const watcherSetup = ref(false);
 
+const running = ref(false);
+
 const initLoop = async () => {
   if (typeof store.rootPath !== 'string') {
     await navigateTo('/welcome');
     return;
   }
+  running.value = true;
   await store.fetchRootPath();
   const rp = store.rootPath;
 
-  await invoke('c_setup_db');
+  const res = (await invoke('c_setup_db')) as boolean;
+  if (!res) {
+    running.value = false;
+    return;
+  }
   dbSetup.value = true;
-  await invoke('c_prepare_cache', { rootPath: rp });
+  const res2 = (await invoke('c_prepare_cache', { rootPath: rp })) as boolean;
+  if (!res2) {
+    running.value = false;
+    return;
+  }
   cacheSetup.value = true;
-  await invoke('c_start_watcher', { rootPath: rp });
+  const res3 = (await invoke('c_start_watcher', { rootPath: rp })) as boolean;
+  if (!res3) {
+    running.value = false;
+    return;
+  }
   watcherSetup.value = true;
 
   await navigateTo('/application');

@@ -22,6 +22,9 @@ export const handleErrorsFromRust = () => {
   const handler = (e: ErrorFromRust) => {
     toast.error(e.title, {
       description: e.description,
+
+      duration: Infinity,
+      closeButton: true,
       action: e.actionInvoke
         ? {
             label: e.actionLabel,
