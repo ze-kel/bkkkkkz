@@ -177,7 +177,7 @@ pub fn insert_file(file: &BookFromDb) -> Result<(), rusqlite::Error> {
                     .enumerate()
                     .map(|(ind, dates)| {
                         format!(
-                            "({},\"{}\", {}, {})",
+                            "({},\'{}\', {}, {})",
                             ind,
                             path,
                             wrap_or_null(dates.started.clone()),
@@ -199,7 +199,7 @@ pub fn insert_file(file: &BookFromDb) -> Result<(), rusqlite::Error> {
     let vals_as_text: Vec<String> = insert_values
         .iter()
         .map(|f| match f {
-            InsertValues::Text(v) => format!("'{}'", v.replace("'", "\\'")),
+            InsertValues::Text(v) => format!("'{}'", v.replace("'", "\'")),
             InsertValues::Number(v) => format!("{}", v),
         })
         .collect();

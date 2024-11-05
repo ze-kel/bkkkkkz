@@ -3,29 +3,24 @@ import { cloneDeep as _cloneDeep } from 'lodash';
 
 import type { IOpenedPath, IOpenedTag } from '~/api/openedTabs';
 
-import { invoke } from '@tauri-apps/api/core';
 import { useListenToEvent, type IBookFromDb } from '~/api/tauriEvents';
 import { useThrottledEvents } from '~/utils/useTrottledEvents';
 import path from 'path-browserify';
-import { c_get_files_path, c_get_files_tag } from '~/api/tauriActions';
+import { c_get_files_path, type BookListGetResult } from '~/api/tauriActions';
 
 export const useFilesList = (
   opened: IOpenedPath | IOpenedTag,
   onLoaded?: () => void | Promise<void>,
 ) => {
-  const files = ref<IBookFromDb[]>([]);
+  const data = ref<BookListGetResult | null>(null);
 
   const loading = ref(true);
 
   const loadContent = async () => {
     loading.value = true;
     if (opened.type === 'folder') {
-      files.value = await c_get_files_path(opened.thing);
+      data.value = await c_get_files_path(opened.thing);
     }
-    if (opened.type === 'tag') {
-      files.value = await c_get_files_tag(opened.thing);
-    }
-    console.log('new files value', files.value);
 
     nextTick(() => {
       loading.value = false;
@@ -43,24 +38,27 @@ export const useFilesList = (
   // Update event handling
   //
   const updateOrAddToFiles = (book: IBookFromDb) => {
+    if (!data.value) return;
+    const books = data.value.books;
     // Do not assume that add event will be called once
-    // Observed watcher on mac emitting duplicate events when copying files
-    const index = files.value.findIndex((v) => v.path === book.path);
+    // I encountered watcher on mac emitting duplicate events when copying files
+    const index = books.findIndex((v) => v.path === book.path);
     if (index >= 0) {
-      files.value[index] = book;
+      books[index] = book;
     } else {
-      files.value.push(book);
+      books.push(book);
     }
-    triggerRef(files);
+    triggerRef(data);
   };
 
   const removeFromFiles = (path: string) => {
-    const index = files.value.findIndex((v) => v.path === path);
+    if (!data.value) return;
+    const books = data.value.books;
+    const index = books.findIndex((v) => v.path === path);
 
     if (index >= 0) {
-      files.value.splice(index, 1);
-      files.value = files.value;
-      triggerRef(files);
+      books.splice(index, 1);
+      triggerRef(data);
     }
   };
 
@@ -96,7 +94,7 @@ export const useFilesList = (
     if (opened.type !== 'folder' || isChangedFolderRelevant(opened.thing, v)) processQueue(true);
   });
 
-  return { files, loading };
+  return { data, loading };
 };
 
 const isChangedFolderRelevant = (myPath: string, eventPath: string) => {

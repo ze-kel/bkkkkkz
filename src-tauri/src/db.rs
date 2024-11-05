@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use std::{collections::HashMap, sync::Mutex};
 
-use crate::schema::{get_schema, AttrValue, DateRead};
+use crate::schema::{get_schema, AttrValue, DateRead, SchemaItem};
 
 static DB_CONNECTION: OnceCell<Mutex<Connection>> = OnceCell::new();
 pub fn get_db_connection() -> &'static Mutex<Connection> {
@@ -155,18 +155,22 @@ pub fn get_files_abstact(where_clause: String) -> Result<Vec<BookFromDb>, rusqli
     Ok(result)
 }
 
-pub fn get_files_by_path(path: String) -> Result<Vec<BookFromDb>, rusqlite::Error> {
-    get_files_abstact(format!(
-        "WHERE files.path LIKE concat('%', '{}', '%') GROUP BY files.path",
-        path
-    ))
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct BookListGetResult {
+    pub schema: Vec<SchemaItem>,
+    pub books: Vec<BookFromDb>,
 }
 
-pub fn get_files_by_tag(tag: String) -> Result<Vec<BookFromDb>, rusqlite::Error> {
-    get_files_abstact(format!(
-        "WHERE files.path IN (SELECT path FROM tags WHERE value='{}')",
-        tag
-    ))
+pub fn get_files_by_path(path: String) -> Result<BookListGetResult, rusqlite::Error> {
+    let files = get_files_abstact(format!(
+        "WHERE files.path LIKE concat('%', '{}', '%') GROUP BY files.path",
+        path
+    ))?;
+
+    return Ok(BookListGetResult {
+        schema: get_schema(),
+        books: files,
+    });
 }
 
 pub fn get_all_tags() -> Result<Vec<String>, rusqlite::Error> {

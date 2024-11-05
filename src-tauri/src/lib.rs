@@ -14,10 +14,8 @@ use std::thread;
 
 mod db;
 use db::{
-    db_setup, get_all_folders, get_all_tags, get_files_by_path, get_files_by_tag, BookFromDb,
+    db_setup, get_all_folders, get_all_tags, get_files_by_path, BookFromDb, BookListGetResult,
 };
-
-
 
 #[tauri::command]
 fn c_setup_db() -> Result<(), String> {
@@ -65,7 +63,7 @@ fn c_start_watcher(app: AppHandle, root_path: String) {
 }
 
 #[tauri::command]
-fn c_get_files_path(app: AppHandle, path: String) -> Vec<BookFromDb> {
+fn c_get_files_path(app: AppHandle, path: String) -> BookListGetResult {
     return match get_files_by_path(path) {
         Ok(files) => files,
         Err(e) => {
@@ -75,23 +73,10 @@ fn c_get_files_path(app: AppHandle, path: String) -> Vec<BookFromDb> {
                 "Error when getting files by path".to_string(),
                 e.to_string()),
             );
-            vec![]
-        }
-    };
-}
-
-#[tauri::command]
-fn c_get_files_tag(app: AppHandle, tag: String) -> Vec<BookFromDb> {
-    return match get_files_by_tag(tag) {
-        Ok(files) => files,
-        Err(e) => {
-            send_err_to_frontend(
-                &app,
-                &ErrorFromRust::new(
-                "Error when getting files by tag".to_string(),
-                e.to_string()),
-            );
-            vec![]
+            BookListGetResult{
+                books:    vec![],
+                schema: vec![]
+            }
         }
     };
 }
@@ -157,7 +142,6 @@ pub fn run() {
             c_prepare_cache,
             c_start_watcher,
             c_get_files_path,
-            c_get_files_tag,
             c_get_all_tags,
             c_get_all_folders,
             c_read_file_by_path,

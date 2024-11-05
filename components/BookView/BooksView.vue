@@ -3,7 +3,7 @@
     <div v-bind="wrapperProps">
       <ViewControls class="sticky top-0 z-10 bg-neutral-50 pt-2 dark:bg-neutral-950" />
 
-      <EmptyBooksPlaceholder v-if="files.length === 0 && !loading" class="mt-40" />
+      <EmptyBooksPlaceholder v-if="books.length === 0 && !loading" class="mt-40" />
 
       <div
         v-for="file in list"
@@ -13,16 +13,16 @@
         <BookViewBookContextMenu :path="file.data.path">
           <div class="flex flex-row justify-between">
             <div class="w-[60%] truncate">
-              <template v-if="file.data.title">
-                {{ file.data.title }}
+              <template v-if="file.data.attrs.title.Text">
+                {{ file.data.attrs.title.Text }}
               </template>
               <template v-else> Unknown title </template>
             </div>
             <div class="w-[20%]">
-              {{ file.data.author }}
+              {{ file.data.attrs.author.Text }}
             </div>
             <div class="w-[20%]">
-              {{ file.data.year }}
+              {{ file.data.attrs.year.Number }}
             </div>
           </div>
         </BookViewBookContextMenu>
@@ -61,7 +61,9 @@ const props = defineProps({
   },
 });
 
-const { files, loading } = useFilesList(props.opened, () => setScrollPositionFromSaved());
+const { data, loading } = useFilesList(props.opened, () => setScrollPositionFromSaved());
+
+const books = computed(() => data.value?.books || []);
 
 //
 // Search
@@ -80,10 +82,10 @@ watch(
 //
 
 const sortedFiles = computed(() => {
-  if (!store.settings) return files.value;
+  if (!store.settings) return books.value;
   const sortFunction = getSortFunction(props.opened.settings.sortBy, store.settings?.dateFormat);
 
-  return [...files.value].sort((a, b) => {
+  return [...books.value].sort((a, b) => {
     return sortFunction(a, b, props.opened.settings.sortDirection);
   });
 });

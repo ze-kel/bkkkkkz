@@ -1,4 +1,4 @@
-import type { IBookFromDb } from '~/api/tauriEvents';
+import type { IBookFromDb, SchemaItem } from '~/api/tauriEvents';
 import { invoke } from '@tauri-apps/api/core';
 
 export type IBookSaveResult = {
@@ -20,16 +20,15 @@ export const c_save_file = async (book: IBookFromDb, forced = false) => {
   return r;
 };
 
+export type BookListGetResult = {
+  schema: SchemaItem[];
+  books: IBookFromDb[];
+};
+
 export const c_get_files_path = async (path: string) => {
   return (await invoke('c_get_files_path', {
     path,
-  })) as IBookFromDb[];
-};
-
-export const c_get_files_tag = async (tag: string) => {
-  return (await invoke('c_get_files_tag', {
-    tag,
-  })) as IBookFromDb[];
+  })) as BookListGetResult;
 };
 
 export type BookReadResult =

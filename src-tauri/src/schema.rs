@@ -28,7 +28,9 @@ pub struct SchemaItem {
     pub value: AttrKey,
 }
 
-pub fn get_schema() -> Vec<SchemaItem> {
+pub type Schema = Vec<SchemaItem>;
+
+pub fn get_schema() -> Schema {
     let mut schema: Vec<SchemaItem> = Vec::new();
 
     schema.push(SchemaItem {

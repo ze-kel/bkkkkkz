@@ -52,20 +52,25 @@ export const useListenToEvent = <E extends keyof EventPayloads>(
   });
 };
 
+export type AttrValue = {
+  Text: string;
+  TextCollection: string[];
+  Number: number;
+  DatesPairCollection: {
+    started?: string | undefined;
+    finished?: string | undefined;
+  }[];
+};
+
+export type SchemaItem = {
+  Name: string;
+  Value: keyof AttrValue;
+};
+
 export interface IBookFromDb {
   path: string;
   modified: string;
   markdown: string;
 
-  title: string;
-  author: string;
-  year: number;
-  myRating: number;
-  cover: string;
-  ISBN13: string;
-  tags: string[];
-  read: {
-    started?: string | undefined;
-    finished?: string | undefined;
-  }[];
+  attrs: Record<string, AttrValue>;
 }
