@@ -4,6 +4,7 @@ use walkdir::WalkDir;
 
 use crate::files::{read_file_by_path, FileReadMode};
 use crate::schema::{get_schema, AttrValue};
+use crate::utils::errorhandling::ErrorFromRust;
 
 use super::dbconn::get_db_conn;
 use super::query::BookFromDb;
@@ -181,13 +182,13 @@ pub async fn insert_file(file: &BookFromDb) -> Result<(), sqlx::Error> {
     Ok(())
 }
 
-pub async fn cache_file(path: &Path) -> Result<BookFromDb, String> {
+pub async fn cache_file(path: &Path) -> Result<BookFromDb, ErrorFromRust> {
     match read_file_by_path(&path.to_string_lossy(), FileReadMode::OnlyMeta) {
         Ok(file) => match insert_file(&file.book).await {
             Ok(_) => Ok(file.book),
-            Err(e) => Err(format!("Error when caching file: {}", e.to_string())),
+            Err(e) => Err(ErrorFromRust::new("Error caching file").raw(e)),
         },
-        Err(e) => Err(format!("Error when reading file: {}", e)),
+        Err(e) => Err(e),
     }
 }
 
@@ -202,13 +203,8 @@ pub async fn remove_file_from_cache(path: &Path) -> Result<(), sqlx::Error> {
     Ok(())
 }
 
-pub struct CacheBatchErr {
-    pub filename: String,
-    pub error_text: String,
-}
-
-pub async fn cache_files_and_folders<P: AsRef<Path>>(dir: P) -> Result<(), Vec<CacheBatchErr>> {
-    let mut errs: Vec<CacheBatchErr> = vec![];
+pub async fn cache_files_and_folders<P: AsRef<Path>>(dir: P) -> Result<(), ErrorFromRust> {
+    let mut err = ErrorFromRust::new("Error when caching files and folders");
 
     for entry in WalkDir::new(dir).into_iter().filter_map(Result::ok) {
         if entry.file_type().is_file() {
@@ -216,10 +212,9 @@ pub async fn cache_files_and_folders<P: AsRef<Path>>(dir: P) -> Result<(), Vec<C
                 if extension == "md" {
                     match cache_file(&entry.path()).await {
                         Ok(_) => (),
-                        Err(e) => errs.push(CacheBatchErr {
-                            error_text: e.to_string(),
-                            filename: entry.file_name().to_string_lossy().to_string(),
-                        }),
+                        Err(e) => {
+                            err = err.sub(e.info(&entry.file_name().to_string_lossy()));
+                        }
                     }
                 }
             }
@@ -227,18 +222,17 @@ pub async fn cache_files_and_folders<P: AsRef<Path>>(dir: P) -> Result<(), Vec<C
         if entry.file_type().is_dir() {
             match cache_folder(&entry.path()).await {
                 Ok(_) => (),
-                Err(e) => errs.push(CacheBatchErr {
-                    error_text: e.to_string(),
-                    filename: entry.file_name().to_string_lossy().to_string(),
-                }),
+                Err(e) => {
+                    err = err.sub(
+                        ErrorFromRust::new("Error caching folder")
+                            .info(&entry.file_name().to_string_lossy())
+                            .raw(e),
+                    );
+                }
             }
         }
     }
-
-    match errs.len() {
-        0 => Ok(()),
-        _ => Err(errs),
-    }
+    Ok(())
 }
 
 pub async fn cache_folder(path: &Path) -> Result<(), sqlx::Error> {

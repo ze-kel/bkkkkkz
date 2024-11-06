@@ -30,34 +30,20 @@ enum ResultStringJson {
 }
 
 #[tauri::command]
-async fn c_init_once(app: AppHandle) -> bool {
+async fn c_init_once(app: AppHandle) -> Result<bool, ErrorFromRust> {
     match db_setup().await {
-        Ok(_) => (),
-        Err(e) => {
-            send_err_to_frontend(
-                &app,
-                &ErrorFromRust::new(
-                    "Error on init. This is a critical error. Report bug.".to_string(),
-                    e.to_string(),
-                ),
-            );
-            return false;
-        }
-    }
+        Ok(_) => Ok(()),
+        Err(e) => Err(ErrorFromRust::new("Error on db setup")
+            .info("This is a critical error. Report bug")
+            .raw(e)),
+    }?;
 
     match init_watcher().await {
-        Ok(_) => (),
-        Err(e) => {
-            send_err_to_frontend(
-                &app,
-                &ErrorFromRust::new(
-                    "Error on init. This is a critical error. Report bug.".to_string(),
-                    e.to_string(),
-                ),
-            );
-            return false;
-        }
-    }
+        Ok(_) => Ok(()),
+        Err(e) => Err(ErrorFromRust::new("Error on watcher init.")
+            .info("This is a critical error. Report bug")
+            .raw(e)),
+    }?;
 
     task::spawn(async move {
         let event_rx = subscribe_to_events().await;
@@ -77,109 +63,65 @@ async fn c_init_once(app: AppHandle) -> bool {
         }
     });
 
-    true
+    Ok(true)
 }
 
 #[tauri::command]
-async fn c_prepare_cache(app: AppHandle, root_path: String) -> bool {
+async fn c_prepare_cache(app: AppHandle, root_path: String) -> Result<bool, ErrorFromRust> {
     match create_db_tables().await {
-        Err(e) => {
-            send_err_to_frontend(
-                &app,
-                &ErrorFromRust::new("Error when creating tables in cache db".to_string(),
-                format!("This should not happen. Try restarting the app, else report as bug. Raw Error: {}", e.to_string()))
-            );
-            return false;
-        }
-        Ok(_) => (),
-    }
+        Err(e) => Err(ErrorFromRust::new("Error when creating tables in cache db")
+            .info("This should not happen. Try restarting the app, else report as bug.")
+            .raw(e)),
+        Ok(_) => Ok(()),
+    }?;
 
     match cache_files_and_folders(&root_path).await {
         Err(e) => {
-            let a: Vec<String> = e
-                .iter()
-                .map(|ee| format!("{}: {}", ee.filename, ee.error_text))
-                .collect();
-            send_err_to_frontend(
-                &app,
-                &ErrorFromRust::new(
-                    "Error when caching".to_string(),
-                    format!(
-                        "These files/folders will not be visible in app. \n\n {}",
-                        a.join("\n"),
-                    ),
-                ),
-            );
-            return false;
+            // We don't return error here because user can have a few problematic files, which is ok
+            send_err_to_frontend(&app, &e);
         }
         Ok(_) => (),
     }
 
-    return true;
+    return Ok(true);
 }
 
 #[tauri::command]
-async fn c_watch_paths(app: AppHandle, root_path: String) -> bool {
+async fn c_watch_paths(_: AppHandle, root_path: String) -> Result<bool, ErrorFromRust> {
     match watch_path(&root_path).await {
-        Ok(_) => (),
-        Err(e) => send_err_to_frontend(
-            &app,
-            &ErrorFromRust::new("Error starting watcher".to_string(), e.to_string()),
-        ),
+        Ok(_) => Ok(true),
+        Err(e) => Err(ErrorFromRust::new("Error starting watcher")
+            .info("Try restarting app")
+            .raw(e)),
     }
-    return true;
 }
 
 #[tauri::command]
-async fn c_get_files_path(app: AppHandle, path: String) -> BookListGetResult {
+async fn c_get_files_path(_: AppHandle, path: String) -> Result<BookListGetResult, ErrorFromRust> {
     return match get_files_by_path(path).await {
-        Ok(files) => files,
-        Err(e) => {
-            send_err_to_frontend(
-                &app,
-                &ErrorFromRust::new(
-                    "Error when getting files by path".to_string(),
-                    e.to_string(),
-                ),
-            );
-            BookListGetResult {
-                books: vec![],
-                schema: vec![],
-            }
-        }
+        Ok(files) => Ok(files),
+        Err(e) => Err(ErrorFromRust::new("Error when getting files by path").raw(e)),
     };
 }
 
 #[tauri::command]
-async fn c_get_all_tags(app: AppHandle) -> Vec<String> {
+async fn c_get_all_tags(_: AppHandle) -> Result<Vec<String>, ErrorFromRust> {
     return match get_all_tags().await {
-        Ok(r) => r,
-        Err(e) => {
-            send_err_to_frontend(
-                &app,
-                &ErrorFromRust::new("Error when getting all tags".to_string(), e.to_string()),
-            );
-            vec![]
-        }
+        Ok(r) => Ok(r),
+        Err(e) => Err(ErrorFromRust::new("Error when getting all tags").raw(e)),
     };
 }
 
 #[tauri::command]
-async fn c_get_all_folders(app: AppHandle) -> Vec<String> {
+async fn c_get_all_folders(_: AppHandle) -> Result<Vec<String>, ErrorFromRust> {
     return match get_all_folders().await {
-        Ok(r) => r,
-        Err(e) => {
-            send_err_to_frontend(
-                &app,
-                &ErrorFromRust::new("Error when getting folder tree".to_string(), e.to_string()),
-            );
-            vec![]
-        }
+        Ok(r) => Ok(r),
+        Err(e) => return Err(ErrorFromRust::new("Error getting folder list").raw(e)),
     };
 }
 
 #[tauri::command]
-fn c_read_file_by_path(_: AppHandle, path: String) -> Result<files::BookReadResult, String> {
+fn c_read_file_by_path(_: AppHandle, path: String) -> Result<files::BookReadResult, ErrorFromRust> {
     match read_file_by_path(&path, FileReadMode::FullFile) {
         Ok(v) => Ok(v),
         Err(e) => Err(e),
@@ -191,7 +133,7 @@ fn c_save_file(
     _: AppHandle,
     book: BookFromDb,
     forced: bool,
-) -> Result<files::BookSaveResult, String> {
+) -> Result<files::BookSaveResult, ErrorFromRust> {
     match save_file(book, forced) {
         Ok(r) => Ok(r),
         Err(e) => Err(e),

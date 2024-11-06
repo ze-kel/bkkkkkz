@@ -14,10 +14,9 @@ use crate::utils::errorhandling::{send_err_to_frontend, ErrorFromRust};
 fn send_generic_watch_process_err(app: &AppHandle, place: String, raw_err_string: String) {
     send_err_to_frontend(
         app,
-        &ErrorFromRust::new(
-            "Watcher encountered an error".to_string(),
-            format!("Location: {} \n\nRawError: {}", place, raw_err_string),
-        ),
+        &ErrorFromRust::new("Watcher encountered an error")
+            .info(&format!("Location: {}", place))
+            .raw(raw_err_string),
     );
 }
 
@@ -38,11 +37,7 @@ async fn handle_file_add(app: &AppHandle, path: &Path, ext: &OsStr) {
     if ext == "md" {
         match cache_file(path).await {
             Ok(v) => app.emit("file_add", v).unwrap(),
-            Err(e) => send_generic_watch_process_err(
-                app,
-                format!("file_add {}", path.to_string_lossy()),
-                e.to_string(),
-            ),
+            Err(e) => send_err_to_frontend(app, &e),
         }
     }
 }
@@ -52,11 +47,7 @@ async fn handle_file_update(app: &AppHandle, path: &Path, ext: &OsStr) {
     if ext == "md" {
         match cache_file(path).await {
             Ok(v) => app.emit("file_update", v).unwrap(),
-            Err(e) => send_generic_watch_process_err(
-                app,
-                format!("file_update {}", path.to_string_lossy()),
-                e.to_string(),
-            ),
+            Err(e) => send_err_to_frontend(app, &e),
         }
     }
 }
@@ -90,17 +81,7 @@ async fn handle_folder_add(app: &AppHandle, path: &Path) {
             e.to_string(),
         ),
         Ok(_) => match cache_files_and_folders(path).await {
-            Err(e) => {
-                let a: Vec<String> = e
-                    .iter()
-                    .map(|ee| format!("{}: {}", ee.filename, ee.error_text))
-                    .collect();
-                send_generic_watch_process_err(
-                    app,
-                    format!("folder_remove {}", path.to_string_lossy()),
-                    a.join("\n"),
-                )
-            }
+            Err(e) => send_err_to_frontend(app, &e),
             Ok(_) => app.emit("folder_add", path.to_string_lossy()).unwrap(),
         },
     };

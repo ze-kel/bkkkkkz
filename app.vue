@@ -7,6 +7,7 @@
       <NuxtPage />
     </NuxtLayout>
     <ShToaster :theme="colorMode.value === 'dark' ? 'dark' : 'light'" />
+    <ErrorModal />
 
     <div id="customTeleport" class="absolute top-[-1000px]"></div>
   </div>

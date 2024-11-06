@@ -13,6 +13,7 @@ import {
 } from '~/api/openedTabs';
 import { getRootPath } from '~/api/rootPath';
 import { getSettings, type ISettings } from '~/api/settings';
+import type { ErrorFromRust } from '~/api/tauriEvents';
 
 const uid = new ShortUniqueId({ length: 10 });
 
@@ -21,6 +22,7 @@ export type StateType = {
   openedTabs: IOpenedTabs['tabs'];
   openedTabsActiveId: IOpenedTabs['activeId'];
   settings: ISettings | null;
+  errorModal: ErrorFromRust | null;
 };
 
 export type OpenNewOneParams =
@@ -41,6 +43,7 @@ export const useStore = defineStore('main', {
       settings: null,
       openedTabs: [],
       openedTabsActiveId: '',
+      errorModal: null,
     };
   },
   actions: {
@@ -143,6 +146,11 @@ export const useStore = defineStore('main', {
     },
     updateOpened(data: IOpenedTabs['tabs']) {
       this.openedTabs = data;
+    },
+
+    // Err
+    setError(data: ErrorFromRust) {
+      this.errorModal = data;
     },
   },
   getters: {

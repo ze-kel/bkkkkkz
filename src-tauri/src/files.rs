@@ -7,6 +7,7 @@ use std::io::{self, BufRead, BufReader};
 
 use crate::cache::query::BookFromDb;
 use crate::schema::{get_schema, AttrKey, AttrValue, DateRead};
+use crate::utils::errorhandling::{ErrorActionCode, ErrorFromRust};
 
 pub enum FileReadMode {
     OnlyMeta,
@@ -36,10 +37,14 @@ pub struct BookReadResult {
 pub fn read_file_by_path(
     path_str: &str,
     read_mode: FileReadMode,
-) -> Result<BookReadResult, String> {
+) -> Result<BookReadResult, ErrorFromRust> {
     let file_modified = match get_file_modified_time(path_str) {
         Ok(v) => v,
-        Err(e) => return Err(e),
+        Err(e) => {
+            return Err(ErrorFromRust::new("Error reading file")
+                .raw(e)
+                .action_c(ErrorActionCode::FileReadRetry, "Retry"))
+        }
     };
 
     let files_schema = get_schema();
@@ -140,7 +145,11 @@ pub fn read_file_by_path(
                 }),
             }
         }
-        Err(e) => return Err(e.to_string()),
+        Err(e) => {
+            return Err(ErrorFromRust::new("Error reading file")
+                .raw(e)
+                .action_c(ErrorActionCode::FileReadRetry, "Retry"))
+        }
     }
 }
 
@@ -150,24 +159,36 @@ pub struct BookSaveResult {
     pub modified: String,
 }
 
-pub fn save_file(book: BookFromDb, forced: bool) -> Result<BookSaveResult, String> {
+pub fn save_file(book: BookFromDb, forced: bool) -> Result<BookSaveResult, ErrorFromRust> {
     let mut book_for_serializing = book.to_owned();
 
     let path = match book.path {
         Some(v) => v,
-        None => return Err("No path in book".to_string()),
+        None => {
+            return Err(ErrorFromRust::new("No path in book")
+                .info("This is likely a frontend bug. Copy unsaved content and restart the app"))
+        }
     };
 
     if !forced {
         match book.modified {
             Some(v) => {
-                let modified_before = match get_file_modified_time(&path.clone().as_str()) {
-                    Ok(v) => v,
-                    Err(e) => return Err(e.to_string()),
-                };
+                let modified_before =
+                    match get_file_modified_time(&path.clone().as_str()) {
+                        Ok(v) => v,
+                        Err(e) => return Err(ErrorFromRust::new(
+                            "Unable to get modified date from file on disk",
+                        )
+                        .info(
+                            "Retry only if you are sure there is no important data in file on disk",
+                        )
+                        .action_c(ErrorActionCode::FileSaveRetryForced, "Save anyway")
+                        .raw(e)),
+                    };
 
                 if v != modified_before {
-                    return Err("File was modified by something else.".to_string());
+                    return Err(ErrorFromRust::new("File was modified by something else")
+                        .action_c(ErrorActionCode::FileSaveRetryForced, "Overwrite"));
                 }
             }
             None => (),
@@ -184,13 +205,22 @@ pub fn save_file(book: BookFromDb, forced: bool) -> Result<BookSaveResult, Strin
 
     let yaml = match serde_yml::to_string(&book_for_serializing) {
         Ok(v) => v,
-        Err(e) => return Err(e.to_string()),
+        Err(e) => {
+            return Err(ErrorFromRust::new("Error serializing book metadata")
+                .info("File was not saved")
+                .raw(e))
+        }
     };
     let file = format!("---\n{yaml}---\n{markdown}");
 
     match fs::write(path.clone(), file) {
         Ok(_) => (),
-        Err(e) => return Err(e.to_string()),
+        Err(e) => {
+            return Err(ErrorFromRust::new("Error writing to disk")
+                .info("File was not saved")
+                .raw(e)
+                .action_c(ErrorActionCode::FileSaveRetry, "Retry"))
+        }
     };
 
     match get_file_modified_time(&path.clone().as_str()) {
@@ -198,7 +228,11 @@ pub fn save_file(book: BookFromDb, forced: bool) -> Result<BookSaveResult, Strin
             path: path,
             modified: v,
         }),
-        Err(e) => return Err(e.to_string()),
+        Err(e) => return Err(
+            ErrorFromRust::new("Error getting update file modification date")
+                .info("File should be saved. Expect to get a warning next time you save this file")
+                .raw(e),
+        ),
     }
 }
 

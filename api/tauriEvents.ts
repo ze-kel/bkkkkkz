@@ -1,12 +1,22 @@
 import { invoke } from '@tauri-apps/api/core';
 import { listen, type UnlistenFn } from '@tauri-apps/api/event';
 import { toast } from 'vue-sonner';
+import { markRaw } from 'vue';
 
-type ErrorFromRust = {
+import ErrorToast from '~/components/Error/ErrorToast.vue';
+
+export type ErrorActionCode = 'FileSaveRetry' | 'FileSaveRetryForced' | 'FileReadRetry';
+
+export type ErrorFromRust = {
+  ok: boolean;
   title: string;
-  description: string;
-  actionInvoke: string;
-  actionLabel: string;
+  info?: string;
+  rawError?: string;
+
+  subErrors?: ErrorFromRust[];
+
+  actionLabel?: string;
+  actionCode?: ErrorActionCode;
 };
 
 type EventPayloads = {
@@ -18,22 +28,28 @@ type EventPayloads = {
   error_happened: ErrorFromRust;
 };
 
-export const handleErrorsFromRust = () => {
-  const handler = (e: ErrorFromRust) => {
-    toast.error(e.title, {
-      description: e.description,
+export const rustErrorNotification = (
+  e: ErrorFromRust,
+  codeBinds?: Record<ErrorActionCode, () => void>,
+) => {
+  toast.error(e.title, {
+    description: markRaw(ErrorToast),
+    componentProps: {
+      err: e,
+    },
 
-      duration: Infinity,
-      closeButton: true,
-      action: e.actionInvoke
-        ? {
-            label: e.actionLabel,
-            onClick: () => invoke(e.actionInvoke),
-          }
-        : undefined,
-    });
-  };
-  useListenToEvent('error_happened', handler);
+    duration: Infinity,
+    closeButton: true,
+    action: codeBinds &&
+      e.actionCode && {
+        onClick: codeBinds[e.actionCode],
+        label: e.actionLabel || 'Retry',
+      },
+  });
+};
+
+export const handleErrorsFromRust = () => {
+  useListenToEvent('error_happened', rustErrorNotification);
 };
 
 export const useListenToEvent = <E extends keyof EventPayloads>(
