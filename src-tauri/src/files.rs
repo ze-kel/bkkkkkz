@@ -31,7 +31,7 @@ fn get_file_modified_time(path_str: &str) -> Result<String, String> {
 #[derive(serde::Serialize, serde::Deserialize)]
 pub struct BookReadResult {
     pub book: BookFromDb,
-    pub parsing_error: Option<String>,
+    pub parsing_error: Option<ErrorFromRust>,
 }
 
 pub fn read_file_by_path(
@@ -141,7 +141,11 @@ pub fn read_file_by_path(
                         },
                         ..Default::default()
                     },
-                    parsing_error: Some(e.to_string()),
+                    parsing_error: Some(
+                        ErrorFromRust::new("Parsing error")
+                            .info("Metadata might be lost on save")
+                            .raw(e),
+                    ),
                 }),
             }
         }

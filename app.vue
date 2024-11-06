@@ -48,7 +48,7 @@ useHead({
       return [
         'overscroll-none select-none',
         colorMode.value === 'dark'
-          ? 'bg-gradient-to-t from-neutral-900 from-20% to-neutral-950 to-80%'
+          ? 'dark bg-gradient-to-t from-neutral-900 from-20% to-neutral-950 to-80%'
           : 'bg-gradient-to-t from-neutral-200 from-20% to-neutral-50 to-80%',
       ];
     }),

@@ -28,6 +28,10 @@ export const useBookEditor = (
       return;
     }
 
+    if (res.parsing_error) {
+      rustErrorNotification(res.parsing_error);
+    }
+
     file.value = res.book as IBookFromDb;
     createOrUpdateEditor(res.book.markdown);
   };

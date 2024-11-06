@@ -78,11 +78,11 @@ export type BookReadResult = {
   book: IBookFromDb;
   // This error happens when file is read, but metadata parsing encountered error.
   // Book will default to empty values, except for path, markdown and modified.
-  parsing_error: string | null;
+  parsing_error?: ErrorFromRust;
 };
 
 export const c_read_file_by_path = async (path: string) => {
-  return invoke('c_get_all_folders', { path })
+  return invoke('c_read_file_by_path', { path })
     .then((v) => v as BookReadResult)
     .catch(errorHandler);
 };
