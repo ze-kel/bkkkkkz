@@ -5,18 +5,21 @@
 <script lang="ts" setup>
 import FileTreeInner from './FileTreeInner.vue';
 import { useStore } from '~~/utils/store';
-import { invoke } from '@tauri-apps/api/core';
 import { filePathsToTree } from './filePathsToTree';
 import { useListenToEvent } from '~/api/tauriEvents';
 import { throttle } from 'lodash';
+import { c_get_all_folders } from '~/api/tauriActions';
 
 const store = useStore();
 
-const { data, refresh } = useAsyncData(() => {
-  return invoke('c_get_all_folders', { rootPath: store.rootPath || '' }) as Promise<string[]>;
+const { data, refresh, status } = useAsyncData(async () => {
+  return await c_get_all_folders();
 });
 
-const transformed = computed(() => filePathsToTree(data.value || [], store.rootPath || ''));
+const isError = computed(() => data.value && 'isError' in data.value);
+const transformed = computed(() =>
+  !data.value || 'isError' in data.value ? [] : filePathsToTree(data.value, store.rootPath || ''),
+);
 
 const throttledRefresh = throttle(refresh, 1000, {
   leading: true,

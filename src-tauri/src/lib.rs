@@ -67,7 +67,7 @@ async fn c_init_once(app: AppHandle) -> Result<bool, ErrorFromRust> {
 }
 
 #[tauri::command]
-async fn c_prepare_cache(app: AppHandle, root_path: String) -> Result<bool, ErrorFromRust> {
+async fn c_prepare_cache(app: AppHandle, path: String) -> Result<bool, ErrorFromRust> {
     match create_db_tables().await {
         Err(e) => Err(ErrorFromRust::new("Error when creating tables in cache db")
             .info("This should not happen. Try restarting the app, else report as bug.")
@@ -75,7 +75,7 @@ async fn c_prepare_cache(app: AppHandle, root_path: String) -> Result<bool, Erro
         Ok(_) => Ok(()),
     }?;
 
-    match cache_files_and_folders(&root_path).await {
+    match cache_files_and_folders(&path).await {
         Err(e) => {
             // We don't return error here because user can have a few problematic files, which is ok
             send_err_to_frontend(&app, &e);
@@ -87,8 +87,8 @@ async fn c_prepare_cache(app: AppHandle, root_path: String) -> Result<bool, Erro
 }
 
 #[tauri::command]
-async fn c_watch_paths(_: AppHandle, root_path: String) -> Result<bool, ErrorFromRust> {
-    match watch_path(&root_path).await {
+async fn c_watch_path(_: AppHandle, path: String) -> Result<bool, ErrorFromRust> {
+    match watch_path(&path).await {
         Ok(_) => Ok(true),
         Err(e) => Err(ErrorFromRust::new("Error starting watcher")
             .info("Try restarting app")
@@ -149,7 +149,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             c_init_once,
             c_prepare_cache,
-            c_watch_paths,
+            c_watch_path,
             c_get_files_path,
             c_get_all_tags,
             c_get_all_folders,

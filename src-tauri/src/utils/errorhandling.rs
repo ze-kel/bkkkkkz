@@ -5,11 +5,15 @@ pub enum ErrorActionCode {
     FileSaveRetry,
     FileSaveRetryForced,
     FileReadRetry,
+    InitOnceRetry,
+    PrepareCacheRetry,
+    WatchPathRetry,
 }
 
 #[derive(serde::Serialize, serde::Deserialize, Clone)]
 pub struct ErrorFromRust {
-    pub ok: bool,
+    #[serde(rename = "isError")]
+    pub is_error: bool,
     pub title: String,
     pub info: Option<String>,
 
@@ -19,7 +23,7 @@ pub struct ErrorFromRust {
     pub sub_errors: Vec<ErrorFromRust>,
 
     // Pass code for custom bind on frontend
-    #[serde(rename = "actionType")]
+    #[serde(rename = "actionCode")]
     pub action_code: Option<ErrorActionCode>,
 
     // Label for button that will call action
@@ -30,7 +34,7 @@ pub struct ErrorFromRust {
 impl ErrorFromRust {
     pub fn new(title: &str) -> Self {
         ErrorFromRust {
-            ok: false,
+            is_error: true,
             title: title.to_string(),
             sub_errors: vec![],
             raw_error: None,

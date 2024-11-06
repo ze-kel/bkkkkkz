@@ -1,11 +1,10 @@
-import { invoke } from '@tauri-apps/api/core';
 import { throttle } from 'lodash';
 import type { ShallowRef } from 'vue';
 import { toast } from 'vue-sonner';
 
 import type { IOpenedFile } from '~/api/openedTabs';
 import { c_read_file_by_path, c_save_file } from '~/api/tauriActions';
-import { useListenToEvent, type IBookFromDb } from '~/api/tauriEvents';
+import { rustErrorNotification, useListenToEvent, type IBookFromDb } from '~/api/tauriEvents';
 import { useCodeMirror } from '~/components/Editor/CodeMirror/useCodeMirror';
 
 export const useBookEditor = (
@@ -22,15 +21,11 @@ export const useBookEditor = (
     if (opened.type !== 'file') return;
     const res = await c_read_file_by_path(opened.thing);
 
-    if (typeof res === 'string') {
-      error.value = res;
-      return;
-    }
-
-    if (res.parsing_error) {
-      toast('Error when parsing book frontmatter', {
-        description: 'Any edits will overwrite book. ' + res.parsing_error,
+    if ('isError' in res) {
+      rustErrorNotification(res, {
+        FileReadRetry: () => loadFileFromDisk(),
       });
+      return;
     }
 
     file.value = res.book as IBookFromDb;
@@ -66,21 +61,19 @@ export const useBookEditor = (
       file.value.markdown = getEditorState();
     }
 
-    const r = await c_save_file(file.value, forced);
+    const res = await c_save_file(file.value, forced);
 
-    if (typeof r === 'object') {
-      if (file.value) {
-        file.value.modified = r.modified;
-        changes.value -= changesCopy;
-      }
-    } else {
-      toast('Error when saving file', {
-        description: r,
-        action: {
-          label: 'Retry and force save',
-          onClick: () => saveFile(true),
-        },
+    if ('isError' in res) {
+      rustErrorNotification(res, {
+        FileSaveRetry: () => saveFile(),
+        FileSaveRetryForced: () => saveFile(forced),
       });
+      return;
+    }
+
+    if (file.value) {
+      file.value.modified = res.modified;
+      changes.value -= changesCopy;
     }
   };
 

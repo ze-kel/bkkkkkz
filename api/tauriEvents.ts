@@ -1,14 +1,19 @@
-import { invoke } from '@tauri-apps/api/core';
 import { listen, type UnlistenFn } from '@tauri-apps/api/event';
 import { toast } from 'vue-sonner';
 import { markRaw } from 'vue';
 
 import ErrorToast from '~/components/Error/ErrorToast.vue';
 
-export type ErrorActionCode = 'FileSaveRetry' | 'FileSaveRetryForced' | 'FileReadRetry';
+export type ErrorActionCode =
+  | 'FileSaveRetry'
+  | 'FileSaveRetryForced'
+  | 'FileReadRetry'
+  | 'InitOnceRetry'
+  | 'PrepareCacheRetry'
+  | 'WatchPathRetry';
 
 export type ErrorFromRust = {
-  ok: boolean;
+  isError: boolean;
   title: string;
   info?: string;
   rawError?: string;
@@ -18,6 +23,10 @@ export type ErrorFromRust = {
   actionLabel?: string;
   actionCode?: ErrorActionCode;
 };
+
+export function isOurError(v: unknown): v is ErrorFromRust {
+  return Boolean(v && typeof v === 'object' && 'isError' in v && v.isError === true);
+}
 
 type EventPayloads = {
   file_remove: string;
@@ -30,7 +39,7 @@ type EventPayloads = {
 
 export const rustErrorNotification = (
   e: ErrorFromRust,
-  codeBinds?: Record<ErrorActionCode, () => void>,
+  codeBinds?: Partial<Record<ErrorActionCode, () => void>>,
 ) => {
   toast.error(e.title, {
     description: markRaw(ErrorToast),

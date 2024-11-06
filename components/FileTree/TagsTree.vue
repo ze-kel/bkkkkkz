@@ -19,11 +19,11 @@ import { useStore } from '~~/utils/store';
 import TreeCell from '~/components/FileTree/TreeCell.vue';
 import { getDefaultViewSettings } from '~/utils/getDefaultViewSettings';
 
-import { invoke } from '@tauri-apps/api/core';
+import { c_get_all_tags } from '~/api/tauriActions';
 
 const store = useStore();
 const { data, refresh } = useAsyncData(() => {
-  return invoke('c_get_all_tags') as Promise<string[]>;
+  return c_get_all_tags();
 });
 
 const openedTag = computed(

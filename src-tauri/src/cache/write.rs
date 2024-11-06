@@ -27,7 +27,7 @@ pub async fn insert_file(file: &BookFromDb) -> Result<(), sqlx::Error> {
     let mut insert_values: Vec<InsertValues> = Vec::new();
 
     // Don't forget to add ";" at the end of statements you push here
-    let mut separate_statements: Vec<String> = Vec::new();
+    let mut separate_statements: Vec<QueryBuilder<'_, Sqlite>> = Vec::new();
 
     let files_schema = get_schema();
 
@@ -36,46 +36,41 @@ pub async fn insert_file(file: &BookFromDb) -> Result<(), sqlx::Error> {
         match schema_i.value {
             crate::schema::AttrKey::Text => {
                 let v = match file.attrs.get(&name) {
-                    Some(v) => match v {
-                        AttrValue::Text(v) => v,
-                        _ => "",
-                    },
-                    None => "",
+                    Some(AttrValue::Text(v)) => v,
+                    _ => "",
                 };
                 insert_keys.push(name);
                 insert_values.push(InsertValues::Text(v.to_string()));
             }
             crate::schema::AttrKey::Number => {
-                let v = match file.attrs.get(&name).unwrap_or(&AttrValue::Number(0.0)) {
-                    AttrValue::Number(v) => v,
+                let v = match file.attrs.get(&name) {
+                    Some(AttrValue::Number(v)) => v,
                     _ => &0.0,
                 };
+
                 insert_keys.push(name);
                 insert_values.push(InsertValues::Number(v.to_owned()));
             }
             crate::schema::AttrKey::TextCollection => {
                 let v = match file.attrs.get(&name) {
-                    Some(v) => match v {
-                        AttrValue::TextCollection(v) => v,
-                        _ => &Vec::new(),
-                    },
-                    None => &Vec::new(),
+                    Some(AttrValue::TextCollection(v)) => v.clone(),
+                    _ => Vec::new(),
                 };
 
                 let mut deletion: QueryBuilder<'_, Sqlite> =
                     QueryBuilder::new("DELETE FROM tags WHERE path =");
                 deletion
                     .push_bind(path)
-                    .push("AND ind >=")
+                    .push(" AND ind >=")
                     .push_bind(v.len() as i64);
-                separate_statements.push(deletion.into_sql());
+                separate_statements.push(deletion);
 
                 if v.len() == 0 {
                     continue;
                 }
 
                 let mut insertion: QueryBuilder<'_, Sqlite> =
-                    QueryBuilder::new("INSERT INTO tags(ind, path, value) VALUES");
+                    QueryBuilder::new("INSERT INTO tags(ind, path, value) VALUES ");
 
                 v.iter().enumerate().for_each(|(ind, value)| {
                     if ind > 0 {
@@ -87,35 +82,32 @@ pub async fn insert_file(file: &BookFromDb) -> Result<(), sqlx::Error> {
                         .push(",")
                         .push_bind(path)
                         .push(",")
-                        .push_bind(value)
+                        .push_bind(value.clone())
                         .push(")");
                 });
-                insertion.push("ON CONFLICT(ind,path) DO UPDATE SET value=excluded.value");
-                separate_statements.push(insertion.into_sql());
+                insertion.push(" ON CONFLICT(ind,path) DO UPDATE SET value=excluded.value");
+                separate_statements.push(insertion);
             }
             crate::schema::AttrKey::DatesPairCollection => {
                 let v = match file.attrs.get(&name) {
-                    Some(v) => match v {
-                        AttrValue::DatesPairCollection(v) => v,
-                        _ => &Vec::new(),
-                    },
-                    None => &Vec::new(),
+                    Some(AttrValue::DatesPairCollection(v)) => v,
+                    _ => &Vec::new(),
                 };
 
                 let mut deletion: QueryBuilder<'_, Sqlite> =
                     QueryBuilder::new("DELETE FROM read WHERE path=");
                 deletion
                     .push_bind(path)
-                    .push("AND ind >=")
+                    .push(" AND ind >= ")
                     .push_bind(v.len() as i64);
-                separate_statements.push(deletion.into_sql());
+                separate_statements.push(deletion);
 
                 if v.len() == 0 {
                     continue;
                 }
 
                 let mut insertion: QueryBuilder<'_, Sqlite> =
-                    QueryBuilder::new("INSERT INTO read(ind,path, started, finished) VALUES");
+                    QueryBuilder::new("INSERT INTO read(ind, path, started, finished) VALUES ");
 
                 v.iter().enumerate().for_each(|(ind, value)| {
                     if ind > 0 {
@@ -123,17 +115,18 @@ pub async fn insert_file(file: &BookFromDb) -> Result<(), sqlx::Error> {
                     }
                     insertion
                         .push("(")
-                        .push_bind(ind as i64)
+                        .push_bind(ind.clone() as i64)
                         .push(",")
-                        .push_bind(path)
+                        .push_bind(path.clone())
                         .push(",")
                         .push_bind(value.started.clone())
                         .push(",")
-                        .push_bind(value.finished.clone())
+                        .push_bind("hello")
                         .push(")");
                 });
-                insertion.push("ON CONFLICT(ind,path) DO UPDATE SET started=excluded.started, finished=excluded.finished");
-                separate_statements.push(insertion.into_sql());
+                insertion.push(" ON CONFLICT(ind,path) DO UPDATE SET started=excluded.started, finished=excluded.finished");
+
+                separate_statements.push(insertion);
             }
         }
     }
@@ -163,20 +156,10 @@ pub async fn insert_file(file: &BookFromDb) -> Result<(), sqlx::Error> {
         qb.push(", ").push(k).push("=excluded.").push(k);
     });
 
-    match qb.build().execute(&mut *db).await {
-        Ok(_) => (),
-        Err(_) => {
-            println!("\n Error on {}\n", qb.into_sql())
-        }
-    }
+    qb.build().execute(&mut *db).await?;
 
-    for qq in separate_statements {
-        match sqlx::query(&qq).execute(&mut *db).await {
-            Ok(_) => (),
-            Err(_) => {
-                println!("\n Error on {}\n", qq)
-            }
-        }
+    for mut qq in separate_statements {
+        qq.build().execute(&mut *db).await?;
     }
 
     Ok(())

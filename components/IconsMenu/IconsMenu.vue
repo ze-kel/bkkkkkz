@@ -1,7 +1,6 @@
 <template>
   <ShDialog v-model:open="settingsOpened">
     <ShDialogContent>
-      <ShDialogTitle>Settings</ShDialogTitle>
       <Settings />
     </ShDialogContent>
   </ShDialog>

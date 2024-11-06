@@ -1,5 +1,39 @@
-import type { IBookFromDb, SchemaItem } from '~/api/tauriEvents';
+import {
+  isOurError,
+  type ErrorFromRust,
+  type IBookFromDb,
+  type SchemaItem,
+} from '~/api/tauriEvents';
 import { invoke } from '@tauri-apps/api/core';
+
+const errorHandler = (e: unknown): ErrorFromRust => {
+  if (isOurError(e)) {
+    console.error('Error from rust', e);
+    return e;
+  }
+  console.error(e);
+  return {
+    title: 'Unknown Javascript or Tauri error',
+  } as ErrorFromRust;
+};
+
+export const c_init_once = async () => {
+  return invoke('c_init_once')
+    .then((v) => v as boolean)
+    .catch(errorHandler);
+};
+
+export const c_prepare_cache = async (path: string) => {
+  return invoke('c_prepare_cache', { path })
+    .then((v) => v as boolean)
+    .catch(errorHandler);
+};
+
+export const c_watch_path = async (path: string) => {
+  return invoke('c_watch_path', { path })
+    .then((v) => v as boolean)
+    .catch(errorHandler);
+};
 
 export type IBookSaveResult = {
   path: string;
@@ -12,12 +46,9 @@ export type IBookSaveResult = {
  *  2. File does not exist already.
  */
 export const c_save_file = async (book: IBookFromDb, forced = false) => {
-  const r = (await invoke('c_save_file', {
-    book,
-    forced,
-  })) as IBookSaveResult | string;
-
-  return r;
+  return invoke('c_save_file', { book, forced })
+    .then((v) => v as IBookSaveResult)
+    .catch(errorHandler);
 };
 
 export type BookListGetResult = {
@@ -26,25 +57,32 @@ export type BookListGetResult = {
 };
 
 export const c_get_files_path = async (path: string) => {
-  return (await invoke('c_get_files_path', {
-    path,
-  })) as BookListGetResult;
+  return invoke('c_get_files_path', { path })
+    .then((v) => v as BookListGetResult)
+    .catch(errorHandler);
 };
 
-export type BookReadResult =
-  | {
-      book: IBookFromDb;
-      // This error happens when file is read, but metadata parsing encountered error.
-      // Book will default to empty values, except for path, markdown and modified.
-      parsing_error: string | null;
-    }
-  // String error here means error happened when reading file(or it does not exist)
-  | string;
+export const c_get_all_tags = async () => {
+  return invoke('c_get_all_tags', {})
+    .then((v) => v as string[])
+    .catch(errorHandler);
+};
+
+export const c_get_all_folders = async () => {
+  return invoke('c_get_all_folders', {})
+    .then((v) => v as string[])
+    .catch(errorHandler);
+};
+
+export type BookReadResult = {
+  book: IBookFromDb;
+  // This error happens when file is read, but metadata parsing encountered error.
+  // Book will default to empty values, except for path, markdown and modified.
+  parsing_error: string | null;
+};
 
 export const c_read_file_by_path = async (path: string) => {
-  const res = (await invoke('c_read_file_by_path', {
-    path,
-  })) as BookReadResult | string;
-
-  return res;
+  return invoke('c_get_all_folders', { path })
+    .then((v) => v as BookReadResult)
+    .catch(errorHandler);
 };
