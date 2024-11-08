@@ -1,5 +1,5 @@
 <template>
-  <div v-bind="containerProps" class="relative h-full w-full px-2 pr-4">
+  <div v-bind="containerProps" class="gutter-stable relative h-full w-full px-2 pr-4">
     <div v-bind="wrapperProps">
       <ViewControls class="sticky top-0 z-10 bg-neutral-50 pt-2 dark:bg-neutral-950" />
 
@@ -123,5 +123,10 @@ onUnmounted(() => {
 .cards {
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   grid-auto-rows: max-content;
+}
+
+.gutter-stable {
+  scrollbar-gutter: stable;
+  overflow-y: scroll !important;
 }
 </style>

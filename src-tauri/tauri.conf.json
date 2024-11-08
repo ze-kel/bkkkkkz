@@ -15,8 +15,12 @@
         "title": "bkzlogger",
         "width": 1200,
         "height": 800,
+        "minHeight": 600,
+        "minWidth": 800,
         "resizable": true,
-        "fullscreen": false
+        "hiddenTitle": true,
+        "fullscreen": false,
+        "titleBarStyle": "Overlay"
       }
     ],
     "security": {

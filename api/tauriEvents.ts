@@ -80,25 +80,47 @@ export const useListenToEvent = <E extends keyof EventPayloads>(
   });
 };
 
+export type DatePair = {
+  started?: string | undefined;
+  finished?: string | undefined;
+};
+
 export type AttrValue = {
   Text: string;
   TextCollection: string[];
   Number: number;
-  DatesPairCollection: {
-    started?: string | undefined;
-    finished?: string | undefined;
-  }[];
+  DatesPairCollection: DatePair[];
 };
 
+export const AttrValueKeys: (keyof AttrValue)[] = [
+  'Text',
+  'TextCollection',
+  'Number',
+  'DatesPairCollection',
+];
+
 export type SchemaItem = {
-  Name: string;
-  Value: keyof AttrValue;
+  name: string;
+  value: keyof AttrValue;
+  settings: {
+    size?: 'S' | 'M' | 'L';
+    displayName?: string;
+    textFont?: 'Serif' | 'Sans';
+    textWeight?: 'Light' | 'Normal' | 'Bold' | 'Black';
+    textTheme?: 'Hidden' | 'Default';
+    textMultiline?: boolean;
+
+    numberMin?: number;
+    numberMax?: number;
+    numberStyle?: 'Default' | 'Stars' | 'Slider';
+  };
 };
+export type Schema = SchemaItem[];
 
 export interface IBookFromDb {
   path: string;
   modified: string;
   markdown: string;
 
-  attrs: Record<string, AttrValue>;
+  attrs: Record<string, any>;
 }

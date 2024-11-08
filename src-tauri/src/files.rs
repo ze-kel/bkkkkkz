@@ -6,7 +6,7 @@ use std::fs::{self, File};
 use std::io::{self, BufRead, BufReader};
 
 use crate::cache::query::BookFromDb;
-use crate::schema::{get_schema, AttrKey, AttrValue, DateRead};
+use crate::schema::{get_schema, AttrKey, AttrValue, DateRead, Schema};
 use crate::utils::errorhandling::{ErrorActionCode, ErrorFromRust};
 
 pub enum FileReadMode {
@@ -32,6 +32,7 @@ fn get_file_modified_time(path_str: &str) -> Result<String, String> {
 pub struct BookReadResult {
     pub book: BookFromDb,
     pub parsing_error: Option<ErrorFromRust>,
+    pub schema: Schema,
 }
 
 pub fn read_file_by_path(
@@ -53,68 +54,80 @@ pub fn read_file_by_path(
 
     match read_file(&path_str, &read_mode) {
         Ok(fmc) => {
-            let parsed2: Result<HashMap<String, serde_yml::Value>, serde_yml::Error> =
+            let parsed_meta: Result<HashMap<String, serde_yml::Value>, serde_yml::Error> =
                 serde_yml::from_str(&fmc.0);
 
-            match parsed2 {
-                Ok(prsd) => {
+            match parsed_meta {
+                Ok(parse_res) => {
                     let mut hm: HashMap<String, AttrValue> = HashMap::new();
 
-                    for schema_i in files_schema {
+                    for schema_i in files_schema.clone() {
                         let name = schema_i.name;
-                        match prsd.get(&name) {
-                            Some(v) => match (v, schema_i.value) {
-                                (serde_yml::Value::String(s), AttrKey::Text) => {
-                                    hm.insert(name, AttrValue::Text(s.to_owned()));
-                                }
-                                (serde_yml::Value::Number(n), AttrKey::Number) => {
-                                    hm.insert(name, AttrValue::Number(n.as_f64().unwrap_or(0.0)));
-                                }
-                                (serde_yml::Value::Sequence(vec), AttrKey::TextCollection) => {
-                                    let clear = vec
-                                        .iter()
-                                        .filter_map(|f| match f {
-                                            serde_yml::Value::String(s) => Some(s.to_owned()),
-                                            _ => None,
-                                        })
-                                        .collect();
+                        let value_in_meta = parse_res.get(&name);
 
-                                    hm.insert(name, AttrValue::TextCollection(clear));
-                                }
-                                (serde_yml::Value::Sequence(vec), AttrKey::DatesPairCollection) => {
-                                    let clear = vec
-                                        .iter()
-                                        .filter_map(|f| match f {
-                                            serde_yml::Value::Mapping(mm) => Some(DateRead {
-                                                started: match mm.get("started") {
-                                                    Some(v) => match v {
-                                                        serde_yml::Value::String(v) => {
-                                                            Some(v.to_owned())
-                                                        }
-                                                        _ => None,
-                                                    },
-                                                    None => None,
-                                                },
-                                                finished: match mm.get("finished") {
-                                                    Some(v) => match v {
-                                                        serde_yml::Value::String(v) => {
-                                                            Some(v.to_owned())
-                                                        }
-                                                        _ => None,
-                                                    },
-                                                    None => None,
-                                                },
-                                            }),
-                                            _ => None,
-                                        })
-                                        .collect();
-                                    hm.insert(name, AttrValue::DatesPairCollection(clear));
-                                }
+                        match (value_in_meta, schema_i.value) {
+                            (Some(serde_yml::Value::String(s)), AttrKey::Text) => {
+                                hm.insert(name, AttrValue::Text(s.to_owned()));
+                            }
 
-                                _ => (),
-                            },
-                            None => (),
-                        };
+                            (Some(serde_yml::Value::Number(n)), AttrKey::Number) => {
+                                if let Some(nn) = n.as_u64() {
+                                    hm.insert(name, AttrValue::Number(nn));
+                                }
+                            }
+
+                            (Some(serde_yml::Value::Number(n)), AttrKey::NumberDecimal) => {
+                                if let Some(nn) = n.as_f64() {
+                                    hm.insert(name, AttrValue::NumberDecimal(nn));
+                                }
+                            }
+
+                            (Some(serde_yml::Value::Sequence(vec)), AttrKey::TextCollection) => {
+                                let clear = vec
+                                    .iter()
+                                    .filter_map(|f| match f {
+                                        serde_yml::Value::String(s) => Some(s.to_owned()),
+                                        _ => None,
+                                    })
+                                    .collect();
+
+                                hm.insert(name, AttrValue::TextCollection(clear));
+                            }
+
+                            (
+                                Some(serde_yml::Value::Sequence(vec)),
+                                AttrKey::DatesPairCollection,
+                            ) => {
+                                let clear = vec
+                                    .iter()
+                                    .filter_map(|f| match f {
+                                        serde_yml::Value::Mapping(mm) => Some(DateRead {
+                                            started: match mm.get("started") {
+                                                Some(v) => match v {
+                                                    serde_yml::Value::String(v) => {
+                                                        Some(v.to_owned())
+                                                    }
+                                                    _ => None,
+                                                },
+                                                None => None,
+                                            },
+                                            finished: match mm.get("finished") {
+                                                Some(v) => match v {
+                                                    serde_yml::Value::String(v) => {
+                                                        Some(v.to_owned())
+                                                    }
+                                                    _ => None,
+                                                },
+                                                None => None,
+                                            },
+                                        }),
+                                        _ => None,
+                                    })
+                                    .collect();
+                                hm.insert(name, AttrValue::DatesPairCollection(clear));
+                            }
+                            (_, _) => (),
+                        }
                     }
 
                     Ok(BookReadResult {
@@ -129,6 +142,7 @@ pub fn read_file_by_path(
                             ..Default::default()
                         },
                         parsing_error: None,
+                        schema: files_schema,
                     })
                 }
                 Err(e) => Ok(BookReadResult {
@@ -146,6 +160,7 @@ pub fn read_file_by_path(
                             .info("Metadata might be lost on save")
                             .raw(e),
                     ),
+                    schema: files_schema,
                 }),
             }
         }
@@ -164,8 +179,6 @@ pub struct BookSaveResult {
 }
 
 pub fn save_file(book: BookFromDb, forced: bool) -> Result<BookSaveResult, ErrorFromRust> {
-    let mut book_for_serializing = book.to_owned();
-
     let path = match book.path {
         Some(v) => v,
         None => {
@@ -201,13 +214,7 @@ pub fn save_file(book: BookFromDb, forced: bool) -> Result<BookSaveResult, Error
 
     let markdown = book.markdown.unwrap_or("".to_string());
 
-    // Omitting fields can be done via serde skip, however then the structure that gets saved to file
-    // needs to be different from structure that's sent to frontend(because it serializes too)
-    book_for_serializing.markdown = None;
-    book_for_serializing.modified = None;
-    book_for_serializing.path = None;
-
-    let yaml = match serde_yml::to_string(&book_for_serializing) {
+    let yaml = match serde_yml::to_string(&book.attrs) {
         Ok(v) => v,
         Err(e) => {
             return Err(ErrorFromRust::new("Error serializing book metadata")

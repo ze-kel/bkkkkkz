@@ -8,6 +8,8 @@
       @change="changeRootPathHandler"
     />
 
+    <ShButton @click="navigateTo('/schemas')">Edit schema</ShButton>
+
     <div class="mt-4">
       <h2 class="mb-2 font-semibold">Theme</h2>
 

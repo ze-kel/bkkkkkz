@@ -1,7 +1,7 @@
 <template>
   <div class="flex h-full w-full flex-col overflow-y-auto overflow-x-hidden overscroll-none">
     <div class="mx-auto h-fit w-full max-w-2xl">
-      <EditorMetaEditor v-if="file" v-model="file" @change="() => changes++" />
+      <EditorMetaEditor v-if="file" v-model="file" :schema="schema" class="py-2" />
 
       <div class="h-full min-h-[200px] border-t border-neutral-300 py-4 dark:border-neutral-800">
         <div
@@ -35,7 +35,7 @@ const editorWrapper = useTemplateRef('editorWrapper');
 
 const colorMode = useColorMode();
 
-const { file, error, changes } = useBookEditor(props.opened, editorWrapper);
+const { file, schema, error, changes } = useBookEditor(props.opened, editorWrapper);
 </script>
 
 <style scoped>

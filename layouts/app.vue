@@ -1,7 +1,8 @@
 <template>
+  <div data-tauri-drag-region class="col-span-2 h-2 bg-neutral-200 dark:bg-neutral-900"></div>
   <div class="customCols grid h-full max-h-full items-start overflow-hidden">
     <!-- Empty space to drag window around -->
-    <div class="dragApp col-span-2 h-10 bg-neutral-200 dark:bg-neutral-900"></div>
+    <div data-tauri-drag-region class="col-span-2 h-10 bg-neutral-200 dark:bg-neutral-900"></div>
 
     <!-- Tabs -->
     <TabsSelector class="bg-neutral-200 dark:bg-neutral-900" />

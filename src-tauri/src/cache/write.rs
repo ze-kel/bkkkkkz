@@ -45,6 +45,15 @@ pub async fn insert_file(file: &BookFromDb) -> Result<(), sqlx::Error> {
             crate::schema::AttrKey::Number => {
                 let v = match file.attrs.get(&name) {
                     Some(AttrValue::Number(v)) => v,
+                    _ => &0,
+                };
+
+                insert_keys.push(name);
+                insert_values.push(InsertValues::Number(v.to_owned() as f64));
+            }
+            crate::schema::AttrKey::NumberDecimal => {
+                let v = match file.attrs.get(&name) {
+                    Some(AttrValue::NumberDecimal(v)) => v,
                     _ => &0.0,
                 };
 

@@ -1,5 +1,5 @@
 import { twMerge } from 'tailwind-merge';
-import { cx } from 'class-variance-authority';
+import { cx } from 'cva';
 import type { Updater } from '@tanstack/vue-table';
 
 // Merges classes while removing tailwind conflicts

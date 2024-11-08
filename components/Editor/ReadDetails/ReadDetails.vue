@@ -1,22 +1,20 @@
 <template>
-  <div class="w-fit rounded">
+  <div class="w-full rounded">
     <div class="flex flex-col gap-2">
       <div
         v-for="(date, index) in modelValue"
         :key="index"
-        class="flex items-center justify-between gap-2"
+        class="flex w-fit items-center justify-between gap-2"
       >
-        <DatePair
-          v-if="store.settings"
-          :model-value="date"
-          :date-format="store.settings.dateFormat"
-          @update:model-value="(val) => updateValue(index, val)"
-        />
+        <UiCalendarDateInput v-model="date.started" />
+        <MoveRightIcon class="w-4" />
+        <UiCalendarDateInput v-model="date.finished" />
+
         <ShButton variant="ghost" size="icon" @click="removeDate(index)">
           <XIcon class="w-4 opacity-50" />
         </ShButton>
       </div>
-      <ShButton variant="ghost" size="sm" class="mt-2" @click="addNewDate">
+      <ShButton variant="ghost" size="xs" class="mt-2" @click="addNewDate">
         Log new reading
       </ShButton>
     </div>
@@ -24,49 +22,23 @@
 </template>
 
 <script lang="ts" setup>
-import type { PropType } from 'vue';
-import DatePair from './DatePair.vue';
 import { format } from 'date-fns';
-import { XIcon } from 'lucide-vue-next';
-import { useStore } from '~~/utils/store';
+import { MoveRightIcon, XIcon } from 'lucide-vue-next';
+import type { DatePair } from '~/api/tauriEvents';
 
-import type { IDateRead } from '~/api/books';
-
-const store = useStore();
-
-const props = defineProps({
-  modelValue: {
-    type: Array as PropType<IDateRead[]>,
-    required: false,
-    default: () => [],
-  },
-});
-
-const emit = defineEmits<{
-  (e: 'update:modelValue', data: IDateRead[]): void;
-}>();
-
-const updateValue = (index: number, newDates: IDateRead) => {
-  const newValue = [...props.modelValue];
-  newValue[index] = newDates;
-  emit('update:modelValue', newValue);
-};
+const datePairs = defineModel<DatePair[]>();
 
 const addNewDate = () => {
-  if (!store.settings) {
-    throw new Error('TRYING TO OPEN READ DETAILS BEFORE SETTINGS ARE PRESENT');
+  if (!datePairs.value) {
+    datePairs.value = [{ started: format(new Date(), 'yyyy-MM-dd') }];
+    return;
   }
-  const newValue = [
-    ...props.modelValue,
-    { started: format(new Date(), store.settings.dateFormat) },
-  ];
-  emit('update:modelValue', newValue);
+  datePairs.value.push({ started: format(new Date(), 'yyyy-MM-dd') });
 };
 
 const removeDate = (index: number) => {
-  const newValue = [...props.modelValue];
-  newValue.splice(index, 1);
-  emit('update:modelValue', newValue);
+  if (!datePairs.value) return;
+  datePairs.value.splice(index, 1);
 };
 </script>
 

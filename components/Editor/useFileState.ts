@@ -1,10 +1,15 @@
+import { watchPausable } from '@vueuse/core';
 import { throttle } from 'lodash';
 import type { ShallowRef } from 'vue';
-import { toast } from 'vue-sonner';
 
 import type { IOpenedFile } from '~/api/openedTabs';
 import { c_read_file_by_path, c_save_file } from '~/api/tauriActions';
-import { rustErrorNotification, useListenToEvent, type IBookFromDb } from '~/api/tauriEvents';
+import {
+  rustErrorNotification,
+  useListenToEvent,
+  type IBookFromDb,
+  type Schema,
+} from '~/api/tauriEvents';
 import { useCodeMirror } from '~/components/Editor/CodeMirror/useCodeMirror';
 
 export const useBookEditor = (
@@ -12,6 +17,21 @@ export const useBookEditor = (
   editorTemplateRef: Readonly<ShallowRef<HTMLDivElement | null>>,
 ) => {
   const file = ref<IBookFromDb | null>(null);
+
+  /*
+   * We need to trigger saving when user changes something.
+   * This means that we need to watch file object for changes(markdown editor is tracked separately too)
+   * However we need to exclude changes from loading\saving to avoid infinite loop
+   */
+  const { pause: pauseWatcher, resume: resumeWatcher } = watchPausable(
+    file,
+    (v) => {
+      changes.value++;
+    },
+    { deep: true },
+  );
+
+  const schema = ref<Schema | null>(null);
 
   const error = ref<String | null>(null);
 
@@ -32,8 +52,12 @@ export const useBookEditor = (
       rustErrorNotification(res.parsing_error);
     }
 
-    file.value = res.book as IBookFromDb;
+    pauseWatcher();
+    schema.value = res.schema;
+    file.value = res.book;
     createOrUpdateEditor(res.book.markdown);
+    await nextTick();
+    resumeWatcher();
   };
 
   watchEffect(async () => {
@@ -49,7 +73,6 @@ export const useBookEditor = (
   });
 
   const updateHandler = async (update: IBookFromDb) => {
-    console.log('update handler', update);
     if (update.modified === file.value?.modified) return;
     await loadFileFromDisk();
   };
@@ -75,10 +98,13 @@ export const useBookEditor = (
       return;
     }
 
+    pauseWatcher();
     if (file.value) {
       file.value.modified = res.modified;
       changes.value -= changesCopy;
     }
+    await nextTick();
+    resumeWatcher();
   };
 
   const throttledSaveFile = throttle(saveFile, 2000, {});
@@ -94,5 +120,5 @@ export const useBookEditor = (
     await throttledSaveFile.flush();
   });
 
-  return { file, error, saveFile, changes };
+  return { file, schema, error, saveFile, changes };
 };

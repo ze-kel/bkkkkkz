@@ -1,63 +1,35 @@
 <template>
-  <div class="grid gap-4 py-4">
-    <UiBasicInput
-      v-if="openedFile.attrs.title"
-      v-model="openedFile.attrs.title.Text"
-      @update:model-value="emit('change')"
-      spellcheck="false"
-      class="line-clamp-1 min-w-[100px] text-4xl font-light leading-none"
-      placeholder="Title"
-      theme="hidden"
-    />
-    <UiBasicInput
-      UiBasicInput
-      v-if="openedFile.attrs.author"
-      v-model="openedFile.attrs.author.Text"
-      @update:model-value="emit('change')"
-      spellcheck="false"
-      class="font-regular -mt-1 w-fit min-w-[100px] text-2xl leading-none"
-      theme="hidden"
-      placeholder="Author"
-    />
+  <div class="grid gap-2" :class="$props.class">
+    <template v-for="item in schema">
+      <div>
+        <UiBasicInput
+          v-if="item.value === 'Text'"
+          v-model:model-value="openedFile.attrs[item.name]"
+          :placeholder="item.settings.displayName || item.name"
+          :theme="item.settings.textTheme"
+          :multi-line="item.settings.textMultiline"
+          :size="item.settings.size"
+          :font="item.settings.textFont"
+          :weight="item.settings.textWeight"
+        />
 
-    <UiBasicInput
-      v-if="openedFile.attrs.year"
-      v-model="openedFile.attrs.year.Number"
-      @update:model-value="emit('change')"
-      type="number"
-      theme="hidden"
-      class="w-[75px]"
-      placeholder="Year"
-    />
+        <UiBasicInput
+          v-if="item.value === 'Number'"
+          type="number"
+          v-model:model-value="openedFile.attrs[item.name]"
+        />
 
-    <EditorTagsEditor
-      v-if="openedFile.attrs.tags"
-      v-model="openedFile.attrs.tags.TextCollection"
-      class=""
-      @change="emit('change')"
-    />
-    <ReadDetails
-      v-if="openedFile.attrs.read"
-      v-model="openedFile.attrs.read.DatesPairCollection"
-      class="mt-3"
-      @update:model-value="emit('change')"
-    />
-    <RatingStars
-      v-if="openedFile.attrs.myRating"
-      v-model="openedFile.attrs.myRating.Number"
-      @update:model-value="emit('change')"
-      class="mt-3 place-content-center self-center"
-    />
+        <EditorTagsEditor
+          v-if="item.value === 'TextCollection'"
+          v-model:model-value="openedFile.attrs[item.name]"
+        />
 
-    <UiBasicInput
-      v-if="openedFile.attrs.ISBN13"
-      v-model="openedFile.attrs.ISBN13.Text"
-      @update:model-value="emit('change')"
-      type="number"
-      class="min-w-[100px] text-center opacity-50 focus:opacity-100"
-      theme="hidden"
-      placeholder="isbn13"
-    />
+        <ReadDetails
+          v-if="item.value === 'DatesPairCollection'"
+          v-model:model-value="openedFile.attrs[item.name]"
+        />
+      </div>
+    </template>
   </div>
 
   <div ref="forDrag" class="absolute top-[-500px]">
@@ -67,9 +39,15 @@
 
 <script setup lang="ts">
 import { toast } from 'vue-sonner';
-import { fetchCover, removeCover, setCover } from '~/api/files';
-import type { IBookFromDb } from '~/api/tauriEvents';
+import type { IBookFromDb, Schema } from '~/api/tauriEvents';
 import ReadDetails from './ReadDetails/ReadDetails.vue';
+import type { PropType } from 'vue';
+
+defineProps({
+  schema: {
+    type: Object as PropType<Schema | null>,
+  },
+});
 
 const openedFile = defineModel<IBookFromDb>({
   required: true,

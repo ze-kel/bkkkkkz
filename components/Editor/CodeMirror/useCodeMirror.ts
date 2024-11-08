@@ -19,7 +19,6 @@ import type { ShallowRef } from 'vue';
 
 export const useCodeMirror = (editorTemplateRef: Readonly<ShallowRef<HTMLDivElement | null>>) => {
   const changes = ref(0);
-  console.log('use mirror');
 
   const onUpdate = (update: ViewUpdate) => {
     if (update.docChanged) {
@@ -68,7 +67,7 @@ export const useCodeMirror = (editorTemplateRef: Readonly<ShallowRef<HTMLDivElem
     });
     changes.value--;
 
-    console.log('updated');
+    console.log('CM: updated');
   };
 
   const getEditorState = () => {
@@ -76,7 +75,7 @@ export const useCodeMirror = (editorTemplateRef: Readonly<ShallowRef<HTMLDivElem
   };
 
   const createOrUpdateEditor = (value: string) => {
-    console.log('create or update', value);
+    console.log('CM: create or update', value);
     if (!editor.value) {
       createEditor(value);
     } else {

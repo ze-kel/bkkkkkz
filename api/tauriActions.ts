@@ -2,6 +2,7 @@ import {
   isOurError,
   type ErrorFromRust,
   type IBookFromDb,
+  type Schema,
   type SchemaItem,
 } from '~/api/tauriEvents';
 import { invoke } from '@tauri-apps/api/core';
@@ -52,7 +53,7 @@ export const c_save_file = async (book: IBookFromDb, forced = false) => {
 };
 
 export type BookListGetResult = {
-  schema: SchemaItem[];
+  schema: Schema;
   books: IBookFromDb[];
 };
 
@@ -79,6 +80,7 @@ export type BookReadResult = {
   // This error happens when file is read, but metadata parsing encountered error.
   // Book will default to empty values, except for path, markdown and modified.
   parsing_error?: ErrorFromRust;
+  schema: Schema;
 };
 
 export const c_read_file_by_path = async (path: string) => {

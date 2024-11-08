@@ -8,13 +8,13 @@
         spellcheck="false"
         :no-n-l="true"
         class="before:pr-0.5 before:opacity-50 before:content-['#']"
-        :class="classes()"
+        :class="classes"
         @keydown="(e: KeyboardEvent) => keyDownHandler(e, index)"
         @update:model-value="(val: string | Number) => saveTag(index, String(val))"
         @returned="createNewTag"
       />
     </template>
-    <div class="cursor-pointer" :class="classes()" @click="createNewTag">
+    <div class="cursor-pointer" :class="classes" @click="createNewTag">
       <PlusIcon
         class="w-3 fill-neutral-200 pr-0.5 opacity-50 transition-colors group-hover:fill-neutral-400"
       />
@@ -24,21 +24,17 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, nextTick, ref, watch } from 'vue';
-import type { PropType, Ref } from 'vue';
+import { nextTick, ref } from 'vue';
 import { PlusIcon } from 'lucide-vue-next';
-import { cva } from 'class-variance-authority';
 import ContentEditable from '~/components/_ui/ContentEditable.vue';
 
-const classes = cva([
-  'text-foreground inline-flex items-center rounded-md  px-2.5 py-0.5 text-xs font-semibold transition-all h-6',
-  'border-neutral-200 dark:border-neutral-800 border',
+const classes = [
+  'text-foreground inline-flex h-6 items-center rounded-md px-2.5 py-0.5 text-xs font-semibold transition-all',
+  'border border-neutral-200 dark:border-neutral-800',
   'focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-neutral-950 dark:focus-visible:ring-neutral-300',
-]);
+];
 
-const tags = defineModel<string[] | null>({ required: true });
-
-const emit = defineEmits(['change']);
+const tags = defineModel<string[]>();
 
 const saveTag = (index: number, tag: string) => {
   if (!tags.value) {
@@ -48,7 +44,6 @@ const saveTag = (index: number, tag: string) => {
   } else {
     tags.value[index] = tag;
   }
-  emit('change');
 
   if (!tag) {
     nextTick(() => {

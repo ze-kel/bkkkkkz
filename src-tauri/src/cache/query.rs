@@ -92,6 +92,10 @@ pub async fn get_files_abstact(where_clause: String) -> Result<Vec<BookFromDb>, 
                         let v = row.get(&*name);
                         hm.insert(name, AttrValue::Number(v));
                     }
+                    crate::schema::AttrKey::NumberDecimal => {
+                        let v = row.get(&*name);
+                        hm.insert(name, AttrValue::NumberDecimal(v));
+                    }
                     crate::schema::AttrKey::TextCollection => {
                         let v: String = row.get(&*name);
                         hm.insert(

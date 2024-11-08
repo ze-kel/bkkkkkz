@@ -58,6 +58,7 @@
       />
     </div>
     <div
+      data-tauri-drag-region
       class="dragApp absolute left-0 top-0 h-10 select-none bg-neutral-200 dark:bg-neutral-900"
       :style="{
         width: `calc(100% - ${TAB_WIDTH_PX * store.openedTabs.length}px)`,

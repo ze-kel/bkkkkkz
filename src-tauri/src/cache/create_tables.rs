@@ -26,8 +26,10 @@ pub async fn create_db_tables() -> Result<(), sqlx::Error> {
             crate::schema::AttrKey::Text => {
                 columns.push(format!("{} TEXT", name));
             }
-
             crate::schema::AttrKey::Number => {
+                columns.push(format!("{} REAL", name));
+            }
+            crate::schema::AttrKey::NumberDecimal => {
                 columns.push(format!("{} REAL", name));
             }
             crate::schema::AttrKey::TextCollection => {

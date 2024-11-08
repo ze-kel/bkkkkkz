@@ -15,7 +15,7 @@ import type { Interval } from 'date-fns';
 import { computed, onMounted, ref, watch, nextTick } from 'vue';
 import { useStore } from '~~/utils/store';
 import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-vue-next';
-import DaysRenderer from '~/components/_UI/Calendar/DaysRenderer.vue';
+import DaysRenderer from './DaysRenderer.vue';
 
 import BasicInput from '~/components/_UI/BasicInput.vue';
 
@@ -207,7 +207,7 @@ watch(cursor, () => {
       <BasicInput
         v-model="currentYearInputValue"
         type="number"
-        theme="hidden"
+        theme="Hidden"
         class="w-16 text-center"
         @blur="currentYearInputBlurHandler"
       />
