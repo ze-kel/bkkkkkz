@@ -6,7 +6,7 @@ use std::fs::{self, File};
 use std::io::{self, BufRead, BufReader};
 
 use crate::cache::query::BookFromDb;
-use crate::schema::{get_schema, AttrKey, AttrValue, DateRead, Schema};
+use crate::schema::{default_book_schema, AttrKey, AttrValue, DateRead, Schema};
 use crate::utils::errorhandling::{ErrorActionCode, ErrorFromRust};
 
 pub enum FileReadMode {
@@ -48,7 +48,7 @@ pub fn read_file_by_path(
         }
     };
 
-    let files_schema = get_schema();
+    let files_schema = default_book_schema();
 
     let p = path_str.to_string();
 
@@ -214,25 +214,20 @@ pub fn save_file(book: BookFromDb, forced: bool) -> Result<BookSaveResult, Error
 
     let markdown = book.markdown.unwrap_or("".to_string());
 
-    let yaml = match serde_yml::to_string(&book.attrs) {
-        Ok(v) => v,
-        Err(e) => {
-            return Err(ErrorFromRust::new("Error serializing book metadata")
-                .info("File was not saved")
-                .raw(e))
-        }
-    };
+    let yaml = serde_yml::to_string(&book.attrs).map_err(|e| {
+        ErrorFromRust::new("Error serializing book metadata")
+            .info("File was not saved")
+            .raw(e)
+    })?;
+
     let file = format!("---\n{yaml}---\n{markdown}");
 
-    match fs::write(path.clone(), file) {
-        Ok(_) => (),
-        Err(e) => {
-            return Err(ErrorFromRust::new("Error writing to disk")
-                .info("File was not saved")
-                .raw(e)
-                .action_c(ErrorActionCode::FileSaveRetry, "Retry"))
-        }
-    };
+    fs::write(path.clone(), file).map_err(|e| {
+        ErrorFromRust::new("Error writing to disk")
+            .info("File was not saved")
+            .raw(e)
+            .action_c(ErrorActionCode::FileSaveRetry, "Retry")
+    })?;
 
     match get_file_modified_time(&path.clone().as_str()) {
         Ok(v) => Ok(BookSaveResult {

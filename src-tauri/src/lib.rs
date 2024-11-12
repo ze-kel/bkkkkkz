@@ -13,6 +13,7 @@ use cache::{
     write::cache_files_and_folders,
 };
 use files::{read_file_by_path, save_file, FileReadMode};
+use schema::load_schemas_from_disk;
 use serde::{Deserialize, Serialize};
 use tauri::AppHandle;
 use tokio::task;
@@ -74,6 +75,8 @@ async fn c_prepare_cache(app: AppHandle, path: String) -> Result<bool, ErrorFrom
             .raw(e)),
         Ok(_) => Ok(()),
     }?;
+
+    load_schemas_from_disk(&path).await;
 
     match cache_files_and_folders(&path).await {
         Err(e) => {

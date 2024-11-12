@@ -1,4 +1,4 @@
-use crate::schema::get_schema;
+use crate::schema::default_book_schema;
 
 use super::dbconn::get_db_conn;
 
@@ -6,7 +6,7 @@ use super::dbconn::get_db_conn;
 pub async fn create_db_tables() -> Result<(), sqlx::Error> {
     let mut db = get_db_conn().lock().await;
 
-    let files_schema = get_schema();
+    let files_schema = default_book_schema();
     sqlx::query("DROP TABLE IF EXISTS folders;")
         .execute(&mut *db)
         .await?;

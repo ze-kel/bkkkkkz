@@ -1,6 +1,6 @@
 use tauri::{AppHandle, Emitter};
 
-#[derive(serde::Serialize, serde::Deserialize, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Clone, Debug)]
 pub enum ErrorActionCode {
     FileSaveRetry,
     FileSaveRetryForced,
@@ -10,7 +10,7 @@ pub enum ErrorActionCode {
     WatchPathRetry,
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Clone, Debug)]
 pub struct ErrorFromRust {
     #[serde(rename = "isError")]
     pub is_error: bool,
@@ -59,6 +59,10 @@ impl ErrorFromRust {
     }
     pub fn sub(mut self, thing: ErrorFromRust) -> Self {
         self.sub_errors.push(thing);
+        self
+    }
+    pub fn subs(mut self, full_array_to_set: Vec<ErrorFromRust>) -> Self {
+        self.sub_errors = full_array_to_set;
         self
     }
 }

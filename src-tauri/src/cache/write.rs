@@ -3,7 +3,7 @@ use std::path::Path;
 use walkdir::WalkDir;
 
 use crate::files::{read_file_by_path, FileReadMode};
-use crate::schema::{get_schema, AttrValue};
+use crate::schema::{default_book_schema, AttrValue};
 use crate::utils::errorhandling::ErrorFromRust;
 
 use super::dbconn::get_db_conn;
@@ -29,7 +29,7 @@ pub async fn insert_file(file: &BookFromDb) -> Result<(), sqlx::Error> {
     // Don't forget to add ";" at the end of statements you push here
     let mut separate_statements: Vec<QueryBuilder<'_, Sqlite>> = Vec::new();
 
-    let files_schema = get_schema();
+    let files_schema = default_book_schema();
 
     for schema_i in files_schema {
         let name = schema_i.name;

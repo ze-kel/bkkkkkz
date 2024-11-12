@@ -3,7 +3,7 @@ use sqlx::sqlite::SqliteRow;
 use sqlx::Row;
 use std::collections::HashMap;
 
-use crate::schema::{get_schema, AttrValue, DateRead, SchemaItem};
+use crate::schema::{default_book_schema, AttrValue, DateRead, SchemaItem};
 
 use super::dbconn::get_db_conn;
 
@@ -33,7 +33,7 @@ impl Default for BookFromDb {
 pub async fn get_files_abstact(where_clause: String) -> Result<Vec<BookFromDb>, sqlx::Error> {
     let mut db = get_db_conn().lock().await;
 
-    let files_schema = get_schema();
+    let files_schema = default_book_schema();
 
     let mut joins: Vec<String> = Vec::new();
     let mut selects: Vec<String> = Vec::new();
@@ -157,7 +157,7 @@ pub async fn get_files_by_path(path: String) -> Result<BookListGetResult, sqlx::
     .await?;
 
     return Ok(BookListGetResult {
-        schema: get_schema(),
+        schema: default_book_schema(),
         books: files,
     });
 }

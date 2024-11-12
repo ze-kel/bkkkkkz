@@ -3,7 +3,7 @@ import { cloneDeep as _cloneDeep } from 'lodash';
 
 import type { IOpenedPath, IOpenedTag } from '~/api/openedTabs';
 
-import { useListenToEvent, type IBookFromDb } from '~/api/tauriEvents';
+import { rustErrorNotification, useListenToEvent, type IBookFromDb } from '~/api/tauriEvents';
 import { useThrottledEvents } from '~/utils/useTrottledEvents';
 import path from 'path-browserify';
 import { c_get_files_path, type BookListGetResult } from '~/api/tauriActions';
@@ -19,7 +19,12 @@ export const useFilesList = (
   const loadContent = async () => {
     loading.value = true;
     if (opened.type === 'folder') {
-      data.value = await c_get_files_path(opened.thing);
+      const res = await c_get_files_path(opened.thing);
+      if ('isError' in res) {
+        rustErrorNotification(res, {});
+        return;
+      }
+      data.value = res;
     }
 
     nextTick(() => {
