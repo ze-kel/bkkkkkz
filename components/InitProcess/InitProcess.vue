@@ -65,10 +65,6 @@ const resetAll = () => {
 };
 
 const initLoop = async () => {
-  if (typeof store.rootPath !== 'string') {
-    await navigateTo('/welcome');
-    return;
-  }
   running.value = true;
   await store.fetchRootPath();
   const rp = store.rootPath;
@@ -81,8 +77,15 @@ const initLoop = async () => {
     }
   }
 
+  if (typeof store.rootPath !== 'string') {
+    await navigateTo('/welcome');
+    return;
+  }
+
+  
+
   if (cacheSetup.value !== true) {
-    cacheSetup.value = await c_prepare_cache(rp);
+    cacheSetup.value = await c_prepare_cache();
     if (typeof cacheSetup.value == 'object') {
       running.value = false;
       return;
@@ -90,7 +93,7 @@ const initLoop = async () => {
   }
 
   if (watcherSetup.value !== true) {
-    watcherSetup.value = await c_watch_path(rp);
+    watcherSetup.value = await c_watch_path();
     if (typeof watcherSetup.value == 'object') {
       running.value = false;
       return;

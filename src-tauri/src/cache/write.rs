@@ -3,7 +3,8 @@ use std::path::Path;
 use walkdir::WalkDir;
 
 use crate::files::{read_file_by_path, FileReadMode};
-use crate::schema::{default_book_schema, AttrValue};
+use crate::schema::operations::get_schema_cached;
+use crate::schema::types::{AttrKey, AttrValue};
 use crate::utils::errorhandling::ErrorFromRust;
 
 use super::dbconn::get_db_conn;
@@ -15,7 +16,7 @@ enum InsertValues {
 }
 
 // Function to insert a file record into the database
-pub async fn insert_file(file: &BookFromDb) -> Result<(), sqlx::Error> {
+pub async fn insert_file(file: &BookFromDb) -> Result<(), ErrorFromRust> {
     let mut db = get_db_conn().lock().await;
 
     let path = match file.path.as_ref() {
@@ -29,40 +30,35 @@ pub async fn insert_file(file: &BookFromDb) -> Result<(), sqlx::Error> {
     // Don't forget to add ";" at the end of statements you push here
     let mut separate_statements: Vec<QueryBuilder<'_, Sqlite>> = Vec::new();
 
-    let files_schema = default_book_schema();
+    let files_schema = get_schema_cached(&path).await?;
 
-    for schema_i in files_schema {
+    for schema_i in files_schema.items {
         let name = schema_i.name;
         match schema_i.value {
-            crate::schema::AttrKey::Text => {
+            AttrKey::Text | AttrKey::Date | AttrKey::Image => {
                 let v = match file.attrs.get(&name) {
                     Some(AttrValue::Text(v)) => v,
+                    Some(AttrValue::Date(v)) => v,
+                    Some(AttrValue::Image(v)) => v,
                     _ => "",
                 };
                 insert_keys.push(name);
                 insert_values.push(InsertValues::Text(v.to_string()));
             }
-            crate::schema::AttrKey::Number => {
+            AttrKey::Number | AttrKey::NumberDecimal => {
                 let v = match file.attrs.get(&name) {
-                    Some(AttrValue::Number(v)) => v,
-                    _ => &0,
-                };
-
-                insert_keys.push(name);
-                insert_values.push(InsertValues::Number(v.to_owned() as f64));
-            }
-            crate::schema::AttrKey::NumberDecimal => {
-                let v = match file.attrs.get(&name) {
-                    Some(AttrValue::NumberDecimal(v)) => v,
-                    _ => &0.0,
+                    Some(AttrValue::NumberDecimal(v)) => v.to_owned(),
+                    Some(AttrValue::Number(v)) => v.to_owned() as f64,
+                    _ => 0.0,
                 };
 
                 insert_keys.push(name);
                 insert_values.push(InsertValues::Number(v.to_owned()));
             }
-            crate::schema::AttrKey::TextCollection => {
+            AttrKey::TextCollection | AttrKey::DateCollection => {
                 let v = match file.attrs.get(&name) {
                     Some(AttrValue::TextCollection(v)) => v.clone(),
+                    Some(AttrValue::DateCollection(v)) => v.clone(),
                     _ => Vec::new(),
                 };
 
@@ -97,7 +93,7 @@ pub async fn insert_file(file: &BookFromDb) -> Result<(), sqlx::Error> {
                 insertion.push(" ON CONFLICT(ind,path) DO UPDATE SET value=excluded.value");
                 separate_statements.push(insertion);
             }
-            crate::schema::AttrKey::DatesPairCollection => {
+            AttrKey::DatesPairCollection => {
                 let v = match file.attrs.get(&name) {
                     Some(AttrValue::DatesPairCollection(v)) => v,
                     _ => &Vec::new(),
@@ -165,21 +161,26 @@ pub async fn insert_file(file: &BookFromDb) -> Result<(), sqlx::Error> {
         qb.push(", ").push(k).push("=excluded.").push(k);
     });
 
-    qb.build().execute(&mut *db).await?;
+    qb.build().execute(&mut *db).await.map_err(|e| {
+        ErrorFromRust::new("Error when saving file to cache")
+            .info("Unless you changed schema files, this is likely a bug, please report it")
+            .raw(e)
+    })?;
 
     for mut qq in separate_statements {
-        qq.build().execute(&mut *db).await?;
+        qq.build().execute(&mut *db).await.map_err(|e| {
+            ErrorFromRust::new("Error when saving file to cache")
+                .info("Unless you changed schema files, this is likely a bug, please report it")
+                .raw(e)
+        })?;
     }
 
     Ok(())
 }
 
 pub async fn cache_file(path: &Path) -> Result<BookFromDb, ErrorFromRust> {
-    match read_file_by_path(&path.to_string_lossy(), FileReadMode::OnlyMeta) {
-        Ok(file) => match insert_file(&file.book).await {
-            Ok(_) => Ok(file.book),
-            Err(e) => Err(ErrorFromRust::new("Error caching file").raw(e)),
-        },
+    match read_file_by_path(&path.to_string_lossy(), FileReadMode::OnlyMeta).await {
+        Ok(file) => insert_file(&file.book).await.map(|_| file.book),
         Err(e) => Err(e),
     }
 }

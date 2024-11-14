@@ -10,7 +10,8 @@ export type ErrorActionCode =
   | 'FileReadRetry'
   | 'InitOnceRetry'
   | 'PrepareCacheRetry'
-  | 'WatchPathRetry';
+  | 'WatchPathRetry'
+  | 'NoRootPath';
 
 export type ErrorFromRust = {
   isError: boolean;
@@ -88,14 +89,20 @@ export type DatePair = {
 export type AttrValue = {
   Text: string;
   TextCollection: string[];
+  Date: string;
+  DateCollection: string[];
   Number: number;
+  NumberDecimal: number;
   DatesPairCollection: DatePair[];
 };
 
 export const AttrValueKeys: (keyof AttrValue)[] = [
   'Text',
   'TextCollection',
+  'Date',
+  'DateCollection',
   'Number',
+  'NumberDecimal',
   'DatesPairCollection',
 ];
 
@@ -115,7 +122,11 @@ export type SchemaItem = {
     numberStyle?: 'Default' | 'Stars' | 'Slider';
   };
 };
-export type Schema = SchemaItem[];
+export type Schema = {
+  items: SchemaItem[];
+  internal_name: string;
+  name: string;
+};
 
 export interface IBookFromDb {
   path: string;

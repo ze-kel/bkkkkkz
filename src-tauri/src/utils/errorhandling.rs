@@ -8,6 +8,7 @@ pub enum ErrorActionCode {
     InitOnceRetry,
     PrepareCacheRetry,
     WatchPathRetry,
+    NoRootPath,
 }
 
 #[derive(serde::Serialize, serde::Deserialize, Clone, Debug)]

@@ -6,7 +6,9 @@ use tokio::sync::Mutex;
 static DB_CONNECTION: OnceCell<Mutex<SqliteConnection>> = OnceCell::new();
 
 pub fn get_db_conn() -> &'static Mutex<SqliteConnection> {
-    DB_CONNECTION.get().expect("Database pool not initialized")
+    DB_CONNECTION
+        .get()
+        .expect("Database connection not initialized")
 }
 
 pub async fn db_setup() -> Result<(), sqlx::Error> {
@@ -18,7 +20,7 @@ pub async fn db_setup() -> Result<(), sqlx::Error> {
 
     DB_CONNECTION
         .set(Mutex::new(conn))
-        .expect("Database pool already initialized");
+        .expect("Database connection already initialized");
 
     Ok(())
 }

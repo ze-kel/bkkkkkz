@@ -4,20 +4,27 @@ mod schema;
 mod utils;
 mod watcher;
 
-use std::time::Duration;
+use std::{path::PathBuf, time::Duration};
 
 use cache::{
-    create_tables::create_db_tables,
     dbconn::db_setup,
     query::{get_all_folders, get_all_tags, get_files_by_path, BookFromDb, BookListGetResult},
+    tables::create_db_tables_for_all_schemas,
     write::cache_files_and_folders,
 };
 use files::{read_file_by_path, save_file, FileReadMode};
-use schema::load_schemas_from_disk;
+use schema::{
+    defaults::get_default_schemas,
+    operations::{load_schema, load_schemas_from_disk, save_schema, SchemaLoadList},
+};
+use schema::{defaults::DefaultSchema, types::Schema};
 use serde::{Deserialize, Serialize};
 use tauri::AppHandle;
 use tokio::task;
-use utils::errorhandling::{send_err_to_frontend, ErrorFromRust};
+use utils::{
+    errorhandling::{send_err_to_frontend, ErrorFromRust},
+    global_app::{get_root_path, init_global_app},
+};
 use watcher::{
     events_process::{run_monitor, MonitorConfig},
     watcher_process::{init_watcher, subscribe_to_events, watch_path},
@@ -68,17 +75,17 @@ async fn c_init_once(app: AppHandle) -> Result<bool, ErrorFromRust> {
 }
 
 #[tauri::command]
-async fn c_prepare_cache(app: AppHandle, path: String) -> Result<bool, ErrorFromRust> {
-    match create_db_tables().await {
+async fn c_prepare_cache(app: AppHandle) -> Result<bool, ErrorFromRust> {
+    let rp = get_root_path()?;
+
+    match create_db_tables_for_all_schemas().await {
         Err(e) => Err(ErrorFromRust::new("Error when creating tables in cache db")
             .info("This should not happen. Try restarting the app, else report as bug.")
             .raw(e)),
         Ok(_) => Ok(()),
     }?;
 
-    load_schemas_from_disk(&path).await;
-
-    match cache_files_and_folders(&path).await {
+    match cache_files_and_folders(&rp).await {
         Err(e) => {
             // We don't return error here because user can have a few problematic files, which is ok
             send_err_to_frontend(&app, &e);
@@ -90,45 +97,65 @@ async fn c_prepare_cache(app: AppHandle, path: String) -> Result<bool, ErrorFrom
 }
 
 #[tauri::command]
-async fn c_watch_path(_: AppHandle, path: String) -> Result<bool, ErrorFromRust> {
-    match watch_path(&path).await {
-        Ok(_) => Ok(true),
-        Err(e) => Err(ErrorFromRust::new("Error starting watcher")
-            .info("Try restarting app")
-            .raw(e)),
-    }
+async fn c_watch_path(_: AppHandle) -> Result<bool, ErrorFromRust> {
+    let rp = get_root_path()?;
+    watch_path(&rp)
+        .await
+        .map_err(|e| {
+            ErrorFromRust::new("Error starting watcher")
+                .info("Try restarting app")
+                .raw(e)
+        })
+        .map(|_| true)
 }
 
 #[tauri::command]
 async fn c_get_files_path(_: AppHandle, path: String) -> Result<BookListGetResult, ErrorFromRust> {
-    return match get_files_by_path(path).await {
-        Ok(files) => Ok(files),
-        Err(e) => Err(ErrorFromRust::new("Error when getting files by path").raw(e)),
-    };
+    get_files_by_path(path).await
 }
 
 #[tauri::command]
 async fn c_get_all_tags(_: AppHandle) -> Result<Vec<String>, ErrorFromRust> {
-    return match get_all_tags().await {
-        Ok(r) => Ok(r),
-        Err(e) => Err(ErrorFromRust::new("Error when getting all tags").raw(e)),
-    };
+    get_all_tags()
+        .await
+        .map_err(|e| ErrorFromRust::new("Error when getting all tags").raw(e))
 }
 
 #[tauri::command]
-async fn c_get_all_folders(_: AppHandle) -> Result<Vec<String>, ErrorFromRust> {
-    return match get_all_folders().await {
-        Ok(r) => Ok(r),
-        Err(e) => return Err(ErrorFromRust::new("Error getting folder list").raw(e)),
-    };
+async fn c_get_all_folders(_: AppHandle, path: String) -> Result<Vec<String>, ErrorFromRust> {
+    get_all_folders(&path).await
 }
 
 #[tauri::command]
-fn c_read_file_by_path(_: AppHandle, path: String) -> Result<files::BookReadResult, ErrorFromRust> {
-    match read_file_by_path(&path, FileReadMode::FullFile) {
-        Ok(v) => Ok(v),
-        Err(e) => Err(e),
-    }
+async fn c_read_file_by_path(
+    _: AppHandle,
+    path: String,
+) -> Result<files::BookReadResult, ErrorFromRust> {
+    read_file_by_path(&path, FileReadMode::FullFile).await
+}
+
+#[tauri::command]
+async fn c_load_schemas(_: AppHandle) -> Result<SchemaLoadList, ErrorFromRust> {
+    load_schemas_from_disk().await
+}
+
+#[tauri::command]
+async fn c_load_schema(_: AppHandle, path: String) -> Result<Schema, ErrorFromRust> {
+    load_schema(PathBuf::from(path)).await
+}
+
+#[tauri::command]
+async fn c_save_schema(
+    _: AppHandle,
+    path: String,
+    schema: Schema,
+) -> Result<Schema, ErrorFromRust> {
+    save_schema(&path, schema).await
+}
+
+#[tauri::command]
+fn c_get_default_schemas(_: AppHandle) -> Vec<DefaultSchema> {
+    get_default_schemas()
 }
 
 #[tauri::command]
@@ -151,6 +178,10 @@ pub fn run() {
         .plugin(tauri_plugin_store::Builder::new().build())
         .invoke_handler(tauri::generate_handler![
             c_init_once,
+            c_load_schemas,
+            c_load_schema,
+            c_save_schema,
+            c_get_default_schemas,
             c_prepare_cache,
             c_watch_path,
             c_get_files_path,
@@ -166,6 +197,7 @@ pub fn run() {
                         .level(log::LevelFilter::Info)
                         .build(),
                 )?;
+                init_global_app(app.handle().clone());
             }
             Ok(())
         })

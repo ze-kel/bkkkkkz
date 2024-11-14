@@ -3,9 +3,12 @@ use sqlx::sqlite::SqliteRow;
 use sqlx::Row;
 use std::collections::HashMap;
 
-use crate::schema::{default_book_schema, AttrValue, DateRead, SchemaItem};
+use crate::schema::operations::get_schema_cached;
+use crate::schema::types::{AttrKey, AttrValue, DateRead, Schema};
+use crate::utils::errorhandling::ErrorFromRust;
 
 use super::dbconn::get_db_conn;
+use super::tables::get_table_names;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct BookFromDb {
@@ -30,28 +33,32 @@ impl Default for BookFromDb {
     }
 }
 
-pub async fn get_files_abstact(where_clause: String) -> Result<Vec<BookFromDb>, sqlx::Error> {
+pub async fn get_files_abstact(
+    where_clause: String,
+    schema: Schema,
+) -> Result<Vec<BookFromDb>, sqlx::Error> {
     let mut db = get_db_conn().lock().await;
 
-    let files_schema = default_book_schema();
+    let t_info = get_table_names(schema.internal_name.clone());
+    let files_table = t_info.files_table;
 
     let mut joins: Vec<String> = Vec::new();
     let mut selects: Vec<String> = Vec::new();
 
-    for schema_i in files_schema.clone() {
+    for schema_i in schema.items.clone() {
         match schema_i.value {
-            crate::schema::AttrKey::TextCollection => {
+            AttrKey::TextCollection => {
                 let name = schema_i.name.to_owned();
                 selects.push(schema_i.name);
                 joins.push(format!(
                     "LEFT JOIN
                     (SELECT {}.path as {}_path, GROUP_CONCAT({}.value, ',') 
                     AS {} FROM {} GROUP BY {}.path) 
-                    ON files.path = {}_path",
-                    name, name, name, name, name, name, name
+                    ON {}.path = {}_path",
+                    name, name, name, name, name, name, files_table, name
                 ));
             }
-            crate::schema::AttrKey::DatesPairCollection => {
+            AttrKey::DatesPairCollection => {
                 let name = schema_i.name.to_owned();
                 selects.push(schema_i.name);
                 joins.push(format!(
@@ -59,8 +66,8 @@ pub async fn get_files_abstact(where_clause: String) -> Result<Vec<BookFromDb>, 
                     (SELECT {}.path as {}_path, 
                     GROUP_CONCAT(IFNULL({}.started,'') || '|' || IFNULL({}.finished,''), ',') 
                     AS {} FROM {} GROUP BY {}.path)
-                    ON files.path = {}_path",
-                    name, name, name, name, name, name, name, name,
+                    ON {}.path = {}_path",
+                    name, name, name, name, name, name, name, files_table, name,
                 ));
             }
             _ => selects.push(schema_i.name),
@@ -68,8 +75,9 @@ pub async fn get_files_abstact(where_clause: String) -> Result<Vec<BookFromDb>, 
     }
 
     let q = format!(
-        "SELECT path, modified, {} FROM files {} {}",
+        "SELECT path, modified, {} FROM {} {} {}",
         selects.join(", "),
+        files_table,
         joins.join(" "),
         where_clause
     );
@@ -81,22 +89,31 @@ pub async fn get_files_abstact(where_clause: String) -> Result<Vec<BookFromDb>, 
         .map(|row: &SqliteRow| {
             let mut hm: HashMap<String, AttrValue> = HashMap::new();
 
-            for schema_i in files_schema.clone().iter() {
+            for schema_i in schema.items.clone().iter() {
                 let name = schema_i.name.to_owned();
                 match schema_i.value {
-                    crate::schema::AttrKey::Text => {
+                    AttrKey::Text => {
                         let v = row.get(&*name);
                         hm.insert(name, AttrValue::Text(v));
                     }
-                    crate::schema::AttrKey::Number => {
+                    AttrKey::Date => {
+                        let v = row.get(&*name);
+                        hm.insert(name, AttrValue::Date(v));
+                    }
+                    AttrKey::Image => {
+                        let v = row.get(&*name);
+                        hm.insert(name, AttrValue::Image(v));
+                    }
+
+                    AttrKey::Number => {
                         let v = row.get(&*name);
                         hm.insert(name, AttrValue::Number(v));
                     }
-                    crate::schema::AttrKey::NumberDecimal => {
+                    AttrKey::NumberDecimal => {
                         let v = row.get(&*name);
                         hm.insert(name, AttrValue::NumberDecimal(v));
                     }
-                    crate::schema::AttrKey::TextCollection => {
+                    AttrKey::TextCollection => {
                         let v: String = row.get(&*name);
                         hm.insert(
                             name,
@@ -105,7 +122,16 @@ pub async fn get_files_abstact(where_clause: String) -> Result<Vec<BookFromDb>, 
                             ),
                         );
                     }
-                    crate::schema::AttrKey::DatesPairCollection => {
+                    AttrKey::DateCollection => {
+                        let v: String = row.get(&*name);
+                        hm.insert(
+                            name,
+                            AttrValue::DateCollection(
+                                v.split(",").map(|s| s.to_string()).collect(),
+                            ),
+                        );
+                    }
+                    AttrKey::DatesPairCollection => {
                         let v: String = row.get(&*name);
                         hm.insert(
                             name,
@@ -145,19 +171,27 @@ pub async fn get_files_abstact(where_clause: String) -> Result<Vec<BookFromDb>, 
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct BookListGetResult {
-    pub schema: Vec<SchemaItem>,
+    pub schema: Schema,
     pub books: Vec<BookFromDb>,
 }
 
-pub async fn get_files_by_path(path: String) -> Result<BookListGetResult, sqlx::Error> {
-    let files = get_files_abstact(format!(
-        "WHERE files.path LIKE concat('%', '{}', '%') GROUP BY files.path",
-        path
-    ))
-    .await?;
+pub async fn get_files_by_path(path: String) -> Result<BookListGetResult, ErrorFromRust> {
+    let schema = get_schema_cached(&path).await?;
+
+    let t_info = get_table_names(schema.internal_name.clone());
+
+    let files = get_files_abstact(
+        format!(
+            "WHERE {}.path LIKE concat('%', '{}', '%') GROUP BY {}.path",
+            t_info.files_table, path, t_info.files_table
+        ),
+        schema.clone(),
+    )
+    .await
+    .map_err(|e| ErrorFromRust::new("Error when getting files by path").raw(e))?;
 
     return Ok(BookListGetResult {
-        schema: default_book_schema(),
+        schema: schema,
         books: files,
     });
 }
@@ -174,12 +208,20 @@ pub async fn get_all_tags() -> Result<Vec<String>, sqlx::Error> {
     Ok(result)
 }
 
-pub async fn get_all_folders() -> Result<Vec<String>, sqlx::Error> {
+pub async fn get_all_folders(schema_path: &str) -> Result<Vec<String>, ErrorFromRust> {
     let mut db = get_db_conn().lock().await;
 
-    let res = sqlx::query("SELECT DISTINCT path FROM folders")
-        .fetch_all(&mut *db)
-        .await?;
+    let schema = get_schema_cached(&schema_path).await?;
+
+    let t_info = get_table_names(schema.internal_name.clone());
+
+    let res = sqlx::query(&format!(
+        "SELECT DISTINCT path FROM {}",
+        t_info.folders_table
+    ))
+    .fetch_all(&mut *db)
+    .await
+    .map_err(|e| ErrorFromRust::new("Error getting folder list").raw(e))?;
 
     let result: Vec<String> = res.iter().map(|r| r.get("path")).collect();
 

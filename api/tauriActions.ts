@@ -10,6 +10,11 @@ import { invoke } from '@tauri-apps/api/core';
 const errorHandler = (e: unknown): ErrorFromRust => {
   if (isOurError(e)) {
     console.error('Error from rust', e);
+
+    if (e.actionCode === 'NoRootPath') {
+      navigateTo('/');
+    }
+
     return e;
   }
   console.error(e);
@@ -24,14 +29,14 @@ export const c_init_once = async () => {
     .catch(errorHandler);
 };
 
-export const c_prepare_cache = async (path: string) => {
-  return invoke('c_prepare_cache', { path })
+export const c_prepare_cache = async () => {
+  return invoke('c_prepare_cache')
     .then((v) => v as boolean)
     .catch(errorHandler);
 };
 
-export const c_watch_path = async (path: string) => {
-  return invoke('c_watch_path', { path })
+export const c_watch_path = async () => {
+  return invoke('c_watch_path')
     .then((v) => v as boolean)
     .catch(errorHandler);
 };
@@ -86,5 +91,22 @@ export type BookReadResult = {
 export const c_read_file_by_path = async (path: string) => {
   return invoke('c_read_file_by_path', { path })
     .then((v) => v as BookReadResult)
+    .catch(errorHandler);
+};
+
+export type SchemaLoadList = {
+  schemas: Schema[];
+  error?: ErrorFromRust;
+};
+
+export const c_load_schemas = async (path: string) => {
+  return invoke('c_load_schemas', { path })
+    .then((v) => v as SchemaLoadList)
+    .catch(errorHandler);
+};
+
+export const c_save_schema = async (path: string, schema: Schema) => {
+  return invoke('c_save_schema', { path, schema })
+    .then((v) => v as Schema)
     .catch(errorHandler);
 };

@@ -6,7 +6,8 @@ use std::fs::{self, File};
 use std::io::{self, BufRead, BufReader};
 
 use crate::cache::query::BookFromDb;
-use crate::schema::{default_book_schema, AttrKey, AttrValue, DateRead, Schema};
+use crate::schema::operations::get_schema_cached;
+use crate::schema::types::{AttrKey, AttrValue, DateRead, Schema};
 use crate::utils::errorhandling::{ErrorActionCode, ErrorFromRust};
 
 pub enum FileReadMode {
@@ -35,7 +36,7 @@ pub struct BookReadResult {
     pub schema: Schema,
 }
 
-pub fn read_file_by_path(
+pub async fn read_file_by_path(
     path_str: &str,
     read_mode: FileReadMode,
 ) -> Result<BookReadResult, ErrorFromRust> {
@@ -48,7 +49,7 @@ pub fn read_file_by_path(
         }
     };
 
-    let files_schema = default_book_schema();
+    let files_schema = get_schema_cached(path_str).await?;
 
     let p = path_str.to_string();
 
@@ -61,7 +62,7 @@ pub fn read_file_by_path(
                 Ok(parse_res) => {
                     let mut hm: HashMap<String, AttrValue> = HashMap::new();
 
-                    for schema_i in files_schema.clone() {
+                    for schema_i in files_schema.items.clone() {
                         let name = schema_i.name;
                         let value_in_meta = parse_res.get(&name);
 

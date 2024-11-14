@@ -1,17 +1,11 @@
 <template>
   <div class="flex h-full w-full flex-col items-center justify-center">
-    <LoaderCircle class="animate-spin" />
+    <InitProcess />
   </div>
 </template>
 
 <script lang="ts" setup>
-import { LoaderCircle } from 'lucide-vue-next';
-
 definePageMeta({
   layout: 'empty',
-});
-
-onMounted(async () => {
-  await navigateTo('/init');
 });
 </script>
