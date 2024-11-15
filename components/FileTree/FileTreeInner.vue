@@ -6,7 +6,7 @@
         :is-root="isRoot"
         :can-be-folded="foldable"
         :can-drop-here="dragCounter > 0"
-        :name="isRoot ? 'All Books' : content.name"
+        :name="isRoot ? `All ${rootName}` : content.name"
         :is-folded="isFolded"
         :selected="isOpened"
         :is-renaming="isRenaming"
@@ -60,6 +60,7 @@ import type { FolderNode } from './filePathsToTree';
 import { once } from '@tauri-apps/api/event';
 import { mkdir, remove, rename } from '@tauri-apps/plugin-fs';
 import path from 'path-browserify';
+import { root } from 'postcss';
 
 const store = useStore();
 
@@ -71,6 +72,10 @@ const props = defineProps({
   depth: {
     type: Number,
     default: -10,
+  },
+  rootName: {
+    type: String,
+    default: '',
   },
 });
 

@@ -12,13 +12,14 @@
         >
           {{ stepName[i] }}
           <div>
-            <CheckIcon v-if="step === true" />
-            <LoaderCircle v-else-if="step === false && running" class="animate-spin" />
-            <XIcon v-else />
+            <LoaderCircle v-if="step === false && running" class="animate-spin" />
+            <XIcon v-else-if="step === false && !running" class="" />
+            <XIcon v-else-if="typeof step === 'object' && 'isError' in step" />
+            <CheckIcon v-else />
           </div>
         </div>
         <div
-          v-if="typeof step === 'object'"
+          v-if="typeof step === 'object' && 'isError' in step"
           class="border border-neutral-300 p-4 dark:border-neutral-800"
         >
           <div class="text-regular font-bold">{{ step.title }}</div>
@@ -33,7 +34,7 @@
               Show full error</ShButton
             >
             <ShButton v-if="step.actionCode" variant="outline" @click="initLoop" class="w-full">
-              {{ step.actionLabel }}</ShButton
+              {{ step.actionLabel || 'Retry' }}</ShButton
             >
           </div>
         </div>
@@ -45,18 +46,19 @@
 <script lang="ts" setup>
 import { useStore } from '~~/utils/store';
 import { CheckIcon, LoaderCircle, XIcon } from 'lucide-vue-next';
-import { c_init_once, c_prepare_cache, c_watch_path } from '~/api/tauriActions';
+import { c_init_once, c_load_schemas, c_prepare_cache, c_watch_path } from '~/api/tauriActions';
 
 const store = useStore();
 
 const init = ref<Awaited<ReturnType<typeof c_init_once>>>(false);
+const schemaSetup = ref<Awaited<ReturnType<typeof c_load_schemas>> | boolean>(false);
 const cacheSetup = ref<Awaited<ReturnType<typeof c_prepare_cache>>>(false);
 const watcherSetup = ref<Awaited<ReturnType<typeof c_watch_path>>>(false);
 
 const running = ref(false);
 
-const steps = computed(() => [init.value, cacheSetup.value, watcherSetup.value]);
-const stepName = ['Initialize', 'Setup cache', 'Start watcher'];
+const steps = computed(() => [init.value, schemaSetup.value, cacheSetup.value, watcherSetup.value]);
+const stepName = ['Initialize', 'Load schemas', 'Setup cache', 'Start watcher'];
 
 const resetAll = () => {
   init.value = false;
@@ -66,8 +68,6 @@ const resetAll = () => {
 
 const initLoop = async () => {
   running.value = true;
-  await store.fetchRootPath();
-  const rp = store.rootPath;
 
   if (init.value !== true) {
     init.value = await c_init_once();
@@ -77,12 +77,22 @@ const initLoop = async () => {
     }
   }
 
+  await store.fetchRootPath();
   if (typeof store.rootPath !== 'string') {
     await navigateTo('/welcome');
     return;
   }
 
-  
+  schemaSetup.value = await c_load_schemas();
+  if ('isError' in schemaSetup.value) {
+    running.value = false;
+    return;
+  }
+  console.log(schemaSetup.value);
+  if (Object.keys(schemaSetup.value.schemas).length < 1) {
+    await navigateTo('/schemas');
+    return;
+  }
 
   if (cacheSetup.value !== true) {
     cacheSetup.value = await c_prepare_cache();

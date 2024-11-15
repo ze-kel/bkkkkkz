@@ -1,6 +1,7 @@
 use notify::event::{CreateKind, ModifyKind, RemoveKind, RenameMode};
 use notify::Event;
 use notify::EventKind;
+use serde::{Deserialize, Serialize};
 use std::ffi::OsStr;
 use std::path::Path;
 use tauri::{AppHandle, Emitter};
@@ -9,26 +10,14 @@ use crate::cache::write::{
     cache_file, cache_files_and_folders, cache_folder, remove_file_from_cache,
     remove_files_in_folder_rom_cache, remove_folder_from_cache,
 };
-use crate::utils::errorhandling::{send_err_to_frontend, ErrorFromRust};
-
-fn send_generic_watch_process_err(app: &AppHandle, place: String, raw_err_string: String) {
-    send_err_to_frontend(
-        app,
-        &ErrorFromRust::new("Watcher encountered an error")
-            .info(&format!("Location: {}", place))
-            .raw(raw_err_string),
-    );
-}
+use crate::schema::operations::get_schema_path;
+use crate::utils::errorhandling::send_err_to_frontend;
 
 async fn handle_file_remove(app: &AppHandle, path: &Path, ext: &OsStr) {
     if ext == "md" {
         match remove_file_from_cache(path).await {
             Ok(_) => app.emit("file_remove", path.to_string_lossy()).unwrap(),
-            Err(e) => send_generic_watch_process_err(
-                app,
-                format!("file_remove {}", path.to_string_lossy()),
-                e.to_string(),
-            ),
+            Err(e) => send_err_to_frontend(app, &e),
         };
     }
 }
@@ -52,37 +41,48 @@ async fn handle_file_update(app: &AppHandle, path: &Path, ext: &OsStr) {
     }
 }
 
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct FolderEventEmit {
+    pub path: String,
+    #[serde(rename = "schemaPath")]
+    pub schema_path: Option<String>,
+}
+
 // Folder remove and folder add are called only for exact folder that was modified.
 // This means that renaming folder -> folder_renamed will cause events for sub folders and sub files
 // Therefore we need to remove\add all files in that directory
 async fn handle_folder_remove(app: &AppHandle, path: &Path) {
     match remove_folder_from_cache(path).await {
-        Err(e) => send_generic_watch_process_err(
-            app,
-            format!("folder_remove {}", path.to_string_lossy()),
-            e.to_string(),
-        ),
+        Err(e) => send_err_to_frontend(app, &e),
         Ok(_) => match remove_files_in_folder_rom_cache(path).await {
-            Err(e) => send_generic_watch_process_err(
-                app,
-                format!("folder_remove {}", path.to_string_lossy()),
-                e.to_string(),
-            ),
-            Ok(_) => app.emit("folder_remove", path.to_string_lossy()).unwrap(),
+            Err(e) => send_err_to_frontend(app, &e),
+            Ok(_) => app
+                .emit(
+                    "folder_remove",
+                    FolderEventEmit {
+                        path: path.to_string_lossy().to_string(),
+                        schema_path: get_schema_path(&path.to_string_lossy()).await,
+                    },
+                )
+                .unwrap(),
         },
     };
 }
 
 async fn handle_folder_add(app: &AppHandle, path: &Path) {
     match cache_folder(path).await {
-        Err(e) => send_generic_watch_process_err(
-            app,
-            format!("folder_remove {}", path.to_string_lossy()),
-            e.to_string(),
-        ),
+        Err(e) => send_err_to_frontend(app, &e),
         Ok(_) => match cache_files_and_folders(path).await {
             Err(e) => send_err_to_frontend(app, &e),
-            Ok(_) => app.emit("folder_add", path.to_string_lossy()).unwrap(),
+            Ok(_) => app
+                .emit(
+                    "folder_add",
+                    FolderEventEmit {
+                        path: path.to_string_lossy().to_string(),
+                        schema_path: get_schema_path(&path.to_string_lossy()).await,
+                    },
+                )
+                .unwrap(),
         },
     };
 }

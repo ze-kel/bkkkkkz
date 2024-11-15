@@ -29,12 +29,17 @@ export function isOurError(v: unknown): v is ErrorFromRust {
   return Boolean(v && typeof v === 'object' && 'isError' in v && v.isError === true);
 }
 
+export type FolderEventEmit = {
+  path: string;
+  schema_path?: string;
+};
+
 type EventPayloads = {
   file_remove: string;
   file_add: IBookFromDb;
   file_update: IBookFromDb;
-  folder_add: string;
-  folder_remove: string;
+  folder_add: FolderEventEmit;
+  folder_remove: FolderEventEmit;
   error_happened: ErrorFromRust;
 };
 
@@ -126,6 +131,8 @@ export type Schema = {
   items: SchemaItem[];
   internal_name: string;
   name: string;
+  internal_path: string;
+  version: string;
 };
 
 export interface IBookFromDb {

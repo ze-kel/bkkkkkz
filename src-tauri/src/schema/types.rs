@@ -66,23 +66,32 @@ pub enum NumberStyle {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct AttrSettings {
+    #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename = "displayName")]
     pub display_name: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub size: Option<InputSize>,
 
+    #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename = "textFont")]
     pub text_font: Option<TextFont>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename = "textWeight")]
     pub text_weight: Option<TextWeight>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename = "textTheme")]
     pub text_theme: Option<TextTheme>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename = "textMultiline")]
     pub text_multiline: Option<bool>,
 
+    #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename = "numberMin")]
     pub number_min: Option<f64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename = "numberMax")]
     pub number_max: Option<f64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename = "numberStyle")]
     pub number_style: Option<NumberStyle>,
 }
@@ -113,12 +122,16 @@ pub type SchemaItems = Vec<SchemaItem>;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Schema {
-    pub items: SchemaItems,
     pub name: String,
+    pub version: String,
 
+    pub items: SchemaItems,
+
+    pub internal_path: String,
     // This is used to prefix table names in cache db
     // Currently is equal to folder name, will need to be random when\if we support multiple folders
     // Can possibly be used for schema cache invalidation
-    #[serde(skip_serializing)]
     pub internal_name: String,
 }
+
+pub const SCHEMA_VERSION: &str = "1.0";

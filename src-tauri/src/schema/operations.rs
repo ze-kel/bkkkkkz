@@ -1,6 +1,6 @@
 use std::{
     collections::HashMap,
-    fs::{read_dir, read_to_string, write},
+    fs::{create_dir_all, read_dir, read_to_string, write},
     path::PathBuf,
     str,
     sync::Arc,
@@ -12,7 +12,7 @@ use tokio::sync::Mutex;
 
 use crate::utils::{errorhandling::ErrorFromRust, global_app::get_root_path};
 
-use super::types::Schema;
+use super::types::{Schema, SCHEMA_VERSION};
 
 type GlobalSchema = Arc<Mutex<HashMap<String, Schema>>>;
 
@@ -23,24 +23,43 @@ fn get_gs() -> &'static GlobalSchema {
     GLOBAL_STATE.get_or_init(|| Arc::new(Mutex::new(HashMap::new())))
 }
 
-pub async fn get_schema_cached(path: &str) -> Result<Schema, ErrorFromRust> {
+pub async fn get_schema_cached_safe(path: &str) -> Result<Schema, ErrorFromRust> {
+    let s = get_schema_cached(path).await;
+    match s {
+        Some(s) => Ok(s),
+        None => Err(ErrorFromRust::new("Unable to retrieve schema")
+            .info(
+                "Unless you changed files manually this should not happen. Try restarting the app",
+            )
+            .raw(path)),
+    }
+}
+
+pub async fn get_schema_path(path: &str) -> Option<String> {
+    get_schema_cached(path).await.map(|v| v.internal_path)
+}
+
+pub async fn get_schema_cached(path: &str) -> Option<Schema> {
     let gs = get_gs().lock().await;
 
     for (key, value) in gs.iter() {
         if path.starts_with(key) {
-            return Ok(value.clone());
+            return Some(value.clone());
         }
     }
 
-    Err(ErrorFromRust::new("Unable to retrieve schema")
-        .info("Unless you changed files manually this should not happen. Try restarting the app")
-        .raw(path))
+    return None;
 }
 
 pub async fn get_all_schemas_cached() -> Vec<Schema> {
     let gs = get_gs().lock().await;
 
-    gs.iter().map(|(_, v)| v.clone()).collect()
+    gs.iter()
+        .filter_map(|(_, v)| match v.items.is_empty() {
+            true => None,
+            false => Some(v.clone()),
+        })
+        .collect()
 }
 
 pub async fn load_schema(path: PathBuf) -> Result<Schema, ErrorFromRust> {
@@ -65,6 +84,7 @@ pub async fn load_schema(path: PathBuf) -> Result<Schema, ErrorFromRust> {
         }
     };
     sch.internal_name = folder_name.to_string_lossy().to_string();
+    sch.internal_path = path.to_string_lossy().to_string();
 
     schemas.insert(path.to_string_lossy().to_string(), sch.clone());
 
@@ -128,11 +148,23 @@ pub async fn load_schemas_from_disk() -> Result<SchemaLoadList, ErrorFromRust> {
     })
 }
 
-pub async fn save_schema(path: &str, schema: Schema) -> Result<Schema, ErrorFromRust> {
+pub async fn save_schema(
+    folder_path: &PathBuf,
+    mut schema: Schema,
+) -> Result<Schema, ErrorFromRust> {
+    schema.version = SCHEMA_VERSION.to_string();
     let serialized = serde_yml::to_string(&schema)
         .map_err(|e| ErrorFromRust::new("Error serializing schema").raw(e))?;
 
-    write(path, serialized).map_err(|e| {
+    create_dir_all(folder_path).map_err(|e| {
+        ErrorFromRust::new("Error creating directory")
+            .info("Could not create schema folder")
+            .raw(e)
+    })?;
+
+    let schema_path = folder_path.join("schema.yaml");
+
+    write(schema_path, serialized).map_err(|e| {
         ErrorFromRust::new("Error writing to disk")
             .info("File was not saved")
             .raw(e)
@@ -140,7 +172,7 @@ pub async fn save_schema(path: &str, schema: Schema) -> Result<Schema, ErrorFrom
 
     let mut schemas = get_gs().lock().await;
 
-    schemas.insert(path.to_string(), schema.clone());
+    schemas.insert(folder_path.to_string_lossy().to_string(), schema.clone());
 
     Ok(schema)
 }

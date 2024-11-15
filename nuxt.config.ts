@@ -2,7 +2,13 @@ export default defineNuxtConfig({
   alias: {
     components: './components',
   },
-  modules: ['@nuxtjs/tailwindcss', '@pinia/nuxt', 'shadcn-nuxt', '@nuxtjs/color-mode'],
+  modules: [
+    '@nuxtjs/tailwindcss',
+    '@pinia/nuxt',
+    'shadcn-nuxt',
+    '@nuxtjs/color-mode',
+    '@pinia/colada-nuxt',
+  ],
   compatibilityDate: '2024-09-29',
 
   experimental: {

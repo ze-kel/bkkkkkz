@@ -1,46 +1,117 @@
 <template>
-  <div class="flex flex-col gap-4">
-    <div class="grid grid-cols-[3fr_1fr_1fr_40px] gap-x-2 gap-y-2">
-      <template v-for="item in schema" class="flex gap-2">
-        <UiBasicInput v-model="item.name" placeholder="Name" class="basis-36" />
+  <div class="mx-auto max-w-[600px]">
+    <div class="flex flex-row items-center justify-between">
+      <h1 class="font-serif text-3xl">Collections</h1>
+      <ShDialog>
+        <ShDialogTrigger>
+          <ShButton>Add new collection</ShButton>
+        </ShDialogTrigger>
 
-        <ShSelect v-model:model-value="item.value">
-          <ShSelectTrigger class="">
-            {{ item.value }}
-          </ShSelectTrigger>
-          <ShSelectContent>
-            <ShSelectItem v-for="k in AttrValueKeys" :value="k">{{ k }}</ShSelectItem>
-          </ShSelectContent>
-        </ShSelect>
-        <ShButton variant="outline">
-          <div class="flex w-6 items-center justify-center">
-            <CogIcon class="w-5" />
+        <ShDialogContent v-model:open="isCreateDialogOpen">
+          <ShDialogTitle>Create new collection</ShDialogTitle>
+
+          <div>
+            <h4>Collection name (folder name)</h4>
+            <BasicInput v-model="newSchemaName" size="M" class="mt-2 font-mono" />
+            <template v-if="defaultSchemas && defaultSchemas.length > 0">
+              <h4 class="mt-4">Template</h4>
+
+              <ShSelect v-model:model-value="newSchemaTemplate">
+                <ShSelectTrigger class="mt-2"> {{ selectedDefaultSchema?.name }}</ShSelectTrigger>
+                <ShSelectContent class="max-h-[200px]">
+                  <ShSelectItem
+                    v-for="(s, i) in defaultSchemas"
+                    size="xs"
+                    variant="outline"
+                    :key="s.name"
+                    :value="String(i)"
+                  >
+                    <div>
+                      {{ s.name }}
+                    </div>
+                    <div class="text-xs opacity-70">
+                      {{ s.description }}
+                    </div>
+                  </ShSelectItem>
+                </ShSelectContent>
+              </ShSelect>
+              <p class="mt-2 font-mono text-xs opacity-70"></p>
+              <p></p>
+            </template>
+            <ShButton variant="outline" class="mt-4 w-full" @click="addNewSchema">Create</ShButton>
           </div>
-        </ShButton>
-        <ShButton size="icon" variant="ghost">
-          <div class="flex w-6 items-center justify-center">
-            <DeleteIcon class="w-5" />
-          </div>
-        </ShButton>
-      </template>
+        </ShDialogContent>
+      </ShDialog>
     </div>
-
-    <ShButton @click="addNew" variant="outline" class="mt-2 w-full">Add</ShButton>
+    <div v-if="hasSchemas" class="mt-6 flex flex-col gap-4">
+      <ShButton
+        v-for="schema in schemas?.schemas"
+        :key="schema.internal_name"
+        variant="outline"
+        class="hove flex h-fit cursor-pointer flex-col gap-2 rounded-none border px-4 py-2"
+      >
+        <div class="text-lg">
+          {{ schema.name }}
+        </div>
+        <div class="font-mono text-xs opacity-70">
+          <template v-if="schema.items.length > 0" v-for="item in schema.items"
+            >{{ item.name }}{{ ' ' }}
+          </template>
+          <template v-else>No items</template>
+        </div>
+      </ShButton>
+    </div>
+    <div v-else>
+      <h2>You do not have any schemas yet</h2>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { AttrValueKeys, type AttrValue, type SchemaItem } from '~/api/tauriEvents';
+import {
+  c_get_default_schemas,
+  c_load_schemas,
+  c_save_schema,
+  type DefaultSchema,
+} from '~/api/tauriActions';
+import { rustErrorNotification, type Schema } from '~/api/tauriEvents';
+import BasicInput from '../_ui/BasicInput.vue';
+import { useQuery, useQueryCache } from '@pinia/colada';
 
-import { XIcon as DeleteIcon, CogIcon } from 'lucide-vue-next';
+const qc = useQueryCache();
 
-const schema = defineModel<SchemaItem[]>({ required: true });
+const { data: defaultSchemas } = useQuery({
+  key: ['defaultSchemas'],
+  query: c_get_default_schemas,
+});
 
-const addNew = () => {
-  schema.value.push({
-    name: '',
-    value: 'Text',
-    settings: {},
+const { data: schemas } = useQuery({
+  key: ['schemas'],
+  query: c_load_schemas,
+});
+
+const hasSchemas = computed(() => schemas.value && Object.keys(schemas.value.schemas).length > 0);
+
+const addNewSchema = async () => {
+  if (!newSchemaName.value || !selectedDefaultSchema.value) return;
+  const res = await c_save_schema(newSchemaName.value, {
+    items: selectedDefaultSchema.value.schema_items,
+    name: newSchemaName.value,
+    internal_name: newSchemaName.value,
+    internal_path: '',
+    version: 'to be set by backend',
   });
+
+  isCreateDialogOpen.value = false;
+
+  qc.invalidateQueries({ key: ['schemas'] });
 };
+
+const isCreateDialogOpen = ref(false);
+const newSchemaName = ref('');
+const newSchemaTemplate = ref<string>('0');
+const selectedDefaultSchema = computed(() => {
+  if (!defaultSchemas.value) return null;
+  return defaultSchemas.value[Number(newSchemaTemplate.value)];
+});
 </script>

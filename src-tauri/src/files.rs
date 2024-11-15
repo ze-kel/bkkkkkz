@@ -6,7 +6,7 @@ use std::fs::{self, File};
 use std::io::{self, BufRead, BufReader};
 
 use crate::cache::query::BookFromDb;
-use crate::schema::operations::get_schema_cached;
+use crate::schema::operations::get_schema_cached_safe;
 use crate::schema::types::{AttrKey, AttrValue, DateRead, Schema};
 use crate::utils::errorhandling::{ErrorActionCode, ErrorFromRust};
 
@@ -49,7 +49,7 @@ pub async fn read_file_by_path(
         }
     };
 
-    let files_schema = get_schema_cached(path_str).await?;
+    let files_schema = get_schema_cached_safe(path_str).await?;
 
     let p = path_str.to_string();
 

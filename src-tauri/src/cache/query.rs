@@ -3,7 +3,7 @@ use sqlx::sqlite::SqliteRow;
 use sqlx::Row;
 use std::collections::HashMap;
 
-use crate::schema::operations::get_schema_cached;
+use crate::schema::operations::get_schema_cached_safe;
 use crate::schema::types::{AttrKey, AttrValue, DateRead, Schema};
 use crate::utils::errorhandling::ErrorFromRust;
 
@@ -176,7 +176,7 @@ pub struct BookListGetResult {
 }
 
 pub async fn get_files_by_path(path: String) -> Result<BookListGetResult, ErrorFromRust> {
-    let schema = get_schema_cached(&path).await?;
+    let schema = get_schema_cached_safe(&path).await?;
 
     let t_info = get_table_names(schema.internal_name.clone());
 
@@ -211,7 +211,7 @@ pub async fn get_all_tags() -> Result<Vec<String>, sqlx::Error> {
 pub async fn get_all_folders(schema_path: &str) -> Result<Vec<String>, ErrorFromRust> {
     let mut db = get_db_conn().lock().await;
 
-    let schema = get_schema_cached(&schema_path).await?;
+    let schema = get_schema_cached_safe(&schema_path).await?;
 
     let t_info = get_table_names(schema.internal_name.clone());
 

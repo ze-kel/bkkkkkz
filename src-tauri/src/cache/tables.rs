@@ -1,4 +1,7 @@
-use crate::schema::{operations::get_all_schemas_cached, types::{AttrKey, Schema}};
+use crate::schema::{
+    operations::get_all_schemas_cached,
+    types::{AttrKey, Schema},
+};
 
 use super::dbconn::get_db_conn;
 
@@ -13,6 +16,10 @@ pub async fn create_db_tables_for_all_schemas() -> Result<(), sqlx::Error> {
 }
 
 pub async fn create_db_tables_for_schema(schema: Schema) -> Result<(), sqlx::Error> {
+    if schema.items.is_empty() {
+        return Ok(());
+    }
+
     let mut db = get_db_conn().lock().await;
 
     let TableNames {

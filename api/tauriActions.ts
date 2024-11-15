@@ -74,8 +74,8 @@ export const c_get_all_tags = async () => {
     .catch(errorHandler);
 };
 
-export const c_get_all_folders = async () => {
-  return invoke('c_get_all_folders', {})
+export const c_get_all_folders = async (schemaPath: string) => {
+  return invoke('c_get_all_folders', { schemaPath })
     .then((v) => v as string[])
     .catch(errorHandler);
 };
@@ -95,18 +95,36 @@ export const c_read_file_by_path = async (path: string) => {
 };
 
 export type SchemaLoadList = {
-  schemas: Schema[];
+  schemas: Record<string, Schema>;
   error?: ErrorFromRust;
 };
 
-export const c_load_schemas = async (path: string) => {
-  return invoke('c_load_schemas', { path })
-    .then((v) => v as SchemaLoadList)
+// All schema.yaml files we can find
+export const c_load_schemas = async () => {
+  return invoke('c_load_schemas').then((v) => v as SchemaLoadList);
+};
+
+// Non empty schemas
+export const c_get_schemas = async () => {
+  return invoke('c_get_schemas').then((v) => v as Schema[]);
+};
+
+export const c_schema_version = async () => {
+  return invoke('c_schema_version').then((v) => v as string);
+};
+
+export const c_save_schema = async (folderName: string, schema: Schema) => {
+  return invoke('c_save_schema', { folderName, schema })
+    .then((v) => v as Schema)
     .catch(errorHandler);
 };
 
-export const c_save_schema = async (path: string, schema: Schema) => {
-  return invoke('c_save_schema', { path, schema })
-    .then((v) => v as Schema)
-    .catch(errorHandler);
+export type DefaultSchema = {
+  name: string;
+  description: string;
+  schema_items: SchemaItem[];
+};
+
+export const c_get_default_schemas = () => {
+  return invoke('c_get_default_schemas').then((v) => v as DefaultSchema[]);
 };

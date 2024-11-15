@@ -1,21 +1,13 @@
 <template>
-  <div class="grid w-full grid-cols-2 gap-4 p-10">
-    <div class="col-span-2 font-serif text-3xl">Working directory & schema</div>
-    <div>
-      <SchemaEditor v-model="schema" />
-    </div>
-
-    {{ file }}
-
-    <div>
-      <EditorMetaEditor :schema="schema" v-model="file" />
-    </div>
+  <div class="p-4">
+    <SchemaEditor />
   </div>
 </template>
 
 <script lang="ts" setup>
 import { selectAndSetRootPath } from '~/api/rootPath';
 import type { IBookFromDb, SchemaItem } from '~/api/tauriEvents';
+import SchemaEditor from '~/components/SchemaEditor/SchemaEditor.vue';
 
 const store = useStore();
 
@@ -30,11 +22,4 @@ const file = ref<IBookFromDb>({
 definePageMeta({
   layout: 'empty',
 });
-
-const changeRootPathHandler = async () => {
-  const updated = await selectAndSetRootPath();
-  if (updated) {
-    store.fetchRootPath();
-  }
-};
 </script>

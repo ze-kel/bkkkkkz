@@ -13,10 +13,21 @@
       :style="{ width: `${fileTreeSize}px` }"
     >
       <div class="z-2 h-full">
+        {{ currentSchema?.internal_name || 'psaodas' }}
+        <div class="mt-2 flex flex-wrap gap-2">
+          <ShButton
+            v-for="schema in schemas"
+            :variant="currentSchema?.internal_name === schema.internal_name ? 'outline' : 'ghost'"
+            @click="currentSchema = schema"
+          >
+            {{ schema.name[0].toUpperCase() }}
+          </ShButton>
+        </div>
+
         <IconsMenu />
 
-        <div class="overflow-y-auto overflow-x-hidden overscroll-none">
-          <FileTree />
+        <div v-if="currentSchema" class="overflow-y-auto overflow-x-hidden overscroll-none">
+          <FileTree :schema-path="currentSchema.internal_path" :schema-name="currentSchema.name" />
 
           <hr
             class="dark:bg-neutral-000 my-3 h-[1px] w-full border-0 bg-neutral-100 dark:bg-neutral-900"
@@ -36,7 +47,7 @@
 
     <!-- Core view -->
     <div class="flex h-[calc(100%_-_40px)] max-h-full w-full overflow-hidden">
-      <div class="flex h-full w-full flex-col">
+      <div v-if="false" class="flex h-full w-full flex-col">
         <slot />
       </div>
     </div>
@@ -44,10 +55,37 @@
 </template>
 
 <script setup lang="ts">
+import { c_get_schemas, c_load_schemas } from '~/api/tauriActions';
+import type { Schema } from '~/api/tauriEvents';
 import TagsTree from '~/components/FileTree/TagsTree.vue';
 import TabsSelector from '~/components/ViewCore/TabsSelector.vue';
 
 const store = useStore();
+
+const {
+  data: schemas,
+  error,
+  isLoading,
+} = useQuery({
+  key: ['schemas'],
+  query: c_get_schemas,
+  refetchOnWindowFocus: false,
+});
+
+watch(error, (err) => {
+  if (err) {
+    navigateTo('/schemas');
+  }
+});
+
+watch(schemas, (schemas) => {
+  if (schemas && schemas.length) {
+    currentSchema.value = schemas[0];
+    return;
+  }
+});
+
+const currentSchema = ref<Schema | null>(null);
 
 // Root Path loading Logic
 watch(

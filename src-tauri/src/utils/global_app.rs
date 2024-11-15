@@ -27,14 +27,14 @@ pub fn init_global_app(app: AppHandle) {
 
 #[allow(dead_code)]
 pub fn get_store() -> Store<Wry> {
-    return get_global_app().lock().unwrap().store("store.json");
+    return get_global_app().lock().unwrap().store("appData.bin");
 }
 
 pub fn get_root_path() -> Result<String, ErrorFromRust> {
     let val = get_global_app()
         .lock()
         .unwrap()
-        .store("store.json")
+        .store("appData.bin")
         .get(ROOT_PATH_KEY);
 
     return match val {

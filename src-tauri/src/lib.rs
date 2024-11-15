@@ -15,7 +15,9 @@ use cache::{
 use files::{read_file_by_path, save_file, FileReadMode};
 use schema::{
     defaults::get_default_schemas,
-    operations::{load_schema, load_schemas_from_disk, save_schema, SchemaLoadList},
+    operations::{
+        get_all_schemas_cached, load_schema, load_schemas_from_disk, save_schema, SchemaLoadList,
+    },
 };
 use schema::{defaults::DefaultSchema, types::Schema};
 use serde::{Deserialize, Serialize};
@@ -39,19 +41,17 @@ enum ResultStringJson {
 
 #[tauri::command]
 async fn c_init_once(app: AppHandle) -> Result<bool, ErrorFromRust> {
-    match db_setup().await {
-        Ok(_) => Ok(()),
-        Err(e) => Err(ErrorFromRust::new("Error on db setup")
+    db_setup().await.map_err(|e| {
+        ErrorFromRust::new("Error on db setup")
             .info("This is a critical error. Report bug")
-            .raw(e)),
-    }?;
+            .raw(e)
+    })?;
 
-    match init_watcher().await {
-        Ok(_) => Ok(()),
-        Err(e) => Err(ErrorFromRust::new("Error on watcher init.")
+    init_watcher().await.map_err(|e| {
+        ErrorFromRust::new("Error on watcher init.")
             .info("This is a critical error. Report bug")
-            .raw(e)),
-    }?;
+            .raw(e)
+    })?;
 
     task::spawn(async move {
         let event_rx = subscribe_to_events().await;
@@ -78,12 +78,11 @@ async fn c_init_once(app: AppHandle) -> Result<bool, ErrorFromRust> {
 async fn c_prepare_cache(app: AppHandle) -> Result<bool, ErrorFromRust> {
     let rp = get_root_path()?;
 
-    match create_db_tables_for_all_schemas().await {
-        Err(e) => Err(ErrorFromRust::new("Error when creating tables in cache db")
+    create_db_tables_for_all_schemas().await.map_err(|e| {
+        ErrorFromRust::new("Error when creating tables in cache db")
             .info("This should not happen. Try restarting the app, else report as bug.")
-            .raw(e)),
-        Ok(_) => Ok(()),
-    }?;
+            .raw(e)
+    })?;
 
     match cache_files_and_folders(&rp).await {
         Err(e) => {
@@ -122,8 +121,8 @@ async fn c_get_all_tags(_: AppHandle) -> Result<Vec<String>, ErrorFromRust> {
 }
 
 #[tauri::command]
-async fn c_get_all_folders(_: AppHandle, path: String) -> Result<Vec<String>, ErrorFromRust> {
-    get_all_folders(&path).await
+async fn c_get_all_folders(_: AppHandle, schema_path: String) -> Result<Vec<String>, ErrorFromRust> {
+    get_all_folders(&schema_path).await
 }
 
 #[tauri::command]
@@ -139,6 +138,12 @@ async fn c_load_schemas(_: AppHandle) -> Result<SchemaLoadList, ErrorFromRust> {
     load_schemas_from_disk().await
 }
 
+// This one returns only schemas with items
+#[tauri::command]
+async fn c_get_schemas(_: AppHandle) -> Result<Vec<Schema>, ErrorFromRust> {
+    Ok(get_all_schemas_cached().await)
+}
+
 #[tauri::command]
 async fn c_load_schema(_: AppHandle, path: String) -> Result<Schema, ErrorFromRust> {
     load_schema(PathBuf::from(path)).await
@@ -147,9 +152,10 @@ async fn c_load_schema(_: AppHandle, path: String) -> Result<Schema, ErrorFromRu
 #[tauri::command]
 async fn c_save_schema(
     _: AppHandle,
-    path: String,
+    folder_name: String,
     schema: Schema,
 ) -> Result<Schema, ErrorFromRust> {
+    let path = PathBuf::from(get_root_path()?).join(folder_name);
     save_schema(&path, schema).await
 }
 
@@ -164,10 +170,7 @@ fn c_save_file(
     book: BookFromDb,
     forced: bool,
 ) -> Result<files::BookSaveResult, ErrorFromRust> {
-    match save_file(book, forced) {
-        Ok(r) => Ok(r),
-        Err(e) => Err(e),
-    }
+    save_file(book, forced)
 }
 
 pub fn run() {
@@ -188,7 +191,8 @@ pub fn run() {
             c_get_all_tags,
             c_get_all_folders,
             c_read_file_by_path,
-            c_save_file
+            c_save_file,
+            c_get_schemas
         ])
         .setup(|app| {
             if cfg!(debug_assertions) {

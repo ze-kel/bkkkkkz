@@ -157,12 +157,17 @@ pub struct DefaultSchema {
 pub fn get_default_schemas() -> Vec<DefaultSchema> {
     vec![
         DefaultSchema {
-            name: "books".to_owned(),
+            name: "Empty".to_owned(),
+            description: "Empty schema without any fields".to_owned(),
+            schema_items: vec![],
+        },
+        DefaultSchema {
+            name: "Books".to_owned(),
             description: "Default schema for books, inspired by Goodreads".to_owned(),
             schema_items: default_book_schema(),
         },
         DefaultSchema {
-            name: "movies".to_owned(),
+            name: "Movies".to_owned(),
             description: "Default schema for books, inspired by Letterboxd".to_owned(),
             schema_items: default_movie_schema(),
         },
