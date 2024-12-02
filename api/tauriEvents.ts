@@ -3,6 +3,7 @@ import { toast } from 'vue-sonner';
 import { markRaw } from 'vue';
 
 import ErrorToast from '~/components/Error/ErrorToast.vue';
+import type { IBookFromDb } from '~/api/schema';
 
 export type ErrorActionCode =
   | 'FileSaveRetry'
@@ -85,60 +86,3 @@ export const useListenToEvent = <E extends keyof EventPayloads>(
     }
   });
 };
-
-export type DatePair = {
-  started?: string | undefined;
-  finished?: string | undefined;
-};
-
-export type AttrValue = {
-  Text: string;
-  TextCollection: string[];
-  Date: string;
-  DateCollection: string[];
-  Number: number;
-  NumberDecimal: number;
-  DatesPairCollection: DatePair[];
-};
-
-export const AttrValueKeys: (keyof AttrValue)[] = [
-  'Text',
-  'TextCollection',
-  'Date',
-  'DateCollection',
-  'Number',
-  'NumberDecimal',
-  'DatesPairCollection',
-];
-
-export type SchemaItem = {
-  name: string;
-  value: keyof AttrValue;
-  settings: {
-    size?: 'S' | 'M' | 'L';
-    displayName?: string;
-    textFont?: 'Serif' | 'Sans';
-    textWeight?: 'Light' | 'Normal' | 'Bold' | 'Black';
-    textTheme?: 'Hidden' | 'Default';
-    textMultiline?: boolean;
-
-    numberMin?: number;
-    numberMax?: number;
-    numberStyle?: 'Default' | 'Stars' | 'Slider';
-  };
-};
-export type Schema = {
-  items: SchemaItem[];
-  internal_name: string;
-  name: string;
-  internal_path: string;
-  version: string;
-};
-
-export interface IBookFromDb {
-  path: string;
-  modified: string;
-  markdown: string;
-
-  attrs: Record<string, any>;
-}

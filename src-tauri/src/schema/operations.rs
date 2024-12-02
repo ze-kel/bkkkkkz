@@ -67,19 +67,32 @@ pub async fn load_schema(path: PathBuf) -> Result<Schema, ErrorFromRust> {
 
     let schema_path = path.join("schema.yaml");
 
-    let file_content = read_to_string(schema_path)
-        .map_err(|e| ErrorFromRust::new("Error when reading schema file").raw(e))?;
+    if !schema_path.exists() {
+        return Err(ErrorFromRust::new("Schema file does not exist")
+            .info(&schema_path.clone().to_string_lossy()));
+    }
 
-    let mut sch: Schema = serde_yml::from_str(&file_content)
-        .map_err(|e| ErrorFromRust::new("Error parsing schema").raw(e))?;
+    let file_content = read_to_string(schema_path.clone()).map_err(|e| {
+        ErrorFromRust::new("Error when reading schema file")
+            .info(&schema_path.clone().to_string_lossy())
+            .raw(e)
+    })?;
+
+    let mut sch: Schema = serde_yml::from_str(&file_content).map_err(|e| {
+        ErrorFromRust::new("Error parsing schema")
+            .info(&schema_path.clone().to_string_lossy())
+            .raw(e)
+    })?;
 
     let folder_name = match path.file_name() {
         Some(v) => v,
         None => {
             return Err(
-                ErrorFromRust::new("Unable to get basename from schema path").info(
-                    "This is super unexpected, maybe you are using symlinks? Please report bug.",
-                ),
+                ErrorFromRust::new("Unable to get basename from schema path")
+                    .info(&format!(
+                        "This is super unexpected, maybe you are using symlinks? Please report bug.\n{}",
+                        &schema_path.clone().to_string_lossy()
+                    )),
             );
         }
     };

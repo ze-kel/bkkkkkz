@@ -1,11 +1,6 @@
-import {
-  isOurError,
-  type ErrorFromRust,
-  type IBookFromDb,
-  type Schema,
-  type SchemaItem,
-} from '~/api/tauriEvents';
+import { isOurError, type ErrorFromRust } from '~/api/tauriEvents';
 import { invoke } from '@tauri-apps/api/core';
+import type { IBookFromDb, Schema, SchemaItem } from '~/api/schema';
 
 const errorHandler = (e: unknown): ErrorFromRust => {
   if (isOurError(e)) {
@@ -109,14 +104,15 @@ export const c_get_schemas = async () => {
   return invoke('c_get_schemas').then((v) => v as Schema[]);
 };
 
-export const c_schema_version = async () => {
-  return invoke('c_schema_version').then((v) => v as string);
-};
-
 export const c_save_schema = async (folderName: string, schema: Schema) => {
   return invoke('c_save_schema', { folderName, schema })
     .then((v) => v as Schema)
     .catch(errorHandler);
+};
+
+// All schema.yaml files we can find
+export const c_load_schema = async (path: string) => {
+  return invoke('c_load_schema', { path }).then((v) => v as Schema);
 };
 
 export type DefaultSchema = {

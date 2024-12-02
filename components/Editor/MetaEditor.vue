@@ -1,31 +1,31 @@
 <template>
-  <div class="grid gap-2" :class="$props.class">
-    <template v-for="item in schema">
+  <div class="grid gap-2" :class="$attrs.class">
+    <template v-for="item in schema?.items">
       <div>
         <UiBasicInput
-          v-if="item.value === 'Text'"
+          v-if="item.value.type === 'Text'"
           v-model:model-value="openedFile.attrs[item.name]"
-          :placeholder="item.settings.displayName || item.name"
-          :theme="item.settings.textTheme"
-          :multi-line="item.settings.textMultiline"
-          :size="item.settings.size"
-          :font="item.settings.textFont"
-          :weight="item.settings.textWeight"
+          :placeholder="item.value.settings.displayName || item.name"
+          :theme="item.value.settings.theme"
+          :multi-line="item.value.settings.isMultiline"
+          :size="item.value.settings.size"
+          :font="item.value.settings.font"
+          :weight="item.value.settings.weight"
         />
 
         <UiBasicInput
-          v-if="item.value === 'Number'"
-          type="number"
-          v-model:model-value="openedFile.attrs[item.name]"
+          v-if="item.value.type === 'Number'"
+          :placeholder="item.value.settings.displayName || item.name"
+          v-model:isNumber="openedFile.attrs[item.name]"
         />
 
         <EditorTagsEditor
-          v-if="item.value === 'TextCollection'"
+          v-if="item.value.type === 'TextCollection'"
           v-model:model-value="openedFile.attrs[item.name]"
         />
 
         <ReadDetails
-          v-if="item.value === 'DatesPairCollection'"
+          v-if="item.value.type === 'DatesPairCollection'"
           v-model:model-value="openedFile.attrs[item.name]"
         />
       </div>
@@ -38,10 +38,9 @@
 </template>
 
 <script setup lang="ts">
-import { toast } from 'vue-sonner';
-import type { IBookFromDb, Schema } from '~/api/tauriEvents';
 import ReadDetails from './ReadDetails/ReadDetails.vue';
 import type { PropType } from 'vue';
+import type { IBookFromDb, Schema } from '~/api/schema';
 
 defineProps({
   schema: {
@@ -52,8 +51,6 @@ defineProps({
 const openedFile = defineModel<IBookFromDb>({
   required: true,
 });
-
-const emit = defineEmits(['change']);
 
 /*
 ///

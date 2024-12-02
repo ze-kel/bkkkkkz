@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use serde_with::skip_serializing_none;
 
 #[derive(Serialize, Deserialize, Clone, Hash, Debug)]
 pub struct DateRead {
@@ -12,24 +13,74 @@ pub enum AttrValue {
     Text(String),
     TextCollection(Vec<String>),
     DatesPairCollection(Vec<DateRead>),
-    NumberDecimal(f64),
-    Number(u64),
+    Number(f64),
     Date(String),
     DateCollection(Vec<String>),
     Image(String),
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(tag = "type", content = "settings")]
 pub enum AttrKey {
-    Text,
-    TextCollection,
-    Number,
-    NumberDecimal,
-    Date,
-    DateCollection,
-    DatesPairCollection,
-    Image,
+    Text(Option<TextSettings>),
+    TextCollection(Option<EmptySettings>),
+    Number(Option<NumberSettings>),
+    Date(Option<EmptySettings>),
+    DateCollection(Option<EmptySettings>),
+    DatesPairCollection(Option<EmptySettings>),
+    Image(Option<EmptySettings>),
 }
+#[skip_serializing_none]
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TextSettings {
+    pub display_name: Option<String>,
+    pub size: Option<InputSize>,
+    pub font: Option<TextFont>,
+    pub weight: Option<TextWeight>,
+    pub theme: Option<TextTheme>,
+    pub is_multiline: Option<bool>,
+}
+impl Default for TextSettings {
+    fn default() -> TextSettings {
+        TextSettings {
+            display_name: None,
+            size: None,
+            font: None,
+            weight: None,
+            theme: None,
+            is_multiline: None,
+        }
+    }
+}
+
+#[skip_serializing_none]
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct NumberSettings {
+    pub size: Option<InputSize>,
+    pub min: Option<f64>,
+    pub max: Option<f64>,
+    pub style: Option<NumberStyle>,
+    pub decimal_places: Option<u8>,
+}
+
+impl Default for NumberSettings {
+    fn default() -> NumberSettings {
+        NumberSettings {
+            size: None,
+            min: None,
+            max: None,
+            style: None,
+            decimal_places: None,
+        }
+    }
+}
+
+#[skip_serializing_none]
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct EmptySettings {}
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum InputSize {
@@ -65,57 +116,9 @@ pub enum NumberStyle {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct AttrSettings {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(rename = "displayName")]
-    pub display_name: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub size: Option<InputSize>,
-
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(rename = "textFont")]
-    pub text_font: Option<TextFont>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(rename = "textWeight")]
-    pub text_weight: Option<TextWeight>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(rename = "textTheme")]
-    pub text_theme: Option<TextTheme>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(rename = "textMultiline")]
-    pub text_multiline: Option<bool>,
-
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(rename = "numberMin")]
-    pub number_min: Option<f64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(rename = "numberMax")]
-    pub number_max: Option<f64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(rename = "numberStyle")]
-    pub number_style: Option<NumberStyle>,
-}
-
-impl Default for AttrSettings {
-    fn default() -> AttrSettings {
-        AttrSettings {
-            size: None,
-            text_font: None,
-            text_weight: None,
-            text_multiline: None,
-            text_theme: None,
-            display_name: None,
-            number_min: None,
-            number_max: None,
-            number_style: None,
-        }
-    }
-}
-#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SchemaItem {
     pub name: String,
     pub value: AttrKey,
-    pub settings: AttrSettings,
 }
 
 pub type SchemaItems = Vec<SchemaItem>;
@@ -124,6 +127,8 @@ pub type SchemaItems = Vec<SchemaItem>;
 pub struct Schema {
     pub name: String,
     pub version: String,
+
+    pub icon: Option<String>,
 
     pub items: SchemaItems,
 

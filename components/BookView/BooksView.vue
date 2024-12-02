@@ -13,8 +13,8 @@
         <BookViewBookContextMenu :path="file.data.path">
           <div class="flex flex-row justify-between">
             <div class="w-[60%] truncate">
-              <template v-if="file.data.attrs.title.Text">
-                {{ file.data.attrs.title.Text }}
+              <template v-if="file.data.attrs.title">
+                {{ file.data.attrs.title }}
               </template>
               <template v-else> Unknown title </template>
             </div>

@@ -34,4 +34,5 @@ chrono = "0.4.38"
 serde_yml = "0.0.12"
 sqlx = { version = "0.8", features = [ "runtime-tokio", "sqlite", "macros", ] }
 tokio = { version = "1", features = ["sync"] }
+serde_with = "3.11.0"
 

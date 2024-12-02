@@ -36,41 +36,59 @@ impl Default for BookFromDb {
 pub async fn get_files_abstact(
     where_clause: String,
     schema: Schema,
-) -> Result<Vec<BookFromDb>, sqlx::Error> {
+) -> Result<Vec<BookFromDb>, ErrorFromRust> {
     let mut db = get_db_conn().lock().await;
 
     let t_info = get_table_names(schema.internal_name.clone());
     let files_table = t_info.files_table;
+    let table_prefix = t_info.table_prefix;
 
     let mut joins: Vec<String> = Vec::new();
     let mut selects: Vec<String> = Vec::new();
 
     for schema_i in schema.items.clone() {
+        let columm_name = schema_i.name.to_owned();
+        let table_name = format!("{}{}", table_prefix, columm_name);
         match schema_i.value {
-            AttrKey::TextCollection => {
-                let name = schema_i.name.to_owned();
-                selects.push(schema_i.name);
+            AttrKey::TextCollection(_) | AttrKey::DateCollection(_) => {
+                selects.push(columm_name.clone());
                 joins.push(format!(
                     "LEFT JOIN
                     (SELECT {}.path as {}_path, GROUP_CONCAT({}.value, ',') 
                     AS {} FROM {} GROUP BY {}.path) 
                     ON {}.path = {}_path",
-                    name, name, name, name, name, name, files_table, name
+                    table_name,
+                    columm_name,
+                    table_name,
+                    columm_name,
+                    table_name,
+                    table_name,
+                    files_table,
+                    columm_name
                 ));
             }
-            AttrKey::DatesPairCollection => {
-                let name = schema_i.name.to_owned();
-                selects.push(schema_i.name);
+            AttrKey::DatesPairCollection(_) => {
+                selects.push(columm_name.clone());
                 joins.push(format!(
                     "LEFT JOIN 
                     (SELECT {}.path as {}_path, 
                     GROUP_CONCAT(IFNULL({}.started,'') || '|' || IFNULL({}.finished,''), ',') 
                     AS {} FROM {} GROUP BY {}.path)
                     ON {}.path = {}_path",
-                    name, name, name, name, name, name, name, files_table, name,
+                    table_name,
+                    columm_name,
+                    table_name,
+                    table_name,
+                    columm_name,
+                    table_name,
+                    table_name,
+                    files_table,
+                    columm_name,
                 ));
             }
-            _ => selects.push(schema_i.name),
+            AttrKey::Text(_) | AttrKey::Number(_) | AttrKey::Image(_) | AttrKey::Date(_) => {
+                selects.push(columm_name)
+            }
         }
     }
 
@@ -82,7 +100,9 @@ pub async fn get_files_abstact(
         where_clause
     );
 
-    let res = sqlx::query(&q).fetch_all(&mut *db).await?;
+    let res = sqlx::query(&q).fetch_all(&mut *db).await.map_err(|e| {
+        ErrorFromRust::new("Error when getting files").raw(format!("{}\n\n{}", e.to_string(), q))
+    })?;
 
     let result_iter: Vec<BookFromDb> = res
         .iter()
@@ -92,28 +112,24 @@ pub async fn get_files_abstact(
             for schema_i in schema.items.clone().iter() {
                 let name = schema_i.name.to_owned();
                 match schema_i.value {
-                    AttrKey::Text => {
+                    AttrKey::Text(_) => {
                         let v = row.get(&*name);
                         hm.insert(name, AttrValue::Text(v));
                     }
-                    AttrKey::Date => {
+                    AttrKey::Date(_) => {
                         let v = row.get(&*name);
                         hm.insert(name, AttrValue::Date(v));
                     }
-                    AttrKey::Image => {
+                    AttrKey::Image(_) => {
                         let v = row.get(&*name);
                         hm.insert(name, AttrValue::Image(v));
                     }
 
-                    AttrKey::Number => {
+                    AttrKey::Number(_) => {
                         let v = row.get(&*name);
                         hm.insert(name, AttrValue::Number(v));
                     }
-                    AttrKey::NumberDecimal => {
-                        let v = row.get(&*name);
-                        hm.insert(name, AttrValue::NumberDecimal(v));
-                    }
-                    AttrKey::TextCollection => {
+                    AttrKey::TextCollection(_) => {
                         let v: String = row.get(&*name);
                         hm.insert(
                             name,
@@ -122,7 +138,7 @@ pub async fn get_files_abstact(
                             ),
                         );
                     }
-                    AttrKey::DateCollection => {
+                    AttrKey::DateCollection(_) => {
                         let v: String = row.get(&*name);
                         hm.insert(
                             name,
@@ -131,7 +147,7 @@ pub async fn get_files_abstact(
                             ),
                         );
                     }
-                    AttrKey::DatesPairCollection => {
+                    AttrKey::DatesPairCollection(_) => {
                         let v: String = row.get(&*name);
                         hm.insert(
                             name,
@@ -187,8 +203,7 @@ pub async fn get_files_by_path(path: String) -> Result<BookListGetResult, ErrorF
         ),
         schema.clone(),
     )
-    .await
-    .map_err(|e| ErrorFromRust::new("Error when getting files by path").raw(e))?;
+    .await?;
 
     return Ok(BookListGetResult {
         schema: schema,

@@ -45,33 +45,34 @@ pub async fn create_db_tables_for_schema(schema: Schema) -> Result<(), sqlx::Err
     let mut side_tables_names: Vec<String> = Vec::new();
 
     for schema_i in schema.items {
-        let name = format!("{}{}", table_prefix, schema_i.name);
+        let columm_name = schema_i.name.clone();
+        let table_name = format!("{}{}", table_prefix, columm_name);
         match schema_i.value {
-            AttrKey::Text | AttrKey::Date | AttrKey::Image => {
-                columns.push(format!("{} TEXT", name));
+            AttrKey::Text(_) | AttrKey::Date(_) | AttrKey::Image(_) => {
+                columns.push(format!("{} TEXT", columm_name));
             }
-            AttrKey::Number | AttrKey::NumberDecimal => {
-                columns.push(format!("{} REAL", name));
+            AttrKey::Number(_) => {
+                columns.push(format!("{} REAL", columm_name));
             }
-            AttrKey::TextCollection | AttrKey::DateCollection => {
+            AttrKey::TextCollection(_) | AttrKey::DateCollection(_) => {
                 side_tables.push(format!(
                     "CREATE TABLE {} 
                     (id INTEGER PRIMARY KEY, ind INTEGER, path TEXT, value TEXT, 
                     UNIQUE(ind,path) FOREIGN KEY (path) 
                     REFERENCES {} (path) ON DELETE CASCADE);",
-                    name, files_table
+                    table_name, files_table
                 ));
-                side_tables_names.push(name);
+                side_tables_names.push(table_name);
             }
-            AttrKey::DatesPairCollection => {
+            AttrKey::DatesPairCollection(_) => {
                 side_tables.push(format!(
                     "CREATE TABLE {} 
                     (id INTEGER PRIMARY KEY, ind INTEGER, path TEXT, started TEXT, finished TEXT,
                     UNIQUE(ind,path) FOREIGN KEY (path) 
                     REFERENCES {} (path) ON DELETE CASCADE);",
-                    name, files_table
+                    table_name, files_table
                 ));
-                side_tables_names.push(name);
+                side_tables_names.push(table_name);
             }
         }
     }

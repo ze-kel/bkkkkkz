@@ -39,52 +39,26 @@ const inputVariants = cva({
 });
 
 const props = defineProps<{
-  modelValue: string | number | undefined;
-
   theme?: NonNullable<Parameters<typeof inputVariants>[0]>['theme'];
   size?: NonNullable<Parameters<typeof inputVariants>[0]>['size'];
   weight?: NonNullable<Parameters<typeof inputVariants>[0]>['weight'];
   font?: NonNullable<Parameters<typeof inputVariants>[0]>['font'];
 
-  type?: HTMLInputElement['type'];
   placeholder?: string;
+
+  isNumber?: boolean;
 
   multiLine?: boolean;
 }>();
 
-const emits = defineEmits<{
-  (e: 'update:modelValue', payload: string | number | undefined): void;
-}>();
-
-const innerValue = ref(props.modelValue);
-
-watch(innerValue, () => {
-  const val = innerValue.value;
-
-  if (typeof val === 'undefined') {
-    emits('update:modelValue', undefined);
-  }
-  if (props.type === 'number') {
-    emits('update:modelValue', Number(val));
-  } else {
-    emits('update:modelValue', val);
-  }
-});
-
-watch(
-  () => props.modelValue,
-  (v) => {
-    if (v !== innerValue.value) {
-      innerValue.value = v;
-    }
-  },
-);
+const value = defineModel<string | undefined>();
+const valueNumber = defineModel<number | undefined>('number');
 
 const textAreaRef = templateRef('textAreaRef');
 
 useTextareaAutosize({
   element: textAreaRef,
-  watch: [innerValue],
+  watch: [value],
   styleProp: 'height',
 });
 </script>
@@ -93,7 +67,7 @@ useTextareaAutosize({
   <textarea
     v-if="props.multiLine"
     ref="textAreaRef"
-    v-model="innerValue"
+    v-model="value"
     :class="
       cn(
         inputVariants({ theme, size, font, weight }),
@@ -102,15 +76,20 @@ useTextareaAutosize({
       )
     "
     :placeholder="placeholder"
-    :type="props.type || 'text'"
   >
   </textarea>
   <input
-    v-else
-    v-model="innerValue"
+    v-else-if="!props.isNumber"
+    v-model="value"
     v-bind="$attrs"
-    :placeholder="placeholder"
-    :type="props.type || 'text'"
+    :placeholder="props.placeholder"
+    :class="cn(inputVariants({ theme, size, font, weight }), $attrs.class as string)"
+  />
+  <input
+    v-else
+    v-model.number="valueNumber"
+    v-bind="$attrs"
+    :placeholder="props.placeholder"
     :class="cn(inputVariants({ theme, size, font, weight }), $attrs.class as string)"
   />
 </template>

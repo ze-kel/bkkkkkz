@@ -67,23 +67,17 @@ pub async fn read_file_by_path(
                         let value_in_meta = parse_res.get(&name);
 
                         match (value_in_meta, schema_i.value) {
-                            (Some(serde_yml::Value::String(s)), AttrKey::Text) => {
+                            (Some(serde_yml::Value::String(s)), AttrKey::Text(_)) => {
                                 hm.insert(name, AttrValue::Text(s.to_owned()));
                             }
 
-                            (Some(serde_yml::Value::Number(n)), AttrKey::Number) => {
-                                if let Some(nn) = n.as_u64() {
+                            (Some(serde_yml::Value::Number(n)), AttrKey::Number(_)) => {
+                                if let Some(nn) = n.as_f64() {
                                     hm.insert(name, AttrValue::Number(nn));
                                 }
                             }
 
-                            (Some(serde_yml::Value::Number(n)), AttrKey::NumberDecimal) => {
-                                if let Some(nn) = n.as_f64() {
-                                    hm.insert(name, AttrValue::NumberDecimal(nn));
-                                }
-                            }
-
-                            (Some(serde_yml::Value::Sequence(vec)), AttrKey::TextCollection) => {
+                            (Some(serde_yml::Value::Sequence(vec)), AttrKey::TextCollection(_)) => {
                                 let clear = vec
                                     .iter()
                                     .filter_map(|f| match f {
@@ -97,7 +91,7 @@ pub async fn read_file_by_path(
 
                             (
                                 Some(serde_yml::Value::Sequence(vec)),
-                                AttrKey::DatesPairCollection,
+                                AttrKey::DatesPairCollection(_),
                             ) => {
                                 let clear = vec
                                     .iter()

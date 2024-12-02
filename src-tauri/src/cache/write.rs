@@ -37,7 +37,7 @@ pub async fn insert_file(file: &BookFromDb) -> Result<(), ErrorFromRust> {
     for schema_i in files_schema.items {
         let name = schema_i.name;
         match schema_i.value {
-            AttrKey::Text | AttrKey::Date | AttrKey::Image => {
+            AttrKey::Text(_) | AttrKey::Date(_) | AttrKey::Image(_) => {
                 let v = match file.attrs.get(&name) {
                     Some(AttrValue::Text(v)) => v,
                     Some(AttrValue::Date(v)) => v,
@@ -47,9 +47,8 @@ pub async fn insert_file(file: &BookFromDb) -> Result<(), ErrorFromRust> {
                 insert_keys.push(name);
                 insert_values.push(InsertValues::Text(v.to_string()));
             }
-            AttrKey::Number | AttrKey::NumberDecimal => {
+            AttrKey::Number(_) => {
                 let v = match file.attrs.get(&name) {
-                    Some(AttrValue::NumberDecimal(v)) => v.to_owned(),
                     Some(AttrValue::Number(v)) => v.to_owned() as f64,
                     _ => 0.0,
                 };
@@ -57,7 +56,7 @@ pub async fn insert_file(file: &BookFromDb) -> Result<(), ErrorFromRust> {
                 insert_keys.push(name);
                 insert_values.push(InsertValues::Number(v.to_owned()));
             }
-            AttrKey::TextCollection | AttrKey::DateCollection => {
+            AttrKey::TextCollection(_) | AttrKey::DateCollection(_) => {
                 let v = match file.attrs.get(&name) {
                     Some(AttrValue::TextCollection(v)) => v.clone(),
                     Some(AttrValue::DateCollection(v)) => v.clone(),
@@ -99,7 +98,7 @@ pub async fn insert_file(file: &BookFromDb) -> Result<(), ErrorFromRust> {
                 insertion.push(" ON CONFLICT(ind,path) DO UPDATE SET value=excluded.value");
                 separate_statements.push(insertion);
             }
-            AttrKey::DatesPairCollection => {
+            AttrKey::DatesPairCollection(_) => {
                 let v = match file.attrs.get(&name) {
                     Some(AttrValue::DatesPairCollection(v)) => v,
                     _ => &Vec::new(),

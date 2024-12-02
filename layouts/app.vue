@@ -13,14 +13,24 @@
       :style="{ width: `${fileTreeSize}px` }"
     >
       <div class="z-2 h-full">
-        {{ currentSchema?.internal_name || 'psaodas' }}
-        <div class="mt-2 flex flex-wrap gap-2">
+        <div class="mt-2 flex flex-wrap gap-1">
           <ShButton
             v-for="schema in schemas"
             :variant="currentSchema?.internal_name === schema.internal_name ? 'outline' : 'ghost'"
+            class="border border-transparent"
+            size="icon"
             @click="currentSchema = schema"
           >
-            {{ schema.name[0].toUpperCase() }}
+            <component
+              v-if="schema.icon && icons[schema.icon as keyof typeof icons]"
+              :is="icons[schema.icon as keyof typeof icons]"
+              :size="24"
+              color="#fff"
+              name="icon"
+            />
+            <template v-else>
+              {{ schema.name[0].toUpperCase() }}
+            </template>
           </ShButton>
         </div>
 
@@ -32,7 +42,7 @@
           <hr
             class="dark:bg-neutral-000 my-3 h-[1px] w-full border-0 bg-neutral-100 dark:bg-neutral-900"
           />
-          <TagsTree />
+          <TagsTree v-if="false" />
         </div>
       </div>
     </div>
@@ -47,7 +57,7 @@
 
     <!-- Core view -->
     <div class="flex h-[calc(100%_-_40px)] max-h-full w-full overflow-hidden">
-      <div v-if="false" class="flex h-full w-full flex-col">
+      <div class="flex h-full w-full flex-col">
         <slot />
       </div>
     </div>
@@ -55,10 +65,12 @@
 </template>
 
 <script setup lang="ts">
+import type { Schema } from '~/api/schema';
 import { c_get_schemas, c_load_schemas } from '~/api/tauriActions';
-import type { Schema } from '~/api/tauriEvents';
 import TagsTree from '~/components/FileTree/TagsTree.vue';
 import TabsSelector from '~/components/ViewCore/TabsSelector.vue';
+import * as icons from 'lucide-vue-next';
+import { size } from 'lodash';
 
 const store = useStore();
 

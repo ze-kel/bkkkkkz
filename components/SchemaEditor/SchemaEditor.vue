@@ -1,5 +1,10 @@
 <template>
-  <div class="mx-auto max-w-[600px]">
+  <SchemaEditorSchemaFields
+    v-if="editingSchemaPath"
+    :path="editingSchemaPath"
+    @back="editingSchemaPath = null"
+  />
+  <div v-else class="mx-auto max-w-[600px]">
     <div class="flex flex-row items-center justify-between">
       <h1 class="font-serif text-3xl">Collections</h1>
       <ShDialog>
@@ -48,7 +53,8 @@
         v-for="schema in schemas?.schemas"
         :key="schema.internal_name"
         variant="outline"
-        class="hove flex h-fit cursor-pointer flex-col gap-2 rounded-none border px-4 py-2"
+        class="flex h-fit cursor-pointer flex-col gap-2 rounded-none border px-4 py-2"
+        @click="editingSchemaPath = schema.internal_path"
       >
         <div class="text-lg">
           {{ schema.name }}
@@ -64,6 +70,24 @@
     <div v-else>
       <h2>You do not have any schemas yet</h2>
     </div>
+    <ShCollapsible v-if="schemas?.error?.subErrors?.length" class="mt-8 flex flex-col gap-3">
+      <div class="flex items-center justify-between">
+        <h2 class="font-serif text-xl">
+          Folders with invalid schemas: {{ schemas?.error?.subErrors?.length }}
+        </h2>
+        <ShCollapsibleTrigger>
+          <ShButton variant="ghost">Show</ShButton>
+        </ShCollapsibleTrigger>
+      </div>
+
+      <ShCollapsibleContent class="flex flex-col gap-3">
+        <div v-for="e in schemas?.error?.subErrors" class="rounded-md">
+          <div>{{ e.title }}</div>
+          <div class="text-sm opacity-50">{{ e.info }}</div>
+          <div class="font-mono text-xs opacity-50">{{ e.rawError }}</div>
+        </div></ShCollapsibleContent
+      >
+    </ShCollapsible>
   </div>
 </template>
 
@@ -74,9 +98,11 @@ import {
   c_save_schema,
   type DefaultSchema,
 } from '~/api/tauriActions';
-import { rustErrorNotification, type Schema } from '~/api/tauriEvents';
+import { rustErrorNotification } from '~/api/tauriEvents';
 import BasicInput from '../_ui/BasicInput.vue';
 import { useQuery, useQueryCache } from '@pinia/colada';
+
+const editingSchemaPath = ref<string | null>(null);
 
 const qc = useQueryCache();
 
@@ -90,7 +116,11 @@ const { data: schemas } = useQuery({
   query: c_load_schemas,
 });
 
-const hasSchemas = computed(() => schemas.value && Object.keys(schemas.value.schemas).length > 0);
+const hasSchemas = computed(() => {
+  if (!schemas.value || !schemas.value.schemas) return false;
+
+  return Object.keys(schemas.value.schemas).length > 0;
+});
 
 const addNewSchema = async () => {
   if (!newSchemaName.value || !selectedDefaultSchema.value) return;
