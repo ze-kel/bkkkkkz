@@ -1,26 +1,17 @@
+### ~~BkzLogger~~ To be renamed
+
+App to store and browse your opinions about books\movies\games\apps\etc. saved as .md files. Pairs well with your vault in Obisidian or similar software.
+
 ### Current state
-updated: 07.10.2023
 
-Had a lot of energy to do stuff recently. Redesigned and improved a lot of thing, will likely do more in the near future.
+updated: 02 December 2024
 
-Currently I plan to get it to "almost as good as a production app" state. Will fix design, add some more features etc. Extensive testing and other boring stuff are unlikely.
+Originally this started as a Goodreads alternative, and most of the code was written when I was an inexperienced dev. I ended up making a working but unpolished and buggy app with poor UX.
 
-### BkzLogger
+Recently I decided to return to this idea and attempt to make it into something actually good. This means almost a full rewrite.
 
-App to store data about books you've read in plaintext markdown.
-Goodreads-like functionality except for all the social stuff.
-Integrates perfectly with your markdown notes in Obsidian or similar apps.
+Current goals:
 
-![](./docs_content/image.png)
-
-![](./docs_content/image2.png)
-
-### Developing
-
-Use at least node specified in `.nvmrc`
-
-`npm run watch` to run in dev mode
-
-`npm run test` to run e2e tests
-
-`npm run compile` to build for production
+1. Make a more generalized app, that supports custom schemas for markdown metadata. This will allow user to have different schemas for different folder: one for books, one for movies etc. This foundation will allow many different use cases.
+2. Rewrite backend logic to Rust+Tauri. Use SQL cache layer to effectivelly query items. Rewrite frontend to Nuxt, improve
+3. Significantly improve UI & UX. Make it an app I enjoy using.
