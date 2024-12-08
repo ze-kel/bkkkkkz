@@ -58,7 +58,6 @@
     "cva": "1.0.0-beta.1",
     "date-fns": "^4.1.0",
     "fuse.js": "^7.0.0",
-    "gray-matter": "^4.0.3",
     "lodash": "^4.17.21",
     "lucide-vue-next": "^0.447.0",
     "path-browserify": "^1.0.1",
