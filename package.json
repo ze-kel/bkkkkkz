@@ -9,7 +9,8 @@
     "tauri": "tauri",
     "test": "npm run generate && npx playwright test --workers=1",
     "postinstall": "nuxt prepare",
-    "format": "npx prettier --write \"**/*.{js,mjs,cjs,ts,mts,cts,vue,json}\""
+    "format": "npx prettier --write \"**/*.{js,mjs,cjs,ts,mts,cts,vue,json}\"",
+    "generate:types": "cd src-tauri && cargo test export_bindings && cd bindings && npx prettier --write \"*.ts\""
   },
   "devDependencies": {
     "@nuxtjs/color-mode": "^3.5.1",

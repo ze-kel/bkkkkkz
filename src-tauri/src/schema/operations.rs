@@ -9,6 +9,7 @@ use std::{
 use once_cell::sync::OnceCell;
 use serde::{Deserialize, Serialize};
 use tokio::sync::Mutex;
+use ts_rs::TS;
 
 use crate::utils::{errorhandling::ErrorFromRust, global_app::get_root_path};
 
@@ -104,7 +105,8 @@ pub async fn load_schema(path: PathBuf) -> Result<Schema, ErrorFromRust> {
     Ok(sch)
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, TS)]
+#[ts(export)]
 pub struct SchemaLoadList {
     pub schemas: HashMap<String, Schema>,
     pub error: Option<ErrorFromRust>,

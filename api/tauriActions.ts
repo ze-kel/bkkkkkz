@@ -1,6 +1,6 @@
-import { isOurError, type ErrorFromRust } from '~/api/tauriEvents';
+import { isOurError } from '~/api/tauriEvents';
 import { invoke } from '@tauri-apps/api/core';
-import type { IBookFromDb, Schema, SchemaItem } from '~/api/schema';
+import type { ErrorFromRust, Schema, BookFromDb, ExtractIpcResponcesType } from '~/types';
 
 const errorHandler = (e: unknown): ErrorFromRust => {
   if (isOurError(e)) {
@@ -20,19 +20,19 @@ const errorHandler = (e: unknown): ErrorFromRust => {
 
 export const c_init_once = async () => {
   return invoke('c_init_once')
-    .then((v) => v as boolean)
+    .then((v) => v as ExtractIpcResponcesType<'c_init_once'>)
     .catch(errorHandler);
 };
 
 export const c_prepare_cache = async () => {
   return invoke('c_prepare_cache')
-    .then((v) => v as boolean)
+    .then((v) => v as ExtractIpcResponcesType<'c_prepare_cache'>)
     .catch(errorHandler);
 };
 
 export const c_watch_path = async () => {
   return invoke('c_watch_path')
-    .then((v) => v as boolean)
+    .then((v) => v as ExtractIpcResponcesType<'c_watch_path'>)
     .catch(errorHandler);
 };
 
@@ -46,37 +46,32 @@ export type IBookSaveResult = {
  *  1. Book.modified is not null but is not equal to file last modified
  *  2. File does not exist already.
  */
-export const c_save_file = async (book: IBookFromDb, forced = false) => {
+export const c_save_file = async (book: BookFromDb, forced = false) => {
   return invoke('c_save_file', { book, forced })
-    .then((v) => v as IBookSaveResult)
+    .then((v) => v as ExtractIpcResponcesType<'c_save_file'>)
     .catch(errorHandler);
-};
-
-export type BookListGetResult = {
-  schema: Schema;
-  books: IBookFromDb[];
 };
 
 export const c_get_files_path = async (path: string) => {
   return invoke('c_get_files_path', { path })
-    .then((v) => v as BookListGetResult)
+    .then((v) => v as ExtractIpcResponcesType<'c_get_files_path'>)
     .catch(errorHandler);
 };
 
 export const c_get_all_tags = async () => {
   return invoke('c_get_all_tags', {})
-    .then((v) => v as string[])
+    .then((v) => v as ExtractIpcResponcesType<'c_get_all_tags'>)
     .catch(errorHandler);
 };
 
 export const c_get_all_folders = async (schemaPath: string) => {
   return invoke('c_get_all_folders', { schemaPath })
-    .then((v) => v as string[])
+    .then((v) => v as ExtractIpcResponcesType<'c_get_all_folders'>)
     .catch(errorHandler);
 };
 
 export type BookReadResult = {
-  book: IBookFromDb;
+  book: BookFromDb;
   // This error happens when file is read, but metadata parsing encountered error.
   // Book will default to empty values, except for path, markdown and modified.
   parsing_error?: ErrorFromRust;
@@ -85,7 +80,7 @@ export type BookReadResult = {
 
 export const c_read_file_by_path = async (path: string) => {
   return invoke('c_read_file_by_path', { path })
-    .then((v) => v as BookReadResult)
+    .then((v) => v as ExtractIpcResponcesType<'c_read_file_by_path'>)
     .catch(errorHandler);
 };
 
@@ -96,31 +91,33 @@ export type SchemaLoadList = {
 
 // All schema.yaml files we can find
 export const c_load_schemas = async () => {
-  return invoke('c_load_schemas').then((v) => v as SchemaLoadList);
+  return invoke('c_load_schemas')
+    .then((v) => v as ExtractIpcResponcesType<'c_load_schemas'>)
+    .catch(errorHandler);
 };
 
 // Non empty schemas
 export const c_get_schemas = async () => {
-  return invoke('c_get_schemas').then((v) => v as Schema[]);
+  return invoke('c_get_schemas')
+    .then((v) => v as ExtractIpcResponcesType<'c_get_schemas'>)
+    .catch(errorHandler);
 };
 
 export const c_save_schema = async (folderName: string, schema: Schema) => {
   return invoke('c_save_schema', { folderName, schema })
-    .then((v) => v as Schema)
+    .then((v) => v as ExtractIpcResponcesType<'c_save_schema'>)
     .catch(errorHandler);
 };
 
 // All schema.yaml files we can find
 export const c_load_schema = async (path: string) => {
-  return invoke('c_load_schema', { path }).then((v) => v as Schema);
-};
-
-export type DefaultSchema = {
-  name: string;
-  description: string;
-  schema_items: SchemaItem[];
+  return invoke('c_load_schema', { path })
+    .then((v) => v as ExtractIpcResponcesType<'c_load_schema'>)
+    .catch(errorHandler);
 };
 
 export const c_get_default_schemas = () => {
-  return invoke('c_get_default_schemas').then((v) => v as DefaultSchema[]);
+  return invoke('c_get_default_schemas')
+    .then((v) => v as ExtractIpcResponcesType<'c_get_default_schemas'>)
+    .catch(errorHandler);
 };

@@ -1,6 +1,10 @@
-use tauri::{AppHandle, Emitter};
+use tauri::AppHandle;
+use ts_rs::TS;
 
-#[derive(serde::Serialize, serde::Deserialize, Clone, Debug)]
+use crate::emitter::{emit_event, IPCEmitEvent};
+
+#[derive(serde::Serialize, serde::Deserialize, Clone, Debug, TS)]
+#[ts(export)]
 pub enum ErrorActionCode {
     FileSaveRetry,
     FileSaveRetryForced,
@@ -11,7 +15,8 @@ pub enum ErrorActionCode {
     NoRootPath,
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Clone, Debug)]
+#[derive(serde::Serialize, serde::Deserialize, Clone, Debug, TS)]
+#[ts(export)]
 pub struct ErrorFromRust {
     #[serde(rename = "isError")]
     pub is_error: bool,
@@ -69,6 +74,6 @@ impl ErrorFromRust {
 }
 
 // This will show a notification on frontend, regardless of what is opened. Prefer returning error from invoke if possible.
-pub fn send_err_to_frontend(app: &AppHandle, e: &ErrorFromRust) {
-    app.emit("error_happened", e).expect("Error when send err");
+pub fn send_err_to_frontend(_: &AppHandle, e: &ErrorFromRust) {
+    emit_event(IPCEmitEvent::ErrorHappened(e.clone()));
 }

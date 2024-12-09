@@ -2,15 +2,17 @@ use serde::{Deserialize, Serialize};
 use sqlx::sqlite::SqliteRow;
 use sqlx::Row;
 use std::collections::HashMap;
+use ts_rs::TS;
 
 use crate::schema::operations::get_schema_cached_safe;
-use crate::schema::types::{AttrKey, AttrValue, DateRead, Schema};
+use crate::schema::types::{AttrValue, DateRead, Schema, SchemaAttrKey};
 use crate::utils::errorhandling::ErrorFromRust;
 
 use super::dbconn::get_db_conn;
 use super::tables::get_table_names;
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, TS)]
+#[ts(export)]
 pub struct BookFromDb {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
@@ -50,7 +52,7 @@ pub async fn get_files_abstact(
         let columm_name = schema_i.name.to_owned();
         let table_name = format!("{}{}", table_prefix, columm_name);
         match schema_i.value {
-            AttrKey::TextCollection(_) | AttrKey::DateCollection(_) => {
+            SchemaAttrKey::TextCollection(_) | SchemaAttrKey::DateCollection(_) => {
                 selects.push(columm_name.clone());
                 joins.push(format!(
                     "LEFT JOIN
@@ -67,7 +69,7 @@ pub async fn get_files_abstact(
                     columm_name
                 ));
             }
-            AttrKey::DatesPairCollection(_) => {
+            SchemaAttrKey::DatesPairCollection(_) => {
                 selects.push(columm_name.clone());
                 joins.push(format!(
                     "LEFT JOIN 
@@ -86,9 +88,10 @@ pub async fn get_files_abstact(
                     columm_name,
                 ));
             }
-            AttrKey::Text(_) | AttrKey::Number(_) | AttrKey::Image(_) | AttrKey::Date(_) => {
-                selects.push(columm_name)
-            }
+            SchemaAttrKey::Text(_)
+            | SchemaAttrKey::Number(_)
+            | SchemaAttrKey::Image(_)
+            | SchemaAttrKey::Date(_) => selects.push(columm_name),
         }
     }
 
@@ -112,24 +115,24 @@ pub async fn get_files_abstact(
             for schema_i in schema.items.clone().iter() {
                 let name = schema_i.name.to_owned();
                 match schema_i.value {
-                    AttrKey::Text(_) => {
+                    SchemaAttrKey::Text(_) => {
                         let v = row.get(&*name);
                         hm.insert(name, AttrValue::Text(v));
                     }
-                    AttrKey::Date(_) => {
+                    SchemaAttrKey::Date(_) => {
                         let v = row.get(&*name);
                         hm.insert(name, AttrValue::Date(v));
                     }
-                    AttrKey::Image(_) => {
+                    SchemaAttrKey::Image(_) => {
                         let v = row.get(&*name);
                         hm.insert(name, AttrValue::Image(v));
                     }
 
-                    AttrKey::Number(_) => {
+                    SchemaAttrKey::Number(_) => {
                         let v = row.get(&*name);
                         hm.insert(name, AttrValue::Number(v));
                     }
-                    AttrKey::TextCollection(_) => {
+                    SchemaAttrKey::TextCollection(_) => {
                         let v: String = row.get(&*name);
                         hm.insert(
                             name,
@@ -138,7 +141,7 @@ pub async fn get_files_abstact(
                             ),
                         );
                     }
-                    AttrKey::DateCollection(_) => {
+                    SchemaAttrKey::DateCollection(_) => {
                         let v: String = row.get(&*name);
                         hm.insert(
                             name,
@@ -147,7 +150,7 @@ pub async fn get_files_abstact(
                             ),
                         );
                     }
-                    AttrKey::DatesPairCollection(_) => {
+                    SchemaAttrKey::DatesPairCollection(_) => {
                         let v: String = row.get(&*name);
                         hm.insert(
                             name,
@@ -185,7 +188,8 @@ pub async fn get_files_abstact(
     Ok(result_iter)
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, TS)]
+#[ts(export)]
 pub struct BookListGetResult {
     pub schema: Schema,
     pub books: Vec<BookFromDb>,

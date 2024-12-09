@@ -1,69 +1,70 @@
 use serde::{Deserialize, Serialize};
+use ts_rs::TS;
 
 use crate::schema::types::{EmptySettings, NumberSettings, TextSettings};
 
 use super::types::{
-    AttrKey, InputSize, NumberStyle, SchemaItem, SchemaItems, TextFont, TextTheme, TextWeight,
+    InputSize, NumberStyle, SchemaAttrKey, SchemaItem, SchemaItems, TextFont, TextTheme, TextWeight,
 };
 
 pub fn default_book_schema() -> SchemaItems {
     vec![
         SchemaItem {
             name: "title".to_owned(),
-            value: AttrKey::Text(Some(TextSettings {
+            value: SchemaAttrKey::Text(TextSettings {
                 size: Some(InputSize::L),
                 font: Some(TextFont::Serif),
                 is_multiline: Some(true),
                 theme: Some(TextTheme::Hidden),
                 ..TextSettings::default()
-            })),
+            }),
         },
         SchemaItem {
             name: "author".to_owned(),
-            value: AttrKey::Text(Some(TextSettings {
+            value: SchemaAttrKey::Text(TextSettings {
                 size: Some(InputSize::M),
                 weight: Some(TextWeight::Bold),
                 theme: Some(TextTheme::Hidden),
                 ..TextSettings::default()
-            })),
+            }),
         },
         SchemaItem {
             name: "year".to_owned(),
-            value: AttrKey::Number(Some(NumberSettings {
+            value: SchemaAttrKey::Number(NumberSettings {
                 size: Some(InputSize::S),
                 min: Some(0.0),
                 ..NumberSettings::default()
-            })),
+            }),
         },
         SchemaItem {
             name: "myRating".to_owned(),
-            value: AttrKey::Number(Some(NumberSettings {
+            value: SchemaAttrKey::Number(NumberSettings {
                 min: Some(0.0),
                 max: Some(5.0),
                 decimal_places: Some(1),
                 style: Some(NumberStyle::Stars),
                 ..NumberSettings::default()
-            })),
+            }),
         },
         SchemaItem {
             name: "read".to_owned(),
-            value: AttrKey::DatesPairCollection(Some(EmptySettings {})),
+            value: SchemaAttrKey::DatesPairCollection(EmptySettings {}),
         },
         SchemaItem {
             name: "tags".to_owned(),
-            value: AttrKey::TextCollection(Some(EmptySettings {})),
+            value: SchemaAttrKey::TextCollection(EmptySettings {}),
         },
         SchemaItem {
             name: "cover".to_owned(),
-            value: AttrKey::Image(Some(EmptySettings {})),
+            value: SchemaAttrKey::Image(EmptySettings {}),
         },
         SchemaItem {
             name: "ISBN13".to_owned(),
-            value: AttrKey::Number(Some(NumberSettings {
+            value: SchemaAttrKey::Number(NumberSettings {
                 size: Some(InputSize::S),
                 min: Some(0.0),
                 ..NumberSettings::default()
-            })),
+            }),
         },
     ]
 }
@@ -72,53 +73,54 @@ pub fn default_movie_schema() -> SchemaItems {
     vec![
         SchemaItem {
             name: "title".to_owned(),
-            value: AttrKey::Text(Some(TextSettings {
+            value: SchemaAttrKey::Text(TextSettings {
                 size: Some(InputSize::L),
                 font: Some(TextFont::Serif),
                 is_multiline: Some(true),
                 theme: Some(TextTheme::Hidden),
 
                 ..TextSettings::default()
-            })),
+            }),
         },
         SchemaItem {
             name: "director".to_owned(),
-            value: AttrKey::Text(Some(TextSettings {
+            value: SchemaAttrKey::Text(TextSettings {
                 size: Some(InputSize::M),
                 weight: Some(TextWeight::Bold),
                 theme: Some(TextTheme::Hidden),
                 ..TextSettings::default()
-            })),
+            }),
         },
         SchemaItem {
             name: "premiere".to_owned(),
-            value: AttrKey::Date(Some(EmptySettings {})),
+            value: SchemaAttrKey::Date(EmptySettings {}),
         },
         SchemaItem {
             name: "myRating".to_owned(),
-            value: AttrKey::Number(Some(NumberSettings {
+            value: SchemaAttrKey::Number(NumberSettings {
                 min: Some(0.0),
                 max: Some(5.0),
                 style: Some(NumberStyle::Slider),
                 ..NumberSettings::default()
-            })),
+            }),
         },
         SchemaItem {
             name: "watched".to_owned(),
-            value: AttrKey::DateCollection(Some(EmptySettings {})),
+            value: SchemaAttrKey::DateCollection(EmptySettings {}),
         },
         SchemaItem {
             name: "tags".to_owned(),
-            value: AttrKey::TextCollection(Some(EmptySettings {})),
+            value: SchemaAttrKey::TextCollection(EmptySettings {}),
         },
         SchemaItem {
             name: "poster".to_owned(),
-            value: AttrKey::Image(Some(EmptySettings {})),
+            value: SchemaAttrKey::Image(EmptySettings {}),
         },
     ]
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, TS)]
+#[ts(export)]
 pub struct DefaultSchema {
     pub name: String,
     pub description: String,

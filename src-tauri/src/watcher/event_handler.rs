@@ -4,19 +4,20 @@ use notify::EventKind;
 use serde::{Deserialize, Serialize};
 use std::ffi::OsStr;
 use std::path::Path;
-use tauri::{AppHandle, Emitter};
+use tauri::AppHandle;
 
 use crate::cache::write::{
     cache_file, cache_files_and_folders, cache_folder, remove_file_from_cache,
     remove_files_in_folder_rom_cache, remove_folder_from_cache,
 };
+use crate::emitter::{emit_event, IPCEmitEvent};
 use crate::schema::operations::get_schema_path;
 use crate::utils::errorhandling::send_err_to_frontend;
-
+use ts_rs::TS;
 async fn handle_file_remove(app: &AppHandle, path: &Path, ext: &OsStr) {
     if ext == "md" {
         match remove_file_from_cache(path).await {
-            Ok(_) => app.emit("file_remove", path.to_string_lossy()).unwrap(),
+            Ok(_) => emit_event(IPCEmitEvent::FileRemove(path.to_string_lossy().to_string())),
             Err(e) => send_err_to_frontend(app, &e),
         };
     }
@@ -25,7 +26,7 @@ async fn handle_file_remove(app: &AppHandle, path: &Path, ext: &OsStr) {
 async fn handle_file_add(app: &AppHandle, path: &Path, ext: &OsStr) {
     if ext == "md" {
         match cache_file(path).await {
-            Ok(v) => app.emit("file_add", v).unwrap(),
+            Ok(v) => emit_event(IPCEmitEvent::FileAdd(v)),
             Err(e) => send_err_to_frontend(app, &e),
         }
     }
@@ -35,13 +36,14 @@ async fn handle_file_update(app: &AppHandle, path: &Path, ext: &OsStr) {
     println!("file update {:?}", path);
     if ext == "md" {
         match cache_file(path).await {
-            Ok(v) => app.emit("file_update", v).unwrap(),
+            Ok(v) => emit_event(IPCEmitEvent::FileUpdate(v)),
             Err(e) => send_err_to_frontend(app, &e),
         }
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, TS)]
+#[ts(export)]
 pub struct FolderEventEmit {
     pub path: String,
     #[serde(rename = "schemaPath")]
@@ -56,15 +58,10 @@ async fn handle_folder_remove(app: &AppHandle, path: &Path) {
         Err(e) => send_err_to_frontend(app, &e),
         Ok(_) => match remove_files_in_folder_rom_cache(path).await {
             Err(e) => send_err_to_frontend(app, &e),
-            Ok(_) => app
-                .emit(
-                    "folder_remove",
-                    FolderEventEmit {
-                        path: path.to_string_lossy().to_string(),
-                        schema_path: get_schema_path(&path.to_string_lossy()).await,
-                    },
-                )
-                .unwrap(),
+            Ok(_) => emit_event(IPCEmitEvent::FolderRemove(FolderEventEmit {
+                path: path.to_string_lossy().to_string(),
+                schema_path: get_schema_path(&path.to_string_lossy()).await,
+            })),
         },
     };
 }
@@ -74,15 +71,10 @@ async fn handle_folder_add(app: &AppHandle, path: &Path) {
         Err(e) => send_err_to_frontend(app, &e),
         Ok(_) => match cache_files_and_folders(path).await {
             Err(e) => send_err_to_frontend(app, &e),
-            Ok(_) => app
-                .emit(
-                    "folder_add",
-                    FolderEventEmit {
-                        path: path.to_string_lossy().to_string(),
-                        schema_path: get_schema_path(&path.to_string_lossy()).await,
-                    },
-                )
-                .unwrap(),
+            Ok(_) => emit_event(IPCEmitEvent::FolderAdd(FolderEventEmit {
+                path: path.to_string_lossy().to_string(),
+                schema_path: get_schema_path(&path.to_string_lossy()).await,
+            })),
         },
     };
 }

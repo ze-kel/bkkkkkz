@@ -24,16 +24,17 @@
 <script lang="ts" setup>
 import { format } from 'date-fns';
 import { MoveRightIcon, XIcon } from 'lucide-vue-next';
-import type { DatePair } from '~/api/tauriEvents';
 
-const datePairs = defineModel<DatePair[]>();
+import type { DateRead } from '~/types';
+
+const datePairs = defineModel<DateRead[]>();
 
 const addNewDate = () => {
   if (!datePairs.value) {
-    datePairs.value = [{ started: format(new Date(), 'yyyy-MM-dd') }];
+    datePairs.value = [{ started: format(new Date(), 'yyyy-MM-dd'), finished: null }];
     return;
   }
-  datePairs.value.push({ started: format(new Date(), 'yyyy-MM-dd') });
+  datePairs.value.push({ started: format(new Date(), 'yyyy-MM-dd'), finished: null });
 };
 
 const removeDate = (index: number) => {

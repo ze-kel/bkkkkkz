@@ -2,32 +2,34 @@
   <div class="grid gap-2" :class="$attrs.class">
     <template v-for="item in schema?.items">
       <div>
-        <UiBasicInput
-          v-if="item.value.type === 'Text'"
-          v-model:model-value="openedFile.attrs[item.name]"
-          :placeholder="item.value.settings.displayName || item.name"
-          :theme="item.value.settings.theme"
-          :multi-line="item.value.settings.isMultiline"
-          :size="item.value.settings.size"
-          :font="item.value.settings.font"
-          :weight="item.value.settings.weight"
-        />
+        <template v-for="attr in [openedFile.attrs[item.name]]">
+          <UiBasicInput
+            v-if="item.value.type === 'Text'"
+            v-model:model-value="attr.Text"
+            :placeholder="item.value.settings.displayName || item.name"
+            :theme="item.value.settings.theme"
+            :multi-line="item.value.settings.isMultiline"
+            :size="item.value.settings.size"
+            :font="item.value.settings.font"
+            :weight="item.value.settings.weight"
+          />
 
-        <UiBasicInput
-          v-if="item.value.type === 'Number'"
-          :placeholder="item.value.settings.displayName || item.name"
-          v-model:isNumber="openedFile.attrs[item.name]"
-        />
+          <UiBasicInput
+            v-if="item.value.type === 'Number'"
+            :placeholder="item.value.settings.displayName || item.name"
+            v-model:isNumber="attr.Number"
+          />
 
-        <EditorTagsEditor
-          v-if="item.value.type === 'TextCollection'"
-          v-model:model-value="openedFile.attrs[item.name]"
-        />
+          <EditorTagsEditor
+            v-if="item.value.type === 'TextCollection'"
+            v-model:model-value="openedFile.attrs[item.name]?.TextCollection"
+          />
 
-        <ReadDetails
-          v-if="item.value.type === 'DatesPairCollection'"
-          v-model:model-value="openedFile.attrs[item.name]"
-        />
+          <ReadDetails
+            v-if="item.value.type === 'DatesPairCollection'"
+            v-model:model-value="openedFile.attrs[item.name]"
+          />
+        </template>
       </div>
     </template>
   </div>
@@ -40,15 +42,15 @@
 <script setup lang="ts">
 import ReadDetails from './ReadDetails/ReadDetails.vue';
 import type { PropType } from 'vue';
-import type { IBookFromDb, Schema } from '~/api/schema';
 
+import type { BookFromDb, Schema } from '~/types';
 defineProps({
   schema: {
     type: Object as PropType<Schema | null>,
   },
 });
 
-const openedFile = defineModel<IBookFromDb>({
+const openedFile = defineModel<BookFromDb>({
   required: true,
 });
 

@@ -60,7 +60,6 @@ import type { FolderNode } from './filePathsToTree';
 import { once } from '@tauri-apps/api/event';
 import { mkdir, remove, rename } from '@tauri-apps/plugin-fs';
 import path from 'path-browserify';
-import { root } from 'postcss';
 
 const store = useStore();
 

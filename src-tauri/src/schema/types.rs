@@ -1,14 +1,16 @@
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
+use ts_rs::TS;
 
-#[derive(Serialize, Deserialize, Clone, Hash, Debug)]
+#[derive(Serialize, Deserialize, Clone, Hash, Debug, TS)]
+#[ts(export)]
 pub struct DateRead {
     pub started: Option<String>,
     pub finished: Option<String>,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
-#[serde(untagged)]
+#[derive(Clone, Debug, Serialize, Deserialize, TS)]
+#[ts(export)]
 pub enum AttrValue {
     Text(String),
     TextCollection(Vec<String>),
@@ -19,21 +21,40 @@ pub enum AttrValue {
     Image(String),
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, TS)]
 #[serde(tag = "type", content = "settings")]
-pub enum AttrKey {
-    Text(Option<TextSettings>),
-    TextCollection(Option<EmptySettings>),
-    Number(Option<NumberSettings>),
-    Date(Option<EmptySettings>),
-    DateCollection(Option<EmptySettings>),
-    DatesPairCollection(Option<EmptySettings>),
-    Image(Option<EmptySettings>),
+pub enum SchemaAttrKey {
+    Text(TextSettings),
+    TextCollection(EmptySettings),
+    Number(NumberSettings),
+    Date(EmptySettings),
+    DateCollection(EmptySettings),
+    DatesPairCollection(EmptySettings),
+    Image(EmptySettings),
 }
+
+/*
+    These types are not needed in rust, but useful in typescript
+    Typescript confuses types with common fields unless they have unuique identificator:
+    The proper way in TS is extends, but rust has no inheritance and we rely on typegen
+*/
+#[derive(Clone, Debug, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub enum SettingsTypeText {
+    Text,
+}
+#[derive(Clone, Debug, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub enum SettingsTypeNumber {
+    Num,
+}
+
 #[skip_serializing_none]
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export)]
 pub struct TextSettings {
+    pub settings_type: SettingsTypeText,
     pub display_name: Option<String>,
     pub size: Option<InputSize>,
     pub font: Option<TextFont>,
@@ -44,6 +65,7 @@ pub struct TextSettings {
 impl Default for TextSettings {
     fn default() -> TextSettings {
         TextSettings {
+            settings_type: SettingsTypeText::Text,
             display_name: None,
             size: None,
             font: None,
@@ -55,9 +77,12 @@ impl Default for TextSettings {
 }
 
 #[skip_serializing_none]
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, TS)]
+#[ts(export)]
 #[serde(rename_all = "camelCase")]
 pub struct NumberSettings {
+    pub settings_type: SettingsTypeNumber,
+
     pub size: Option<InputSize>,
     pub min: Option<f64>,
     pub max: Option<f64>,
@@ -68,6 +93,7 @@ pub struct NumberSettings {
 impl Default for NumberSettings {
     fn default() -> NumberSettings {
         NumberSettings {
+            settings_type: SettingsTypeNumber::Num,
             size: None,
             min: None,
             max: None,
@@ -78,23 +104,26 @@ impl Default for NumberSettings {
 }
 
 #[skip_serializing_none]
-#[derive(Clone, Debug, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[derive(Clone, Debug, Serialize, Deserialize, TS)]
+#[ts(export)]
 pub struct EmptySettings {}
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, TS)]
+#[ts(export)]
 pub enum InputSize {
     S,
     M,
     L,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, TS)]
+#[ts(export)]
 pub enum TextFont {
     Serif,
     Sans,
 }
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, TS)]
+#[ts(export)]
 pub enum TextWeight {
     Light,
     Normal,
@@ -102,28 +131,32 @@ pub enum TextWeight {
     Black,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, TS)]
+#[ts(export)]
 pub enum TextTheme {
     Hidden,
     Default,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, TS)]
+#[ts(export)]
 pub enum NumberStyle {
     Default,
     Stars,
     Slider,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, TS)]
+#[ts(export)]
 pub struct SchemaItem {
     pub name: String,
-    pub value: AttrKey,
+    pub value: SchemaAttrKey,
 }
 
 pub type SchemaItems = Vec<SchemaItem>;
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, TS)]
+#[ts(export)]
 pub struct Schema {
     pub name: String,
     pub version: String,

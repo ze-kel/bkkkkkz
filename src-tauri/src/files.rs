@@ -1,5 +1,6 @@
 use chrono::offset::Utc;
 use chrono::DateTime;
+use ts_rs::TS;
 
 use std::collections::HashMap;
 use std::fs::{self, File};
@@ -7,7 +8,7 @@ use std::io::{self, BufRead, BufReader};
 
 use crate::cache::query::BookFromDb;
 use crate::schema::operations::get_schema_cached_safe;
-use crate::schema::types::{AttrKey, AttrValue, DateRead, Schema};
+use crate::schema::types::{AttrValue, DateRead, Schema, SchemaAttrKey};
 use crate::utils::errorhandling::{ErrorActionCode, ErrorFromRust};
 
 pub enum FileReadMode {
@@ -29,7 +30,8 @@ fn get_file_modified_time(path_str: &str) -> Result<String, String> {
     }
 }
 
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, TS)]
+#[ts(export)]
 pub struct BookReadResult {
     pub book: BookFromDb,
     pub parsing_error: Option<ErrorFromRust>,
@@ -67,17 +69,20 @@ pub async fn read_file_by_path(
                         let value_in_meta = parse_res.get(&name);
 
                         match (value_in_meta, schema_i.value) {
-                            (Some(serde_yml::Value::String(s)), AttrKey::Text(_)) => {
+                            (Some(serde_yml::Value::String(s)), SchemaAttrKey::Text(_)) => {
                                 hm.insert(name, AttrValue::Text(s.to_owned()));
                             }
 
-                            (Some(serde_yml::Value::Number(n)), AttrKey::Number(_)) => {
+                            (Some(serde_yml::Value::Number(n)), SchemaAttrKey::Number(_)) => {
                                 if let Some(nn) = n.as_f64() {
                                     hm.insert(name, AttrValue::Number(nn));
                                 }
                             }
 
-                            (Some(serde_yml::Value::Sequence(vec)), AttrKey::TextCollection(_)) => {
+                            (
+                                Some(serde_yml::Value::Sequence(vec)),
+                                SchemaAttrKey::TextCollection(_),
+                            ) => {
                                 let clear = vec
                                     .iter()
                                     .filter_map(|f| match f {
@@ -91,7 +96,7 @@ pub async fn read_file_by_path(
 
                             (
                                 Some(serde_yml::Value::Sequence(vec)),
-                                AttrKey::DatesPairCollection(_),
+                                SchemaAttrKey::DatesPairCollection(_),
                             ) => {
                                 let clear = vec
                                     .iter()
@@ -167,7 +172,8 @@ pub async fn read_file_by_path(
     }
 }
 
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, TS)]
+#[ts(export)]
 pub struct BookSaveResult {
     pub path: String,
     pub modified: String,

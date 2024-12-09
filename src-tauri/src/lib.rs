@@ -1,4 +1,5 @@
 mod cache;
+mod emitter;
 mod files;
 mod schema;
 mod utils;
@@ -20,9 +21,9 @@ use schema::{
     },
 };
 use schema::{defaults::DefaultSchema, types::Schema};
-use serde::{Deserialize, Serialize};
 use tauri::AppHandle;
 use tokio::task;
+use ts_rs::TS;
 use utils::{
     errorhandling::{send_err_to_frontend, ErrorFromRust},
     global_app::{get_root_path, init_global_app},
@@ -32,15 +33,44 @@ use watcher::{
     watcher_process::{init_watcher, subscribe_to_events, watch_path},
 };
 
-#[derive(Serialize, Deserialize, Debug)]
-#[serde(tag = "type", content = "value")]
-enum ResultStringJson {
-    Ok(String),
-    Err(String),
+/*
+  Define types and pack them into IPCResponces, which gets exported to TS types
+*/
+type IPCInitOnce = Result<bool, ErrorFromRust>;
+type IPCPrepareCache = Result<bool, ErrorFromRust>;
+type IPCWatchPath = Result<bool, ErrorFromRust>;
+type IPCGetFilesPath = Result<BookListGetResult, ErrorFromRust>;
+type IPCGetAllTags = Result<Vec<String>, ErrorFromRust>;
+type IPCGetAllFolders = Result<Vec<String>, ErrorFromRust>;
+type IPCReadFileByPath = Result<files::BookReadResult, ErrorFromRust>;
+type IPCLoadSchemas = Result<SchemaLoadList, ErrorFromRust>;
+type IPCGetSchemas = Result<Vec<Schema>, ErrorFromRust>;
+type IPCLoadSchema = Result<Schema, ErrorFromRust>;
+type IPCSaveSchema = Result<Schema, ErrorFromRust>;
+type IPCSaveFile = Result<files::BookSaveResult, ErrorFromRust>;
+type IPCGetDefaultSchemas = Result<Vec<DefaultSchema>, ErrorFromRust>;
+
+#[derive(TS)]
+#[ts(export)]
+#[allow(dead_code)]
+struct IPCResponces {
+    c_init_once: IPCInitOnce,
+    c_prepare_cache: IPCPrepareCache,
+    c_watch_path: IPCWatchPath,
+    c_get_files_path: IPCGetFilesPath,
+    c_get_all_tags: IPCGetAllTags,
+    c_get_all_folders: IPCGetAllFolders,
+    c_read_file_by_path: IPCReadFileByPath,
+    c_load_schemas: IPCLoadSchemas,
+    c_get_schemas: IPCGetSchemas,
+    c_load_schema: IPCLoadSchema,
+    c_save_schema: IPCSaveSchema,
+    c_save_file: IPCSaveFile,
+    c_get_default_schemas: IPCGetDefaultSchemas,
 }
 
 #[tauri::command]
-async fn c_init_once(app: AppHandle) -> Result<bool, ErrorFromRust> {
+async fn c_init_once(app: AppHandle) -> IPCInitOnce {
     db_setup().await.map_err(|e| {
         ErrorFromRust::new("Error on db setup")
             .info("This is a critical error. Report bug")
@@ -75,7 +105,7 @@ async fn c_init_once(app: AppHandle) -> Result<bool, ErrorFromRust> {
 }
 
 #[tauri::command]
-async fn c_prepare_cache(app: AppHandle) -> Result<bool, ErrorFromRust> {
+async fn c_prepare_cache(app: AppHandle) -> IPCPrepareCache {
     let rp = get_root_path()?;
 
     create_db_tables_for_all_schemas().await.map_err(|e| {
@@ -96,7 +126,7 @@ async fn c_prepare_cache(app: AppHandle) -> Result<bool, ErrorFromRust> {
 }
 
 #[tauri::command]
-async fn c_watch_path(_: AppHandle) -> Result<bool, ErrorFromRust> {
+async fn c_watch_path(_: AppHandle) -> IPCWatchPath {
     let rp = get_root_path()?;
     watch_path(&rp)
         .await
@@ -109,67 +139,56 @@ async fn c_watch_path(_: AppHandle) -> Result<bool, ErrorFromRust> {
 }
 
 #[tauri::command]
-async fn c_get_files_path(_: AppHandle, path: String) -> Result<BookListGetResult, ErrorFromRust> {
+async fn c_get_files_path(_: AppHandle, path: String) -> IPCGetFilesPath {
     get_files_by_path(path).await
 }
 
 #[tauri::command]
-async fn c_get_all_tags(_: AppHandle) -> Result<Vec<String>, ErrorFromRust> {
+async fn c_get_all_tags(_: AppHandle) -> IPCGetAllTags {
     get_all_tags()
         .await
         .map_err(|e| ErrorFromRust::new("Error when getting all tags").raw(e))
 }
 
 #[tauri::command]
-async fn c_get_all_folders(_: AppHandle, schema_path: String) -> Result<Vec<String>, ErrorFromRust> {
+async fn c_get_all_folders(_: AppHandle, schema_path: String) -> IPCGetAllFolders {
     get_all_folders(&schema_path).await
 }
 
 #[tauri::command]
-async fn c_read_file_by_path(
-    _: AppHandle,
-    path: String,
-) -> Result<files::BookReadResult, ErrorFromRust> {
+async fn c_read_file_by_path(_: AppHandle, path: String) -> IPCReadFileByPath {
     read_file_by_path(&path, FileReadMode::FullFile).await
 }
 
 #[tauri::command]
-async fn c_load_schemas(_: AppHandle) -> Result<SchemaLoadList, ErrorFromRust> {
+async fn c_load_schemas(_: AppHandle) -> IPCLoadSchemas {
     load_schemas_from_disk().await
 }
 
 // This one returns only schemas with items
 #[tauri::command]
-async fn c_get_schemas(_: AppHandle) -> Result<Vec<Schema>, ErrorFromRust> {
+async fn c_get_schemas(_: AppHandle) -> IPCGetSchemas {
     Ok(get_all_schemas_cached().await)
 }
 
 #[tauri::command]
-async fn c_load_schema(_: AppHandle, path: String) -> Result<Schema, ErrorFromRust> {
+async fn c_load_schema(_: AppHandle, path: String) -> IPCLoadSchema {
     load_schema(PathBuf::from(path)).await
 }
 
 #[tauri::command]
-async fn c_save_schema(
-    _: AppHandle,
-    folder_name: String,
-    schema: Schema,
-) -> Result<Schema, ErrorFromRust> {
+async fn c_save_schema(_: AppHandle, folder_name: String, schema: Schema) -> IPCSaveSchema {
     let path = PathBuf::from(get_root_path()?).join(folder_name);
     save_schema(&path, schema).await
 }
 
 #[tauri::command]
-fn c_get_default_schemas(_: AppHandle) -> Vec<DefaultSchema> {
-    get_default_schemas()
+async fn c_get_default_schemas(_: AppHandle) -> IPCGetDefaultSchemas {
+    Ok(get_default_schemas())
 }
 
 #[tauri::command]
-fn c_save_file(
-    _: AppHandle,
-    book: BookFromDb,
-    forced: bool,
-) -> Result<files::BookSaveResult, ErrorFromRust> {
+fn c_save_file(_: AppHandle, book: BookFromDb, forced: bool) -> IPCSaveFile {
     save_file(book, forced)
 }
 

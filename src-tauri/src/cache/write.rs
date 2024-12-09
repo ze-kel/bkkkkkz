@@ -4,7 +4,7 @@ use walkdir::WalkDir;
 
 use crate::files::{read_file_by_path, FileReadMode};
 use crate::schema::operations::get_schema_cached_safe;
-use crate::schema::types::{AttrKey, AttrValue};
+use crate::schema::types::{SchemaAttrKey, AttrValue};
 use crate::utils::errorhandling::ErrorFromRust;
 
 use super::dbconn::get_db_conn;
@@ -37,7 +37,7 @@ pub async fn insert_file(file: &BookFromDb) -> Result<(), ErrorFromRust> {
     for schema_i in files_schema.items {
         let name = schema_i.name;
         match schema_i.value {
-            AttrKey::Text(_) | AttrKey::Date(_) | AttrKey::Image(_) => {
+            SchemaAttrKey::Text(_) | SchemaAttrKey::Date(_) | SchemaAttrKey::Image(_) => {
                 let v = match file.attrs.get(&name) {
                     Some(AttrValue::Text(v)) => v,
                     Some(AttrValue::Date(v)) => v,
@@ -47,7 +47,7 @@ pub async fn insert_file(file: &BookFromDb) -> Result<(), ErrorFromRust> {
                 insert_keys.push(name);
                 insert_values.push(InsertValues::Text(v.to_string()));
             }
-            AttrKey::Number(_) => {
+            SchemaAttrKey::Number(_) => {
                 let v = match file.attrs.get(&name) {
                     Some(AttrValue::Number(v)) => v.to_owned() as f64,
                     _ => 0.0,
@@ -56,7 +56,7 @@ pub async fn insert_file(file: &BookFromDb) -> Result<(), ErrorFromRust> {
                 insert_keys.push(name);
                 insert_values.push(InsertValues::Number(v.to_owned()));
             }
-            AttrKey::TextCollection(_) | AttrKey::DateCollection(_) => {
+            SchemaAttrKey::TextCollection(_) | SchemaAttrKey::DateCollection(_) => {
                 let v = match file.attrs.get(&name) {
                     Some(AttrValue::TextCollection(v)) => v.clone(),
                     Some(AttrValue::DateCollection(v)) => v.clone(),
@@ -98,7 +98,7 @@ pub async fn insert_file(file: &BookFromDb) -> Result<(), ErrorFromRust> {
                 insertion.push(" ON CONFLICT(ind,path) DO UPDATE SET value=excluded.value");
                 separate_statements.push(insertion);
             }
-            AttrKey::DatesPairCollection(_) => {
+            SchemaAttrKey::DatesPairCollection(_) => {
                 let v = match file.attrs.get(&name) {
                     Some(AttrValue::DatesPairCollection(v)) => v,
                     _ => &Vec::new(),

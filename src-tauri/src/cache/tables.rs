@@ -1,6 +1,8 @@
+use ts_rs::TS;
+
 use crate::schema::{
     operations::get_all_schemas_cached,
-    types::{AttrKey, Schema},
+    types::{Schema, SchemaAttrKey},
 };
 
 use super::dbconn::get_db_conn;
@@ -48,13 +50,13 @@ pub async fn create_db_tables_for_schema(schema: Schema) -> Result<(), sqlx::Err
         let columm_name = schema_i.name.clone();
         let table_name = format!("{}{}", table_prefix, columm_name);
         match schema_i.value {
-            AttrKey::Text(_) | AttrKey::Date(_) | AttrKey::Image(_) => {
+            SchemaAttrKey::Text(_) | SchemaAttrKey::Date(_) | SchemaAttrKey::Image(_) => {
                 columns.push(format!("{} TEXT", columm_name));
             }
-            AttrKey::Number(_) => {
+            SchemaAttrKey::Number(_) => {
                 columns.push(format!("{} REAL", columm_name));
             }
-            AttrKey::TextCollection(_) | AttrKey::DateCollection(_) => {
+            SchemaAttrKey::TextCollection(_) | SchemaAttrKey::DateCollection(_) => {
                 side_tables.push(format!(
                     "CREATE TABLE {} 
                     (id INTEGER PRIMARY KEY, ind INTEGER, path TEXT, value TEXT, 
@@ -64,7 +66,7 @@ pub async fn create_db_tables_for_schema(schema: Schema) -> Result<(), sqlx::Err
                 ));
                 side_tables_names.push(table_name);
             }
-            AttrKey::DatesPairCollection(_) => {
+            SchemaAttrKey::DatesPairCollection(_) => {
                 side_tables.push(format!(
                     "CREATE TABLE {} 
                     (id INTEGER PRIMARY KEY, ind INTEGER, path TEXT, started TEXT, finished TEXT,
@@ -102,6 +104,8 @@ pub async fn create_db_tables_for_schema(schema: Schema) -> Result<(), sqlx::Err
     Ok(())
 }
 
+#[derive(TS)]
+#[ts(export)]
 pub struct TableNames {
     pub table_prefix: String,
     pub files_table: String,
