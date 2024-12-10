@@ -2,7 +2,7 @@ import { isOurError } from '~/api/tauriEvents';
 import { invoke } from '@tauri-apps/api/core';
 import type { ErrorFromRust, Schema, BookFromDb, ExtractIpcResponcesType } from '~/types';
 
-const errorHandler = (e: unknown): ErrorFromRust => {
+export const returnErrorHandler = (e: unknown): ErrorFromRust => {
   if (isOurError(e)) {
     console.error('Error from rust', e);
 
@@ -15,30 +15,20 @@ const errorHandler = (e: unknown): ErrorFromRust => {
   console.error(e);
   return {
     title: 'Unknown Javascript or Tauri error',
+    info: 'See console for more details',
   } as ErrorFromRust;
 };
 
 export const c_init_once = async () => {
-  return invoke('c_init_once')
-    .then((v) => v as ExtractIpcResponcesType<'c_init_once'>)
-    .catch(errorHandler);
+  return invoke('c_init_once').then((v) => v as ExtractIpcResponcesType<'c_init_once'>);
 };
 
 export const c_prepare_cache = async () => {
-  return invoke('c_prepare_cache')
-    .then((v) => v as ExtractIpcResponcesType<'c_prepare_cache'>)
-    .catch(errorHandler);
+  return invoke('c_prepare_cache').then((v) => v as ExtractIpcResponcesType<'c_prepare_cache'>);
 };
 
 export const c_watch_path = async () => {
-  return invoke('c_watch_path')
-    .then((v) => v as ExtractIpcResponcesType<'c_watch_path'>)
-    .catch(errorHandler);
-};
-
-export type IBookSaveResult = {
-  path: string;
-  modified: string;
+  return invoke('c_watch_path').then((v) => v as ExtractIpcResponcesType<'c_watch_path'>);
 };
 
 /**
@@ -47,27 +37,25 @@ export type IBookSaveResult = {
  *  2. File does not exist already.
  */
 export const c_save_file = async (book: BookFromDb, forced = false) => {
-  return invoke('c_save_file', { book, forced })
-    .then((v) => v as ExtractIpcResponcesType<'c_save_file'>)
-    .catch(errorHandler);
+  return invoke('c_save_file', { book, forced }).then(
+    (v) => v as ExtractIpcResponcesType<'c_save_file'>,
+  );
 };
 
 export const c_get_files_path = async (path: string) => {
-  return invoke('c_get_files_path', { path })
-    .then((v) => v as ExtractIpcResponcesType<'c_get_files_path'>)
-    .catch(errorHandler);
+  return invoke('c_get_files_path', { path }).then(
+    (v) => v as ExtractIpcResponcesType<'c_get_files_path'>,
+  );
 };
 
 export const c_get_all_tags = async () => {
-  return invoke('c_get_all_tags', {})
-    .then((v) => v as ExtractIpcResponcesType<'c_get_all_tags'>)
-    .catch(errorHandler);
+  return invoke('c_get_all_tags', {}).then((v) => v as ExtractIpcResponcesType<'c_get_all_tags'>);
 };
 
 export const c_get_all_folders = async (schemaPath: string) => {
-  return invoke('c_get_all_folders', { schemaPath })
-    .then((v) => v as ExtractIpcResponcesType<'c_get_all_folders'>)
-    .catch(errorHandler);
+  return invoke('c_get_all_folders', { schemaPath }).then(
+    (v) => v as ExtractIpcResponcesType<'c_get_all_folders'>,
+  );
 };
 
 export type BookReadResult = {
@@ -79,45 +67,36 @@ export type BookReadResult = {
 };
 
 export const c_read_file_by_path = async (path: string) => {
-  return invoke('c_read_file_by_path', { path })
-    .then((v) => v as ExtractIpcResponcesType<'c_read_file_by_path'>)
-    .catch(errorHandler);
+  return invoke('c_read_file_by_path', { path }).then(
+    (v) => v as ExtractIpcResponcesType<'c_read_file_by_path'>,
+  );
 };
 
-export type SchemaLoadList = {
-  schemas: Record<string, Schema>;
-  error?: ErrorFromRust;
-};
-
-// All schema.yaml files we can find
+// Find all schema.yaml files we can find, cache non empty ones in memory and return all found
 export const c_load_schemas = async () => {
-  return invoke('c_load_schemas')
-    .then((v) => v as ExtractIpcResponcesType<'c_load_schemas'>)
-    .catch(errorHandler);
+  return invoke('c_load_schemas').then((v) => v as ExtractIpcResponcesType<'c_load_schemas'>);
 };
 
-// Non empty schemas
+// Retrieve all cached schemas from memory
 export const c_get_schemas = async () => {
-  return invoke('c_get_schemas')
-    .then((v) => v as ExtractIpcResponcesType<'c_get_schemas'>)
-    .catch(errorHandler);
+  return invoke('c_get_schemas').then((v) => v as ExtractIpcResponcesType<'c_get_schemas'>);
 };
 
 export const c_save_schema = async (folderName: string, schema: Schema) => {
-  return invoke('c_save_schema', { folderName, schema })
-    .then((v) => v as ExtractIpcResponcesType<'c_save_schema'>)
-    .catch(errorHandler);
+  return invoke('c_save_schema', { folderName, schema }).then(
+    (v) => v as ExtractIpcResponcesType<'c_save_schema'>,
+  );
 };
 
 // All schema.yaml files we can find
 export const c_load_schema = async (path: string) => {
-  return invoke('c_load_schema', { path })
-    .then((v) => v as ExtractIpcResponcesType<'c_load_schema'>)
-    .catch(errorHandler);
+  return invoke('c_load_schema', { path }).then(
+    (v) => v as ExtractIpcResponcesType<'c_load_schema'>,
+  );
 };
 
 export const c_get_default_schemas = () => {
-  return invoke('c_get_default_schemas')
-    .then((v) => v as ExtractIpcResponcesType<'c_get_default_schemas'>)
-    .catch(errorHandler);
+  return invoke('c_get_default_schemas').then(
+    (v) => v as ExtractIpcResponcesType<'c_get_default_schemas'>,
+  );
 };

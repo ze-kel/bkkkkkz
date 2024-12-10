@@ -26,7 +26,6 @@
               :is="icons[schema.icon as keyof typeof icons]"
               :size="24"
               color="#fff"
-              name="icon"
             />
             <template v-else>
               {{ schema.name[0].toUpperCase() }}
@@ -65,12 +64,12 @@
 </template>
 
 <script setup lang="ts">
-import type { Schema } from '~/api/schema';
-import { c_get_schemas, c_load_schemas } from '~/api/tauriActions';
+import { c_get_schemas } from '~/api/tauriActions';
 import TagsTree from '~/components/FileTree/TagsTree.vue';
 import TabsSelector from '~/components/ViewCore/TabsSelector.vue';
 import * as icons from 'lucide-vue-next';
 import { size } from 'lodash';
+import type { Schema } from '~/types';
 
 const store = useStore();
 
@@ -79,7 +78,7 @@ const {
   error,
   isLoading,
 } = useQuery({
-  key: ['schemas'],
+  key: ['schemas', 'get'],
   query: c_get_schemas,
   refetchOnWindowFocus: false,
 });

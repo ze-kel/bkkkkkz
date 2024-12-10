@@ -1,7 +1,7 @@
 import { parse } from 'date-fns';
-import type { IDateRead } from '~/api/books';
+import type { DateRead } from '~/types';
 
-type IDateReducer = (acc: null | Date, datePair: IDateRead) => null | Date;
+type IDateReducer = (acc: null | Date, datePair: DateRead) => null | Date;
 
 export const getDateReducerSingle = (last: boolean, format: string): IDateReducer => {
   return (acc, datePair) => {
@@ -19,7 +19,7 @@ export const getDateReducerSingle = (last: boolean, format: string): IDateReduce
 };
 
 export const dateReducerAllYears = (format: string) => {
-  const f = (acc: number[], datePair: IDateRead): number[] => {
+  const f = (acc: number[], datePair: DateRead): number[] => {
     if (!datePair.finished) return acc;
 
     const finishedDate = parse(datePair.finished, format, new Date());

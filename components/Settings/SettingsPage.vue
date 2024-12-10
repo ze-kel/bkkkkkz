@@ -8,7 +8,12 @@
       @change="changeRootPathHandler"
     />
 
-    <ShButton @click="navigateTo('/schemas')">Edit schema</ShButton>
+    <div class="mt-4 flex flex-col gap-2">
+      <div>Schemas: {{ Object.keys(store.schemas).length }}</div>
+      <ShButton class="w-fit min-w-36" variant="outline" @click="navigateTo('/schemas')"
+        >Edit
+      </ShButton>
+    </div>
 
     <div class="mt-4">
       <h2 class="mb-2 font-semibold">Theme</h2>

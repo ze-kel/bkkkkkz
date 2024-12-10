@@ -5,12 +5,15 @@ use ts_rs::TS;
 #[derive(Serialize, Deserialize, Clone, Hash, Debug, TS)]
 #[ts(export)]
 pub struct DateRead {
+    #[ts(optional)]
     pub started: Option<String>,
+    #[ts(optional)]
     pub finished: Option<String>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, TS)]
 #[ts(export)]
+#[serde(tag = "type", content = "value")]
 pub enum AttrValue {
     Text(String),
     TextCollection(Vec<String>),
@@ -43,23 +46,53 @@ pub enum SchemaAttrKey {
 pub enum SettingsTypeText {
     Text,
 }
+
+impl Default for SettingsTypeText {
+    fn default() -> Self {
+        SettingsTypeText::Text
+    }
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize, TS)]
 #[ts(export)]
 pub enum SettingsTypeNumber {
     Num,
 }
 
+impl Default for SettingsTypeNumber {
+    fn default() -> Self {
+        SettingsTypeNumber::Num
+    }
+}
+
+/*
+   #[ts(optional)] means use val?: String instean of val: String | null
+   It's mandatory everywhere, because you can't v-model String | null in radix-vue.
+   Hopefully this gets merged soon and it can be set on struct level
+   https://github.com/Aleph-Alpha/ts-rs/pull/366
+
+   (the same thing for serde is  #[serde_with::skip_serializing_none] btw)
+*/
+
 #[skip_serializing_none]
 #[derive(Clone, Debug, Serialize, Deserialize, TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(export)]
+#[serde_with::skip_serializing_none]
 pub struct TextSettings {
+    #[serde(default)]
     pub settings_type: SettingsTypeText,
+    #[ts(optional)]
     pub display_name: Option<String>,
+    #[ts(optional)]
     pub size: Option<InputSize>,
+    #[ts(optional)]
     pub font: Option<TextFont>,
+    #[ts(optional)]
     pub weight: Option<TextWeight>,
+    #[ts(optional)]
     pub theme: Option<TextTheme>,
+    #[ts(optional)]
     pub is_multiline: Option<bool>,
 }
 impl Default for TextSettings {
@@ -80,13 +113,22 @@ impl Default for TextSettings {
 #[derive(Clone, Debug, Serialize, Deserialize, TS)]
 #[ts(export)]
 #[serde(rename_all = "camelCase")]
+#[serde_with::skip_serializing_none]
 pub struct NumberSettings {
+    #[serde(default)]
     pub settings_type: SettingsTypeNumber,
 
+    #[ts(optional)]
+    pub display_name: Option<String>,
+    #[ts(optional)]
     pub size: Option<InputSize>,
+    #[ts(optional)]
     pub min: Option<f64>,
+    #[ts(optional)]
     pub max: Option<f64>,
+    #[ts(optional)]
     pub style: Option<NumberStyle>,
+    #[ts(optional)]
     pub decimal_places: Option<u8>,
 }
 
@@ -94,6 +136,7 @@ impl Default for NumberSettings {
     fn default() -> NumberSettings {
         NumberSettings {
             settings_type: SettingsTypeNumber::Num,
+            display_name: None,
             size: None,
             min: None,
             max: None,
@@ -161,6 +204,7 @@ pub struct Schema {
     pub name: String,
     pub version: String,
 
+    #[ts(optional)]
     pub icon: Option<String>,
 
     pub items: SchemaItems,

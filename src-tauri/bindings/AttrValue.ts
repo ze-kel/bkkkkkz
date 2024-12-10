@@ -2,10 +2,10 @@
 import type { DateRead } from './DateRead';
 
 export type AttrValue =
-  | { Text: string }
-  | { TextCollection: Array<string> }
-  | { DatesPairCollection: Array<DateRead> }
-  | { Number: number }
-  | { Date: string }
-  | { DateCollection: Array<string> }
-  | { Image: string };
+  | { type: 'Text'; value: string }
+  | { type: 'TextCollection'; value: Array<string> }
+  | { type: 'DatesPairCollection'; value: Array<DateRead> }
+  | { type: 'Number'; value: number }
+  | { type: 'Date'; value: string }
+  | { type: 'DateCollection'; value: Array<string> }
+  | { type: 'Image'; value: string };

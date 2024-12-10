@@ -17,23 +17,25 @@ pub enum ErrorActionCode {
 
 #[derive(serde::Serialize, serde::Deserialize, Clone, Debug, TS)]
 #[ts(export)]
+#[serde(rename_all = "camelCase")]
 pub struct ErrorFromRust {
     #[serde(rename = "isError")]
     pub is_error: bool,
     pub title: String,
+    #[ts(optional)]
     pub info: Option<String>,
 
-    #[serde(rename = "rawError")]
+    #[ts(optional)]
     pub raw_error: Option<String>,
-    #[serde(rename = "subErrors")]
+
     pub sub_errors: Vec<ErrorFromRust>,
 
     // Pass code for custom bind on frontend
-    #[serde(rename = "actionCode")]
+    #[ts(optional)]
     pub action_code: Option<ErrorActionCode>,
 
     // Label for button that will call action
-    #[serde(rename = "actionLabel")]
+    #[ts(optional)]
     pub action_label: Option<String>,
 }
 

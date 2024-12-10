@@ -7,10 +7,10 @@ import type { TextWeight } from './TextWeight';
 
 export type TextSettings = {
   settingsType: SettingsTypeText;
-  displayName: string | null;
-  size: InputSize | null;
-  font: TextFont | null;
-  weight: TextWeight | null;
-  theme: TextTheme | null;
-  isMultiline: boolean | null;
+  displayName?: string;
+  size?: InputSize;
+  font?: TextFont;
+  weight?: TextWeight;
+  theme?: TextTheme;
+  isMultiline?: boolean;
 };

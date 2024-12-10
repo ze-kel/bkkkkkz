@@ -48,78 +48,74 @@
         </ShDialogContent>
       </ShDialog>
     </div>
-    <div v-if="hasSchemas" class="mt-6 flex flex-col gap-4">
-      <ShButton
-        v-for="schema in schemas?.schemas"
-        :key="schema.internal_name"
-        variant="outline"
-        class="flex h-fit cursor-pointer flex-col gap-2 rounded-none border px-4 py-2"
-        @click="editingSchemaPath = schema.internal_path"
-      >
-        <div class="text-lg">
-          {{ schema.name }}
-        </div>
-        <div class="font-mono text-xs opacity-70">
-          <template v-if="schema.items.length > 0" v-for="item in schema.items"
-            >{{ item.name }}{{ ' ' }}
-          </template>
-          <template v-else>No items</template>
-        </div>
-      </ShButton>
-    </div>
-    <div v-else>
-      <h2>You do not have any schemas yet</h2>
-    </div>
-    <ShCollapsible v-if="schemas?.error?.subErrors?.length" class="mt-8 flex flex-col gap-3">
-      <div class="flex items-center justify-between">
-        <h2 class="font-serif text-xl">
-          Folders with invalid schemas: {{ schemas?.error?.subErrors?.length }}
-        </h2>
-        <ShCollapsibleTrigger>
-          <ShButton variant="ghost">Show</ShButton>
-        </ShCollapsibleTrigger>
-      </div>
 
-      <ShCollapsibleContent class="flex flex-col gap-3">
-        <div v-for="e in schemas?.error?.subErrors" class="rounded-md">
-          <div>{{ e.title }}</div>
-          <div class="text-sm opacity-50">{{ e.info }}</div>
-          <div class="font-mono text-xs opacity-50">{{ e.rawError }}</div>
-        </div></ShCollapsibleContent
-      >
-    </ShCollapsible>
+    <template v-if="typeof schemas === 'object' && !schemasPending">
+      <template v-if="Object.keys(schemas.schemas).length > 0">
+        <div
+          v-for="schema in Object.values(schemas.schemas)"
+          :key="schema?.internal_name || ''"
+          variant="outline"
+          class="mt-6 flex flex-col gap-4"
+        >
+          <ShButton
+            v-if="schema"
+            class="flex h-fit cursor-pointer flex-col gap-2 rounded-none border px-4 py-2"
+            @click="editingSchemaPath = schema.internal_path"
+          >
+            <div class="text-lg">
+              {{ schema.name }}
+            </div>
+            <div class="font-mono text-xs opacity-70">
+              <template v-if="schema.items.length > 0" v-for="item in schema.items"
+                >{{ item.name }}{{ ' ' }}
+              </template>
+              <template v-else>No items</template>
+            </div>
+          </ShButton>
+        </div>
+      </template>
+      <div v-else>
+        <h2>You do not have any schemas yet</h2>
+      </div>
+      <ShCollapsible v-if="schemas?.error?.subErrors?.length" class="mt-8 flex flex-col gap-3">
+        <div class="flex items-center justify-between">
+          <h2 class="font-serif text-xl">
+            Folders with invalid schemas: {{ schemas?.error?.subErrors?.length }}
+          </h2>
+          <ShCollapsibleTrigger>
+            <ShButton variant="ghost">Show</ShButton>
+          </ShCollapsibleTrigger>
+        </div>
+
+        <ShCollapsibleContent class="flex flex-col gap-3">
+          <div v-for="e in schemas?.error?.subErrors" class="rounded-md">
+            <div>{{ e.title }}</div>
+            <div class="text-sm opacity-50">{{ e.info }}</div>
+            <div class="font-mono text-xs opacity-50">{{ e.rawError }}</div>
+          </div></ShCollapsibleContent
+        >
+      </ShCollapsible>
+    </template>
   </div>
 </template>
 
 <script setup lang="ts">
-import {
-  c_get_default_schemas,
-  c_load_schemas,
-  c_save_schema,
-  type DefaultSchema,
-} from '~/api/tauriActions';
-import { rustErrorNotification } from '~/api/tauriEvents';
-import BasicInput from '../_ui/BasicInput.vue';
+import { c_get_default_schemas, c_load_schemas, c_save_schema } from '~/api/tauriActions';
 import { useQuery, useQueryCache } from '@pinia/colada';
+import BasicInput from '../_UI/BasicInput.vue';
 
 const editingSchemaPath = ref<string | null>(null);
 
 const qc = useQueryCache();
 
-const { data: defaultSchemas } = useQuery({
+const { data: defaultSchemas, error: defaultSchemasError } = useQuery({
   key: ['defaultSchemas'],
   query: c_get_default_schemas,
 });
 
-const { data: schemas } = useQuery({
-  key: ['schemas'],
+const { data: schemas, isPending: schemasPending } = useQuery({
+  key: ['schemas', 'load'],
   query: c_load_schemas,
-});
-
-const hasSchemas = computed(() => {
-  if (!schemas.value || !schemas.value.schemas) return false;
-
-  return Object.keys(schemas.value.schemas).length > 0;
 });
 
 const addNewSchema = async () => {
@@ -130,6 +126,7 @@ const addNewSchema = async () => {
     internal_name: newSchemaName.value,
     internal_path: '',
     version: 'to be set by backend',
+    icon: '',
   });
 
   isCreateDialogOpen.value = false;

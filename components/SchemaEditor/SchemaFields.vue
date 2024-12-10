@@ -19,7 +19,10 @@
       </div>
 
       {{ schema.icon }}
-      <component :is="icons[schema.icon]" />
+      <component
+        v-if="typeof schema.icon === 'string'"
+        :is="icons[schema.icon as keyof typeof icons]"
+      />
     </div>
 
     <div>
@@ -35,13 +38,13 @@
 </template>
 
 <script setup lang="ts">
-import { isOurError, rustErrorNotification, type ErrorFromRust } from '~/api/tauriEvents';
+import { isOurError, rustErrorNotification } from '~/api/tauriEvents';
 
 import { ArrowLeftIcon } from 'lucide-vue-next';
-import { c_load_schema, c_save_schema } from '~/api/tauriActions';
-import type { Schema } from '~/api/schema';
+import { c_load_schema, c_save_schema, returnErrorHandler } from '~/api/tauriActions';
 
 import * as icons from 'lucide-vue-next';
+import type { ErrorFromRust, Schema } from '~/types';
 
 const props = defineProps<{
   path: string;
@@ -57,7 +60,7 @@ const goBack = () => {
 
 const save = async () => {
   if (!schema.value) return;
-  const r = await c_save_schema(schema.value.internal_name, schema.value);
+  const r = await c_save_schema(schema.value.internal_name, schema.value).catch(returnErrorHandler);
   if ('isError' in r) {
     rustErrorNotification(r);
     return;
@@ -83,7 +86,7 @@ const addNew = () => {
   if (!schema.value) return;
   schema.value.items.push({
     name: '',
-    value: { type: 'Text', settings: {} },
+    value: { type: 'Text', settings: { settingsType: 'Text' } },
   });
 };
 const deleteItem = (index: number) => {

@@ -5,9 +5,7 @@
 </template>
 
 <script lang="ts" setup>
-import { selectAndSetRootPath } from '~/api/rootPath';
-import SchemaEditor from '~/components/SchemaEditor/SchemaEditor.vue';
-import type { BookFromDb, SchemaItem } from '~/types';
+import type { BookFromDb, SchemaItem, TextSettings } from '~/types';
 
 const store = useStore();
 
@@ -18,7 +16,7 @@ const schema = ref<SchemaItem[]>([
       type: 'Text',
       settings: {
         size: 'L',
-      },
+      } as TextSettings,
     },
   },
 ]);

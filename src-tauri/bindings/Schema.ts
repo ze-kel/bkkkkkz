@@ -4,7 +4,7 @@ import type { SchemaItem } from './SchemaItem';
 export type Schema = {
   name: string;
   version: string;
-  icon: string | null;
+  icon?: string;
   items: Array<SchemaItem>;
   internal_path: string;
   internal_name: string;

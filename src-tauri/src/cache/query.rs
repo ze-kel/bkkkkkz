@@ -13,12 +13,10 @@ use super::tables::get_table_names;
 
 #[derive(Serialize, Deserialize, Clone, Debug, TS)]
 #[ts(export)]
+#[serde_with::skip_serializing_none]
 pub struct BookFromDb {
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub modified: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub markdown: Option<String>,
 
     pub attrs: HashMap<String, AttrValue>,

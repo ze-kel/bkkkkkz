@@ -13,7 +13,7 @@ import {
 } from '~/api/openedTabs';
 import { getRootPath } from '~/api/rootPath';
 import { getSettings, type ISettings } from '~/api/settings';
-import type { ErrorFromRust, Schema } from '~/api/tauriEvents';
+import type { ErrorFromRust, Schema } from '~/types';
 
 const uid = new ShortUniqueId({ length: 10 });
 

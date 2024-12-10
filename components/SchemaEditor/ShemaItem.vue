@@ -5,7 +5,7 @@
       <ChevronDown v-else class="w-5" />
     </div>
   </ShButton>
-  <UiBasicInput v-model="item.name" placeholder="Name" class="basis-36" />
+  <UIBasicInput v-model="item.name" placeholder="Name" class="basis-36" />
 
   <ShSelect v-model:model-value="item.value.type">
     <ShSelectTrigger>
@@ -31,7 +31,7 @@
         <h5>Font</h5>
         <ShSelect v-model:model-value="item.value.settings.font" class="w-full">
           <ShSelectTrigger class="w-full">
-            {{ item.value.settings.font || 'Default' }}
+            {{ item.value.settings?.font || 'Default' }}
           </ShSelectTrigger>
           <ShSelectContent>
             <ShSelectItem value="Serif">Serif</ShSelectItem>
@@ -82,7 +82,8 @@
 
 <script setup lang="ts">
 import { XIcon as DeleteIcon, ChevronRight, ChevronDown } from 'lucide-vue-next';
-import { AttrValueKeys, type SchemaItem } from '~/api/schema';
+import type { SchemaItem } from '~/types';
+import { AttrValueKeys } from '~/types';
 
 const isOpened = ref(false);
 

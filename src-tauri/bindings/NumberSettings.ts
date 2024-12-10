@@ -5,9 +5,10 @@ import type { SettingsTypeNumber } from './SettingsTypeNumber';
 
 export type NumberSettings = {
   settingsType: SettingsTypeNumber;
-  size: InputSize | null;
-  min: number | null;
-  max: number | null;
-  style: NumberStyle | null;
-  decimalPlaces: number | null;
+  displayName?: string;
+  size?: InputSize;
+  min?: number;
+  max?: number;
+  style?: NumberStyle;
+  decimalPlaces?: number;
 };

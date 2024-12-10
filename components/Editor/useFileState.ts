@@ -3,20 +3,16 @@ import { throttle } from 'lodash';
 import type { ShallowRef } from 'vue';
 
 import type { IOpenedFile } from '~/api/openedTabs';
-import { c_read_file_by_path, c_save_file } from '~/api/tauriActions';
-import {
-  rustErrorNotification,
-  useListenToEvent,
-  type IBookFromDb,
-  type Schema,
-} from '~/api/tauriEvents';
+import { c_read_file_by_path, c_save_file, returnErrorHandler } from '~/api/tauriActions';
+import { rustErrorNotification, useListenToEvent } from '~/api/tauriEvents';
 import { useCodeMirror } from '~/components/Editor/CodeMirror/useCodeMirror';
+import type { BookFromDb, Schema } from '~/types';
 
 export const useBookEditor = (
   opened: IOpenedFile,
   editorTemplateRef: Readonly<ShallowRef<HTMLDivElement | null>>,
 ) => {
-  const file = ref<IBookFromDb | null>(null);
+  const file = ref<BookFromDb | null>(null);
 
   /*
    * We need to trigger saving when user changes something.
@@ -39,7 +35,7 @@ export const useBookEditor = (
 
   const loadFileFromDisk = async () => {
     if (opened.type !== 'file') return;
-    const res = await c_read_file_by_path(opened.thing);
+    const res = await c_read_file_by_path(opened.thing).catch(returnErrorHandler);
 
     if ('isError' in res) {
       rustErrorNotification(res, {
@@ -55,7 +51,7 @@ export const useBookEditor = (
     pauseWatcher();
     schema.value = res.schema;
     file.value = res.book;
-    createOrUpdateEditor(res.book.markdown);
+    createOrUpdateEditor(res.book.markdown || '');
     await nextTick();
     resumeWatcher();
   };
@@ -72,12 +68,12 @@ export const useBookEditor = (
     createOrUpdateEditor(file.value?.markdown || '');
   });
 
-  const updateHandler = async (update: IBookFromDb) => {
+  const updateHandler = async (update: BookFromDb) => {
     if (update.modified === file.value?.modified) return;
     await loadFileFromDisk();
   };
 
-  useListenToEvent('file_update', updateHandler);
+  useListenToEvent('FileUpdate', updateHandler);
 
   const saveFile = async (forced = false) => {
     if (!file.value) return;
@@ -88,7 +84,7 @@ export const useBookEditor = (
       file.value.markdown = getEditorState();
     }
 
-    const res = await c_save_file(file.value, forced);
+    const res = await c_save_file(file.value, forced).catch(returnErrorHandler);
 
     if ('isError' in res) {
       rustErrorNotification(res, {

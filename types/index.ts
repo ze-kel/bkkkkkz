@@ -31,6 +31,15 @@ type ExtractIpcResponcesType<K extends keyof IPCResponces> = Extract<
   { Ok: any }
 >['Ok'];
 
+export const AttrValueKeys: AttrValue['type'][] = [
+  'Text',
+  'Number',
+  'Date',
+  'DateCollection',
+  'Image',
+  'TextCollection',
+] as const;
+
 export type {
   TextWeight,
   TextTheme,

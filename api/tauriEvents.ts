@@ -4,7 +4,6 @@ import { markRaw } from 'vue';
 
 import ErrorToast from '~/components/Error/ErrorToast.vue';
 import type {
-  BookFromDb,
   ErrorFromRust,
   ErrorActionCode,
   ExtractIPCEmitEventData,

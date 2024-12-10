@@ -4,9 +4,9 @@ import type { ErrorActionCode } from './ErrorActionCode';
 export type ErrorFromRust = {
   isError: boolean;
   title: string;
-  info: string | null;
-  rawError: string | null;
+  info?: string;
+  rawError?: string;
   subErrors: Array<ErrorFromRust>;
-  actionCode: ErrorActionCode | null;
-  actionLabel: string | null;
+  actionCode?: ErrorActionCode;
+  actionLabel?: string;
 };

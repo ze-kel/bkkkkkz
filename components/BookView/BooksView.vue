@@ -36,8 +36,6 @@ import Fuse from 'fuse.js';
 
 import { debounce as _debounce } from 'lodash';
 import { cloneDeep as _cloneDeep } from 'lodash';
-import getSortFunction from './getSortFunction';
-import { groupItems } from './groupItems';
 
 import ViewControls from './ViewControls.vue';
 
@@ -78,23 +76,10 @@ watch(
 );
 
 //
-// Sort
-//
-
-const sortedFiles = computed(() => {
-  if (!store.settings) return books.value;
-  const sortFunction = getSortFunction(props.opened.settings.sortBy, store.settings?.dateFormat);
-
-  return [...books.value].sort((a, b) => {
-    return sortFunction(a, b, props.opened.settings.sortDirection);
-  });
-});
-
-//
 // Scroll position
 //
 
-const { list, containerProps, wrapperProps } = useVirtualList(sortedFiles, { itemHeight: 59 });
+const { list, containerProps, wrapperProps } = useVirtualList(books.value, { itemHeight: 59 });
 
 const scrollRoot = containerProps.ref;
 

@@ -3,23 +3,24 @@ import { cloneDeep as _cloneDeep } from 'lodash';
 
 import type { IOpenedPath, IOpenedTag } from '~/api/openedTabs';
 
-import { rustErrorNotification, useListenToEvent, type IBookFromDb } from '~/api/tauriEvents';
+import { rustErrorNotification, useListenToEvent } from '~/api/tauriEvents';
 import { useThrottledEvents } from '~/utils/useTrottledEvents';
 import path from 'path-browserify';
-import { c_get_files_path, type BookListGetResult } from '~/api/tauriActions';
+import { c_get_files_path, returnErrorHandler } from '~/api/tauriActions';
+import type { BookFromDb } from '~/types';
 
 export const useFilesList = (
   opened: IOpenedPath | IOpenedTag,
   onLoaded?: () => void | Promise<void>,
 ) => {
-  const data = ref<BookListGetResult | null>(null);
+  const data = ref<Awaited<ReturnType<typeof c_get_files_path>> | null>(null);
 
   const loading = ref(true);
 
   const loadContent = async () => {
     loading.value = true;
     if (opened.type === 'folder') {
-      const res = await c_get_files_path(opened.thing);
+      const res = await c_get_files_path(opened.thing).catch(returnErrorHandler);
       if ('isError' in res) {
         rustErrorNotification(res, {});
         return;
@@ -42,7 +43,7 @@ export const useFilesList = (
   //
   // Update event handling
   //
-  const updateOrAddToFiles = (book: IBookFromDb) => {
+  const updateOrAddToFiles = (book: BookFromDb) => {
     if (!data.value) return;
     const books = data.value.books;
     // Do not assume that add event will be called once
@@ -87,16 +88,18 @@ export const useFilesList = (
 
   const { onEvent, processQueue } = useThrottledEvents(processEvents, loadContent, 1000, 15);
 
-  useListenToEvent('file_add', (book) => onEvent({ event: 'add', book }));
-  useListenToEvent('file_update', (book) => onEvent({ event: 'update', book }));
-  useListenToEvent('file_remove', (path) => onEvent({ event: 'remove', path }));
+  useListenToEvent('FileAdd', (book) => onEvent({ event: 'add', book }));
+  useListenToEvent('FileUpdate', (book) => onEvent({ event: 'update', book }));
+  useListenToEvent('FileRemove', (path) => onEvent({ event: 'remove', path }));
 
   // For folder events we just reload everything because it can modify a lot of sub-files\sub-dirs
-  useListenToEvent('folder_add', (v) => {
-    if (opened.type !== 'folder' || isChangedFolderRelevant(opened.thing, v)) processQueue(true);
+  useListenToEvent('FolderAdd', (v) => {
+    if (opened.type !== 'folder' || isChangedFolderRelevant(opened.thing, v.path))
+      processQueue(true);
   });
-  useListenToEvent('folder_remove', (v) => {
-    if (opened.type !== 'folder' || isChangedFolderRelevant(opened.thing, v)) processQueue(true);
+  useListenToEvent('FolderRemove', (v) => {
+    if (opened.type !== 'folder' || isChangedFolderRelevant(opened.thing, v.path))
+      processQueue(true);
   });
 
   return { data, loading };
@@ -110,11 +113,11 @@ const isChangedFolderRelevant = (myPath: string, eventPath: string) => {
 type FileListEvent =
   | {
       event: 'add';
-      book: IBookFromDb;
+      book: BookFromDb;
     }
   | {
       event: 'update';
-      book: IBookFromDb;
+      book: BookFromDb;
     }
   | {
       event: 'remove';

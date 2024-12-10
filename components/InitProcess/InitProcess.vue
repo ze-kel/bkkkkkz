@@ -10,33 +10,42 @@
           class="flex justify-between border border-neutral-200 p-2 px-4 dark:border-neutral-800"
           :class="typeof step === 'object' && 'rounded-b-none border-b-0'"
         >
-          {{ stepName[i] }}
+          {{ step.name }}
           <div>
-            <LoaderCircle v-if="step === false && running" class="animate-spin" />
-            <XIcon v-else-if="step === false && !running" class="" />
+            <LoaderCircle
+              v-if="step.mutation.status.value === 'pending' && running"
+              class="animate-spin"
+            />
+            <XIcon v-else-if="step.mutation.status.value === 'error' && !running" class="" />
             <XIcon v-else-if="typeof step === 'object' && 'isError' in step" />
             <CheckIcon v-else />
           </div>
         </div>
         <div
-          v-if="typeof step === 'object' && 'isError' in step"
+          v-if="step.mutation.error.value"
           class="border border-neutral-300 p-4 dark:border-neutral-800"
         >
-          <div class="text-regular font-bold">{{ step.title }}</div>
-          <div v-if="step.info" class="mt-1 text-xs">{{ step.info }}</div>
-          <div class="mt-4 flex gap-2">
-            <ShButton
-              v-if="step.rawError"
-              variant="outline"
-              @click="store.setError(step)"
-              class="w-full"
-            >
-              Show full error</ShButton
-            >
-            <ShButton v-if="step.actionCode" variant="outline" @click="initLoop" class="w-full">
-              {{ step.actionLabel || 'Retry' }}</ShButton
-            >
-          </div>
+          <template v-if="isOurError(step.mutation.error.value)">
+            <div class="text-regular font-bold">
+              {{ step.mutation.error.value.title }}
+            </div>
+            <div v-if="'info' in step.mutation.error.value" class="mt-1 text-xs">
+              {{ step.mutation.error.value.info }}
+            </div>
+            <div class="mt-4 flex gap-2">
+              <ShButton
+                v-if="'rawError' in step.mutation.error.value"
+                variant="outline"
+                @click="store.setError(step.mutation.error.value)"
+                class="w-full"
+              >
+                Show full error</ShButton
+              >
+              <ShButton variant="outline" @click="initLoop" class="w-full">
+                {{ 'Retry' }}
+              </ShButton>
+            </div>
+          </template>
         </div>
       </div>
     </div>
@@ -46,75 +55,97 @@
 <script lang="ts" setup>
 import { useStore } from '~~/utils/store';
 import { CheckIcon, LoaderCircle, XIcon } from 'lucide-vue-next';
-import { c_init_once, c_load_schemas, c_prepare_cache, c_watch_path } from '~/api/tauriActions';
+import {
+  c_get_schemas,
+  c_init_once,
+  c_load_schemas,
+  c_prepare_cache,
+  c_watch_path,
+  returnErrorHandler,
+} from '~/api/tauriActions';
+import type { ErrorFromRust } from '~/types';
+import { isOurError } from '~/api/tauriEvents';
 
 const store = useStore();
 
-const init = ref<Awaited<ReturnType<typeof c_init_once>>>(false);
-const schemaSetup = ref<Awaited<ReturnType<typeof c_load_schemas>> | boolean>(false);
-const cacheSetup = ref<Awaited<ReturnType<typeof c_prepare_cache>>>(false);
-const watcherSetup = ref<Awaited<ReturnType<typeof c_watch_path>>>(false);
-
 const running = ref(false);
 
-const steps = computed(() => [init.value, schemaSetup.value, cacheSetup.value, watcherSetup.value]);
-const stepName = ['Initialize', 'Load schemas', 'Setup cache', 'Start watcher'];
-
-const resetAll = () => {
-  init.value = false;
-  cacheSetup.value = false;
-  watcherSetup.value = false;
+const stopRunning = () => {
+  running.value = false;
 };
+
+const initMutation = useMutation({
+  mutation: c_init_once,
+  onError: stopRunning,
+  onSuccess: async () => {
+    await store.fetchRootPath();
+    if (typeof store.rootPath !== 'string') {
+      await navigateTo('/welcome');
+      running.value = false;
+      return;
+    }
+
+    schemasMutation.mutate();
+  },
+});
+
+const schemasMutation = useMutation({
+  mutation: async () => {
+    await c_load_schemas();
+    return await c_get_schemas();
+  },
+  onError: stopRunning,
+  onSuccess: async (schemas) => {
+    if (Object.keys(schemas).length < 1) {
+      await navigateTo('/schemas');
+      running.value = false;
+      return;
+    }
+    cacheMutation.mutate();
+  },
+});
+
+const cacheMutation = useMutation({
+  mutation: c_prepare_cache,
+  onError: stopRunning,
+  onSuccess: async () => {
+    await watcherMutation.mutate();
+  },
+});
+
+const watcherMutation = useMutation({
+  mutation: c_watch_path,
+  onError: stopRunning,
+  onSuccess: async () => {
+    await navigateTo('/application');
+  },
+});
+
+const steps = [
+  {
+    name: 'Initialize',
+    mutation: initMutation,
+  },
+  {
+    name: 'Load schemas',
+    mutation: schemasMutation,
+  },
+  {
+    name: 'Setup cache',
+    mutation: cacheMutation,
+  },
+  {
+    name: 'Start watcher',
+    mutation: watcherMutation,
+  },
+];
 
 const initLoop = async () => {
   running.value = true;
-
-  if (init.value !== true) {
-    init.value = await c_init_once();
-    if (typeof init.value == 'object') {
-      running.value = false;
-      return;
-    }
-  }
-
-  await store.fetchRootPath();
-  if (typeof store.rootPath !== 'string') {
-    await navigateTo('/welcome');
-    return;
-  }
-
-  schemaSetup.value = await c_load_schemas();
-  if ('isError' in schemaSetup.value) {
-    running.value = false;
-    return;
-  }
-  console.log(schemaSetup.value);
-  if (Object.keys(schemaSetup.value.schemas).length < 1) {
-    await navigateTo('/schemas');
-    return;
-  }
-
-  if (cacheSetup.value !== true) {
-    cacheSetup.value = await c_prepare_cache();
-    if (typeof cacheSetup.value == 'object') {
-      running.value = false;
-      return;
-    }
-  }
-
-  if (watcherSetup.value !== true) {
-    watcherSetup.value = await c_watch_path();
-    if (typeof watcherSetup.value == 'object') {
-      running.value = false;
-      return;
-    }
-  }
-
-  await navigateTo('/application');
+  steps.find((s) => s.mutation.status.value !== 'success')?.mutation.mutate();
 };
 
 onMounted(() => {
-  resetAll();
   initLoop();
 });
 </script>

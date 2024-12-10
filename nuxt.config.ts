@@ -1,6 +1,7 @@
 export default defineNuxtConfig({
   alias: {
     components: './components',
+    '@types': './types',
   },
   modules: [
     '@nuxtjs/tailwindcss',
@@ -9,6 +10,7 @@ export default defineNuxtConfig({
     '@nuxtjs/color-mode',
     '@pinia/colada-nuxt',
   ],
+
   compatibilityDate: '2024-09-29',
 
   experimental: {
