@@ -6,25 +6,19 @@
       <EmptyBooksPlaceholder v-if="books.length === 0 && !loading" class="mt-40" />
 
       <div
-        v-for="file in list"
-        :key="file.index"
-        class="gap-4 border-b border-neutral-200 p-4 transition-colors hover:bg-neutral-100/50 data-[state=selected]:bg-neutral-100 dark:border-neutral-800 dark:hover:bg-neutral-800/50 dark:data-[state=selected]:bg-neutral-800"
+        v-for="file in books"
+        :key="file.path || 'a'"
+        class="gap-4 border-b border-neutral-200 transition-colors hover:bg-neutral-100/50 data-[state=selected]:bg-neutral-100 dark:border-neutral-800 dark:hover:bg-neutral-800/50 dark:data-[state=selected]:bg-neutral-800"
       >
-        <BookViewBookContextMenu :path="file.data.path">
-          <div class="flex flex-row justify-between">
-            <div class="w-[60%] truncate">
-              <template v-if="file.data.attrs.title">
-                {{ file.data.attrs.title }}
-              </template>
-              <template v-else> Unknown title </template>
+        <BookViewBookContextMenu :path="file.path || 'a'">
+          <template v-if="file.path">
+            <div class="flex flex-row gap-2 p-4">
+              <div v-for="column in visibleColumns" :key="column" class="w-full">
+                {{ file.attrs[column]?.value || ' ' }}
+              </div>
             </div>
-            <div class="w-[20%]">
-              {{ file.data.attrs.author.Text }}
-            </div>
-            <div class="w-[20%]">
-              {{ file.data.attrs.year.Number }}
-            </div>
-          </div>
+          </template>
+          <template v-else> Error: book without path </template>
         </BookViewBookContextMenu>
       </div>
     </div>
@@ -32,8 +26,6 @@
 </template>
 
 <script setup lang="ts">
-import Fuse from 'fuse.js';
-
 import { debounce as _debounce } from 'lodash';
 import { cloneDeep as _cloneDeep } from 'lodash';
 
@@ -62,6 +54,8 @@ const props = defineProps({
 const { data, loading } = useFilesList(props.opened, () => setScrollPositionFromSaved());
 
 const books = computed(() => data.value?.books || []);
+
+const visibleColumns = ['title', 'author', 'year', 'myRating', 'ISBN13'];
 
 //
 // Search

@@ -9,30 +9,27 @@
       <ShButton variant="outline" @click="save">Save</ShButton>
     </div>
 
-    <div>
-      Icon from Lucide
+    <div class="max-w-[600px]">
+      <div>
+        Icon from Lucide
 
-      <p>CamelCase style: StarHalf, BookAudio, etc.</p>
+        <p>CamelCase style: StarHalf, BookAudio, etc.</p>
 
-      <div class="flex">
-        <UiBasicInput size="M" v-model="schema.icon" />
+        <div class="mb-2 flex gap-2">
+          <UIBasicInput size="S" v-model="schema.icon" />
+          <UIDynamicIcon :name="schema.icon" />
+        </div>
       </div>
 
-      {{ schema.icon }}
-      <component
-        v-if="typeof schema.icon === 'string'"
-        :is="icons[schema.icon as keyof typeof icons]"
-      />
-    </div>
-
-    <div>
-      <div class="grid max-w-[600px] grid-cols-[40px_3fr_1fr_40px] gap-x-2 gap-y-2">
-        <template v-for="(_, i) in schema.items" class="flex gap-2">
-          <SchemaEditorShemaItem v-model:model-value="schema.items[i]" @delete="deleteItem(i)" />
-        </template>
-        <ShButton @click="addNew" variant="outline" class="col-span-4 mt-2 w-full">Add</ShButton>
+      <div>
+        <div class="grid grid-cols-[40px_3fr_1fr_40px] gap-x-2 gap-y-2">
+          <template v-for="(_, i) in schema.items" class="flex gap-2">
+            <SchemaEditorShemaItem v-model:model-value="schema.items[i]" @delete="deleteItem(i)" />
+          </template>
+          <ShButton @click="addNew" variant="outline" class="col-span-4 mt-2 w-full">Add</ShButton>
+        </div>
+        <div></div>
       </div>
-      <div></div>
     </div>
   </div>
 </template>
@@ -43,7 +40,6 @@ import { isOurError, rustErrorNotification } from '~/api/tauriEvents';
 import { ArrowLeftIcon } from 'lucide-vue-next';
 import { c_load_schema, c_save_schema, returnErrorHandler } from '~/api/tauriActions';
 
-import * as icons from 'lucide-vue-next';
 import type { ErrorFromRust, Schema } from '~/types';
 
 const props = defineProps<{

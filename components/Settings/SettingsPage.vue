@@ -9,9 +9,9 @@
     />
 
     <div class="mt-4 flex flex-col gap-2">
-      <div>Schemas: {{ Object.keys(store.schemas).length }}</div>
-      <ShButton class="w-fit min-w-36" variant="outline" @click="navigateTo('/schemas')"
-        >Edit
+      <div>Schemas: {{ schemas?.length }}</div>
+      <ShButton class="w-fit min-w-36" variant="outline" @click="navigateTo('/schemas')">
+        Edit
       </ShButton>
     </div>
 
@@ -44,6 +44,8 @@ import { selectAndSetRootPath } from '~/api/rootPath';
 const colorMode = useColorMode();
 
 const store = useStore();
+
+const { data: schemas, error } = useUsableSchemas();
 
 const darkMode = computed({
   get: () => {

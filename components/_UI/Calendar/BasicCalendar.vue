@@ -205,7 +205,8 @@ watch(cursor, () => {
       </ShSelect>
 
       <BasicInput
-        v-model:isNumber="currentYearInputValue"
+        v-model:number="currentYearInputValue"
+        is-number
         theme="Hidden"
         class="w-16 text-center"
         @blur="currentYearInputBlurHandler"

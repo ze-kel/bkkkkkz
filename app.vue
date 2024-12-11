@@ -1,7 +1,7 @@
 <template>
   <div
     id="app"
-    class="flex h-screen flex-col bg-neutral-50 text-neutral-950 dark:bg-neutral-950 dark:text-neutral-50"
+    class="h-screen bg-neutral-50 text-neutral-950 dark:bg-neutral-950 dark:text-neutral-50"
   >
     <NuxtLayout>
       <NuxtPage />
@@ -28,7 +28,7 @@ const colorMode = useColorMode();
 handleErrorsFromRust();
 
 // Global hook for deleted files
-useListenToEvent('file_remove', (path) => {
+useListenToEvent('FileRemove', (path) => {
   if (store.openedItem?.thing === path) {
     store.closeOpened();
   }

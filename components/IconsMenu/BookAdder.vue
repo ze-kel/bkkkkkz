@@ -6,12 +6,12 @@
 
     <ShDialogContent>
       <ShDialogTitle> Create new file </ShDialogTitle>
-      <UiBasicInput
+      <UIBasicInput
         @keyup.enter="addBook"
         autofocus
         v-model:model-value="newFileName"
         placeholder="Filename"
-      ></UiBasicInput>
+      />
 
       <div class="max-w-96 text-xs opacity-50">Saving to: {{ folderToSaveDisplay }}</div>
       <ShButton variant="outline" size="default" @click="addBook"> Create </ShButton>

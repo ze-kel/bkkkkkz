@@ -24,11 +24,41 @@ pub enum AttrValue {
     Image(String),
 }
 
+impl AttrValue {
+    pub fn default_text() -> Self {
+        AttrValue::Text(String::default())
+    }
+
+    pub fn default_text_collection() -> Self {
+        AttrValue::TextCollection(Vec::default())
+    }
+
+    pub fn default_dates_pair_collection() -> Self {
+        AttrValue::DatesPairCollection(Vec::default())
+    }
+
+    pub fn default_number() -> Self {
+        AttrValue::Number(0.0)
+    }
+
+    pub fn default_date() -> Self {
+        AttrValue::Date(String::default())
+    }
+
+    pub fn default_date_collection() -> Self {
+        AttrValue::DateCollection(Vec::default())
+    }
+
+    pub fn default_image() -> Self {
+        AttrValue::Image(String::default())
+    }
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize, TS)]
 #[serde(tag = "type", content = "settings")]
 pub enum SchemaAttrKey {
     Text(TextSettings),
-    TextCollection(EmptySettings),
+    TextCollection(TextCollectionSettings),
     Number(NumberSettings),
     Date(EmptySettings),
     DateCollection(EmptySettings),
@@ -62,6 +92,18 @@ pub enum SettingsTypeNumber {
 impl Default for SettingsTypeNumber {
     fn default() -> Self {
         SettingsTypeNumber::Num
+    }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub enum SettingsTypeTextCollection {
+    TextCollection,
+}
+
+impl Default for SettingsTypeTextCollection {
+    fn default() -> Self {
+        SettingsTypeTextCollection::TextCollection
     }
 }
 
@@ -142,6 +184,38 @@ impl Default for NumberSettings {
             max: None,
             style: None,
             decimal_places: None,
+        }
+    }
+}
+
+#[skip_serializing_none]
+#[derive(Clone, Debug, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export)]
+#[serde_with::skip_serializing_none]
+pub struct TextCollectionSettings {
+    #[serde(default)]
+    pub settings_type: SettingsTypeTextCollection,
+    #[ts(optional)]
+    pub display_name: Option<String>,
+    #[ts(optional)]
+    pub size: Option<InputSize>,
+    #[ts(optional)]
+    pub font: Option<TextFont>,
+    #[ts(optional)]
+    pub weight: Option<TextWeight>,
+    #[ts(optional)]
+    pub prefix: Option<String>,
+}
+impl Default for TextCollectionSettings {
+    fn default() -> TextCollectionSettings {
+        TextCollectionSettings {
+            settings_type: SettingsTypeTextCollection::TextCollection,
+            display_name: None,
+            size: None,
+            font: None,
+            weight: None,
+            prefix: None,
         }
     }
 }

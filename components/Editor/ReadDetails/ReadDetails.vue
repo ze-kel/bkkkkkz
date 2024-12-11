@@ -6,9 +6,9 @@
         :key="index"
         class="flex w-fit items-center justify-between gap-2"
       >
-        <UiCalendarDateInput v-model="date.started" />
+        <UICalendarDateInput v-model="date.started" />
         <MoveRightIcon class="w-4" />
-        <UiCalendarDateInput v-model="date.finished" />
+        <UICalendarDateInput v-model="date.finished" />
 
         <ShButton variant="ghost" size="icon" @click="removeDate(index)">
           <XIcon class="w-4 opacity-50" />
@@ -31,10 +31,10 @@ const datePairs = defineModel<DateRead[]>();
 
 const addNewDate = () => {
   if (!datePairs.value) {
-    datePairs.value = [{ started: format(new Date(), 'yyyy-MM-dd'), finished: null }];
+    datePairs.value = [{ started: format(new Date(), 'yyyy-MM-dd'), finished: undefined }];
     return;
   }
-  datePairs.value.push({ started: format(new Date(), 'yyyy-MM-dd'), finished: null });
+  datePairs.value.push({ started: format(new Date(), 'yyyy-MM-dd'), finished: undefined });
 };
 
 const removeDate = (index: number) => {

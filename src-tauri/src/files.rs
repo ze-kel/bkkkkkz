@@ -8,7 +8,7 @@ use std::io::{self, BufRead, BufReader};
 
 use crate::cache::query::BookFromDb;
 use crate::schema::operations::get_schema_cached_safe;
-use crate::schema::types::{AttrValue, DateRead, Schema, SchemaAttrKey};
+use crate::schema::types::{AttrValue, Schema, SchemaAttrKey};
 use crate::utils::errorhandling::{ErrorActionCode, ErrorFromRust};
 
 pub enum FileReadMode {
@@ -62,71 +62,65 @@ pub async fn read_file_by_path(
 
             match parsed_meta {
                 Ok(parse_res) => {
-                    let mut hm: HashMap<String, AttrValue> = HashMap::new();
+                    let mut file_meta: HashMap<String, AttrValue> = HashMap::new();
+
+                    println!("\nparse_res: {:?}\n", parse_res);
 
                     for schema_i in files_schema.items.clone() {
                         let name = schema_i.name;
-                        let value_in_meta = parse_res.get(&name);
+                        let parsed_attribute: Option<AttrValue> = match parse_res.get(&name) {
+                            Some(v) => match serde_yml::from_value(v.clone()) {
+                                Ok(v) => Some(v),
+                                Err(_) => None,
+                            },
+                            None => None,
+                        };
 
-                        match (value_in_meta, schema_i.value) {
-                            (Some(serde_yml::Value::String(s)), SchemaAttrKey::Text(_)) => {
-                                hm.insert(name, AttrValue::Text(s.to_owned()));
+                        match (parsed_attribute, schema_i.value) {
+                            (Some(AttrValue::Text(s)), SchemaAttrKey::Text(_)) => {
+                                file_meta.insert(name, AttrValue::Text(s.to_owned()));
                             }
 
-                            (Some(serde_yml::Value::Number(n)), SchemaAttrKey::Number(_)) => {
-                                if let Some(nn) = n.as_f64() {
-                                    hm.insert(name, AttrValue::Number(nn));
-                                }
+                            (Some(AttrValue::Number(n)), SchemaAttrKey::Number(_)) => {
+                                file_meta.insert(name, AttrValue::Number(n));
                             }
 
                             (
-                                Some(serde_yml::Value::Sequence(vec)),
+                                Some(AttrValue::TextCollection(vec)),
                                 SchemaAttrKey::TextCollection(_),
                             ) => {
-                                let clear = vec
-                                    .iter()
-                                    .filter_map(|f| match f {
-                                        serde_yml::Value::String(s) => Some(s.to_owned()),
-                                        _ => None,
-                                    })
-                                    .collect();
-
-                                hm.insert(name, AttrValue::TextCollection(clear));
+                                file_meta.insert(name, AttrValue::TextCollection(vec));
                             }
 
                             (
-                                Some(serde_yml::Value::Sequence(vec)),
+                                Some(AttrValue::DatesPairCollection(vec)),
                                 SchemaAttrKey::DatesPairCollection(_),
                             ) => {
-                                let clear = vec
-                                    .iter()
-                                    .filter_map(|f| match f {
-                                        serde_yml::Value::Mapping(mm) => Some(DateRead {
-                                            started: match mm.get("started") {
-                                                Some(v) => match v {
-                                                    serde_yml::Value::String(v) => {
-                                                        Some(v.to_owned())
-                                                    }
-                                                    _ => None,
-                                                },
-                                                None => None,
-                                            },
-                                            finished: match mm.get("finished") {
-                                                Some(v) => match v {
-                                                    serde_yml::Value::String(v) => {
-                                                        Some(v.to_owned())
-                                                    }
-                                                    _ => None,
-                                                },
-                                                None => None,
-                                            },
-                                        }),
-                                        _ => None,
-                                    })
-                                    .collect();
-                                hm.insert(name, AttrValue::DatesPairCollection(clear));
+                                file_meta.insert(name, AttrValue::DatesPairCollection(vec));
                             }
-                            (_, _) => (),
+
+                            // Default values
+                            (_, SchemaAttrKey::Text(_)) => {
+                                file_meta.insert(name, AttrValue::default_text());
+                            }
+                            (_, SchemaAttrKey::Number(_)) => {
+                                file_meta.insert(name, AttrValue::default_number());
+                            }
+                            (_, SchemaAttrKey::TextCollection(_)) => {
+                                file_meta.insert(name, AttrValue::default_text_collection());
+                            }
+                            (_, SchemaAttrKey::DatesPairCollection(_)) => {
+                                file_meta.insert(name, AttrValue::default_dates_pair_collection());
+                            }
+                            (_, SchemaAttrKey::Date(_)) => {
+                                file_meta.insert(name, AttrValue::default_date());
+                            }
+                            (_, SchemaAttrKey::DateCollection(_)) => {
+                                file_meta.insert(name, AttrValue::default_date_collection());
+                            }
+                            (_, SchemaAttrKey::Image(_)) => {
+                                file_meta.insert(name, AttrValue::default_image());
+                            }
                         }
                     }
 
@@ -138,7 +132,7 @@ pub async fn read_file_by_path(
                                 FileReadMode::FullFile => Some(fmc.1),
                             },
                             modified: Some(file_modified),
-                            attrs: hm,
+                            attrs: file_meta,
                             ..Default::default()
                         },
                         parsing_error: None,

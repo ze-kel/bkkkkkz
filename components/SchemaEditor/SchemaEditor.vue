@@ -69,7 +69,7 @@
               <template v-if="schema.items.length > 0" v-for="item in schema.items"
                 >{{ item.name }}{{ ' ' }}
               </template>
-              <template v-else>No items</template>
+              <template v-else>This schema is empty and will not appear in the app</template>
             </div>
           </ShButton>
         </div>

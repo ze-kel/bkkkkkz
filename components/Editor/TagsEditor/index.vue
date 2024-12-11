@@ -26,7 +26,7 @@
 <script lang="ts" setup>
 import { nextTick, ref } from 'vue';
 import { PlusIcon } from 'lucide-vue-next';
-import ContentEditable from '~/components/_ui/ContentEditable.vue';
+import ContentEditable from '~/components/_UI/ContentEditable.vue';
 
 const classes = [
   'text-foreground inline-flex h-6 items-center rounded-md px-2.5 py-0.5 text-xs font-semibold transition-all',

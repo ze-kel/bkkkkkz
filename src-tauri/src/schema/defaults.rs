@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
-use crate::schema::types::{EmptySettings, NumberSettings, TextSettings};
+use crate::schema::types::{EmptySettings, NumberSettings, TextCollectionSettings, TextSettings};
 
 use super::types::{
     InputSize, NumberStyle, SchemaAttrKey, SchemaItem, SchemaItems, TextFont, TextTheme, TextWeight,
@@ -52,7 +52,10 @@ pub fn default_book_schema() -> SchemaItems {
         },
         SchemaItem {
             name: "tags".to_owned(),
-            value: SchemaAttrKey::TextCollection(EmptySettings {}),
+            value: SchemaAttrKey::TextCollection(TextCollectionSettings {
+                prefix: Some("#".to_owned()),
+                ..TextCollectionSettings::default()
+            }),
         },
         SchemaItem {
             name: "cover".to_owned(),
@@ -110,7 +113,10 @@ pub fn default_movie_schema() -> SchemaItems {
         },
         SchemaItem {
             name: "tags".to_owned(),
-            value: SchemaAttrKey::TextCollection(EmptySettings {}),
+            value: SchemaAttrKey::TextCollection(TextCollectionSettings {
+                prefix: Some("#".to_owned()),
+                ..TextCollectionSettings::default()
+            }),
         },
         SchemaItem {
             name: "poster".to_owned(),
@@ -141,8 +147,8 @@ pub fn get_default_schemas() -> Vec<DefaultSchema> {
         },
         DefaultSchema {
             name: "Movies".to_owned(),
-            description: "Default schema for books, inspired by Letterboxd".to_owned(),
+            description: "Default schema for movies, inspired by Letterboxd".to_owned(),
             schema_items: default_movie_schema(),
         },
-    ]
+    ] 
 }

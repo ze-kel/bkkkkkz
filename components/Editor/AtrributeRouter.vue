@@ -1,13 +1,15 @@
 <template>
-  <template v-if="!attr"> Error: {{ schemaItem.name }} has no value </template>
+  <template v-if="!attr">
+    Error: {{ schemaItem.name }} has no value. This is not threatening, but you should file a
+    bugreport.
+  </template>
   <template v-else-if="schemaItem.value.type !== attr.type">
     Error: {{ schemaItem.name }} schema type {{ schemaItem.value.type }} does not match book item
     type type
-    {{ attr.type }}
   </template>
 
   <template v-else>
-    <UiBasicInput
+    <UIBasicInput
       v-if="schemaItem.value.type === 'Text' && attr.type === 'Text'"
       v-model:model-value="attr.value"
       :placeholder="schemaItem.value.settings.displayName || schemaItem.name"

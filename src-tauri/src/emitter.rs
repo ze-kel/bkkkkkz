@@ -26,11 +26,11 @@ pub fn emit_event(data: IPCEmitEvent) {
     let handle = app.app_handle();
 
     match data {
-        IPCEmitEvent::FileRemove(v) => handle.emit("file_remove", v).unwrap(),
-        IPCEmitEvent::FileAdd(v) => handle.emit("file_add", v).unwrap(),
-        IPCEmitEvent::FileUpdate(v) => handle.emit("file_update", v).unwrap(),
-        IPCEmitEvent::FolderRemove(v) => handle.emit("folder_remove", v).unwrap(),
-        IPCEmitEvent::FolderAdd(v) => handle.emit("folder_add", v).unwrap(),
-        IPCEmitEvent::ErrorHappened(v) => handle.emit("error_happened", v).unwrap(),
+        IPCEmitEvent::FileRemove(v) => handle.emit("FileRemove", v).unwrap(),
+        IPCEmitEvent::FileAdd(v) => handle.emit("FileAdd", v).unwrap(),
+        IPCEmitEvent::FileUpdate(v) => handle.emit("FileUpdate", v).unwrap(),
+        IPCEmitEvent::FolderRemove(v) => handle.emit("FolderRemove", v).unwrap(),
+        IPCEmitEvent::FolderAdd(v) => handle.emit("FolderAdd", v).unwrap(),
+        IPCEmitEvent::ErrorHappened(v) => handle.emit("ErrorHappened", v).unwrap(),
     };
 }

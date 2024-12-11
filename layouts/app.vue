@@ -21,13 +21,8 @@
             size="icon"
             @click="currentSchema = schema"
           >
-            <component
-              v-if="schema.icon && icons[schema.icon as keyof typeof icons]"
-              :is="icons[schema.icon as keyof typeof icons]"
-              :size="24"
-              color="#fff"
-            />
-            <template v-else>
+            <UIDynamicIcon :name="schema.icon" />
+            <template>
               {{ schema.name[0].toUpperCase() }}
             </template>
           </ShButton>
@@ -55,7 +50,7 @@
     </div>
 
     <!-- Core view -->
-    <div class="flex h-[calc(100%_-_40px)] max-h-full w-full overflow-hidden">
+    <div class="flex h-[calc(100%_-_2.5rem)] max-h-full w-full overflow-hidden">
       <div class="flex h-full w-full flex-col">
         <slot />
       </div>
@@ -64,24 +59,13 @@
 </template>
 
 <script setup lang="ts">
-import { c_get_schemas } from '~/api/tauriActions';
 import TagsTree from '~/components/FileTree/TagsTree.vue';
 import TabsSelector from '~/components/ViewCore/TabsSelector.vue';
-import * as icons from 'lucide-vue-next';
-import { size } from 'lodash';
 import type { Schema } from '~/types';
 
 const store = useStore();
 
-const {
-  data: schemas,
-  error,
-  isLoading,
-} = useQuery({
-  key: ['schemas', 'get'],
-  query: c_get_schemas,
-  refetchOnWindowFocus: false,
-});
+const { data: schemas, error } = useUsableSchemas();
 
 watch(error, (err) => {
   if (err) {

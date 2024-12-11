@@ -28,6 +28,9 @@
     </div>
     <div class="flex w-full flex-col gap-2">
       <template v-if="item.value.type === 'Text'">
+        <h5>Display Name</h5>
+        <UIBasicInput v-model="item.value.settings.displayName" />
+
         <h5>Font</h5>
         <ShSelect v-model:model-value="item.value.settings.font" class="w-full">
           <ShSelectTrigger class="w-full">
@@ -70,11 +73,71 @@
       </template>
 
       <template v-else-if="item.value.type === 'Number'">
-        {{ item.value.settings }}
+        <h5>Display Name</h5>
+        <UIBasicInput v-model="item.value.settings.displayName" />
+
         <h5>Min value</h5>
-        <UiBasicInput v-model:number="item.value.settings.min" isNumber />
+        <UIBasicInput v-model:number="item.value.settings.min" isNumber />
         <h5>Max value</h5>
-        <UiBasicInput v-model:number="item.value.settings.max" isNumber />
+        <UIBasicInput v-model:number="item.value.settings.max" isNumber />
+
+        <h5>Style</h5>
+        <ShSelect v-model:model-value="item.value.settings.style" class="w-full">
+          <ShSelectTrigger class="w-full">
+            {{ item.value.settings.style || 'Default' }}
+          </ShSelectTrigger>
+          <ShSelectContent>
+            <ShSelectItem value="Default">Default</ShSelectItem>
+            <ShSelectItem value="Stars">Stars</ShSelectItem>
+            <ShSelectItem value="Slider">Slider</ShSelectItem>
+          </ShSelectContent>
+        </ShSelect>
+
+        <h5>Decimal places</h5>
+        <UIBasicInput v-model:number="item.value.settings.decimalPlaces" isNumber min="0" />
+      </template>
+
+      <template v-else-if="item.value.type === 'TextCollection'">
+        <h5>Display Name</h5>
+        <UIBasicInput v-model="item.value.settings.displayName" />
+
+        <h5>Size</h5>
+        <ShSelect v-model:model-value="item.value.settings.size" class="w-full">
+          <ShSelectTrigger class="w-full">
+            {{ item.value.settings.size || 'Default' }}
+          </ShSelectTrigger>
+          <ShSelectContent>
+            <ShSelectItem value="S">S</ShSelectItem>
+            <ShSelectItem value="M">M</ShSelectItem>
+            <ShSelectItem value="L">L</ShSelectItem>
+          </ShSelectContent>
+        </ShSelect>
+
+        <h5>Font</h5>
+        <ShSelect v-model:model-value="item.value.settings.font" class="w-full">
+          <ShSelectTrigger class="w-full">
+            {{ item.value.settings?.font || 'Default' }}
+          </ShSelectTrigger>
+          <ShSelectContent>
+            <ShSelectItem value="Serif">Serif</ShSelectItem>
+            <ShSelectItem value="Sans">Sans</ShSelectItem>
+          </ShSelectContent>
+        </ShSelect>
+
+        <h5>Weight</h5>
+        <ShSelect v-model:model-value="item.value.settings.weight" class="w-full">
+          <ShSelectTrigger class="w-full">
+            {{ item.value.settings.weight || 'Default' }}
+          </ShSelectTrigger>
+          <ShSelectContent>
+            <ShSelectItem value="Light">Light</ShSelectItem>
+            <ShSelectItem value="Normal">Normal</ShSelectItem>
+            <ShSelectItem value="Bold">Bold</ShSelectItem>
+          </ShSelectContent>
+        </ShSelect>
+
+        <h5>Prefix</h5>
+        <UIBasicInput v-model="item.value.settings.prefix" />
       </template>
     </div>
   </div>

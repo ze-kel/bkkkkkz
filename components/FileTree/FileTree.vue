@@ -4,7 +4,6 @@
 
 <script lang="ts" setup>
 import FileTreeInner from './FileTreeInner.vue';
-import { useStore } from '~~/utils/store';
 import { filePathsToTree } from './filePathsToTree';
 import { useListenToEvent } from '~/api/tauriEvents';
 import { throttle } from 'lodash';
@@ -28,13 +27,14 @@ const throttledRefresh = throttle(refetch, 1000, {
   leading: true,
 });
 
-useListenToEvent('folder_add', (v) => {
-  if (v.schema_path === props.schemaPath) {
+useListenToEvent('FolderAdd', (v) => {
+  console.log('FolderAdd', v);
+  if (v.schemaPath === props.schemaPath) {
     throttledRefresh();
   }
 });
-useListenToEvent('folder_remove', (v) => {
-  if (v.schema_path === props.schemaPath) {
+useListenToEvent('FolderRemove', (v) => {
+  if (v.schemaPath === props.schemaPath) {
     throttledRefresh();
   }
 });
