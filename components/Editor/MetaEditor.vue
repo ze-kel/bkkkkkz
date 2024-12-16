@@ -11,7 +11,7 @@
   </div>
 
   <div ref="forDrag" class="absolute top-[-500px]">
-    <UiDragDisplay> dragging </UiDragDisplay>
+    <UIDragDisplay> dragging </UIDragDisplay>
   </div>
 </template>
 

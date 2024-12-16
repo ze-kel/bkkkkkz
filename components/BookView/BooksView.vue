@@ -1,9 +1,41 @@
 <template>
-  <div v-bind="containerProps" class="gutter-stable relative h-full w-full px-2 pr-4">
-    <div v-bind="wrapperProps">
-      <ViewControls class="sticky top-0 z-10 bg-neutral-50 pt-2 dark:bg-neutral-950" />
+  <div class="gutter-stable relative h-full w-full px-2 pr-4">
+    <div v-if="books.length === 0 && !loading">
+      <EmptyBooksPlaceholder class="mt-40" />
+    </div>
 
-      <EmptyBooksPlaceholder v-if="books.length === 0 && !loading" class="mt-40" />
+    <div v-else>
+      <div>
+        <DropdownMenu>
+          <DropdownMenuTrigger>
+            <ShButton variant="outline"><EllipsisVertical :size="16" /></ShButton>
+          </DropdownMenuTrigger>
+
+          <DropdownMenuContent>
+            <DropdownMenuCheckboxItem
+              v-for="item in data?.schema.items"
+              v-model:checked="visibleNames[item.name]"
+              @select.prevent
+            >
+              {{ item.name }}
+            </DropdownMenuCheckboxItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+
+      <div class="group mb-4 flex h-8 w-full flex-row gap-2 px-4">
+        <ResizablePanelGroup @layout="(v) => (resval = v)" direction="horizontal">
+          <template v-for="(column, index) in visibleSchemaItems" :key="column.name">
+            <ResizableHandle
+              v-if="index > 0"
+              class="mx-3 box-border w-[0.075rem] rounded-full opacity-0 transition-opacity group-hover:opacity-100"
+            />
+            <ResizablePanel class="flex items-center font-bold" :min-size="5">
+              {{ column.name }}
+            </ResizablePanel>
+          </template>
+        </ResizablePanelGroup>
+      </div>
 
       <div
         v-for="file in books"
@@ -12,9 +44,14 @@
       >
         <BookViewBookContextMenu :path="file.path || 'a'">
           <template v-if="file.path">
-            <div class="flex flex-row gap-2 p-4">
-              <div v-for="column in visibleColumns" :key="column" class="w-full">
-                {{ file.attrs[column]?.value || ' ' }}
+            <div class="flex flex-row gap-[1.575rem] p-4">
+              <div
+                v-for="(column, index) in visibleSchemaItems"
+                :key="column.name"
+                class="w-full truncate"
+                :style="{ width: `${resval[index]}%` }"
+              >
+                <BookViewBookItemDisplay :schema-item="column" :book="file" />
               </div>
             </div>
           </template>
@@ -29,20 +66,32 @@
 import { debounce as _debounce } from 'lodash';
 import { cloneDeep as _cloneDeep } from 'lodash';
 
-import ViewControls from './ViewControls.vue';
-
 import type { PropType } from 'vue';
-import type { IOpenedPath, IOpenedTag } from '~/api/openedTabs';
+import type { IOpenedPath } from '~/api/openedTabs';
 import EmptyBooksPlaceholder from '~/components/Placeholders/EmptyBooksPlaceholder.vue';
 import { useFilesList } from './useFileList';
-import { useVirtualizer } from '@tanstack/vue-virtual';
 import { useVirtualList } from '@vueuse/core';
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from '~/components/_shadcn/dropdown-menu';
+import { EllipsisVertical } from 'lucide-vue-next';
+
+import {
+  ResizablePanelGroup,
+  ResizablePanel,
+  ResizableHandle,
+} from '~/components/_shadcn/resizable';
 
 const store = useStore();
 
+const resval = ref([] as number[]);
+
 const props = defineProps({
   opened: {
-    type: Object as PropType<IOpenedPath | IOpenedTag>,
+    type: Object as PropType<IOpenedPath>,
     required: true,
   },
   index: {
@@ -55,7 +104,22 @@ const { data, loading } = useFilesList(props.opened, () => setScrollPositionFrom
 
 const books = computed(() => data.value?.books || []);
 
-const visibleColumns = ['title', 'author', 'year', 'myRating', 'ISBN13'];
+type IVisibleNames = Record<string, boolean>;
+const visibleNames = ref<IVisibleNames>({});
+
+watch(data, (v) => {
+  if (!v) return;
+  visibleNames.value = v.schema.items.reduce((acc, val) => {
+    if (Object.keys(acc).length < 5) {
+      acc[val.name] = true;
+    }
+    return acc;
+  }, {} as IVisibleNames);
+});
+
+const visibleSchemaItems = computed(() =>
+  data.value?.schema.items.filter((v) => visibleNames.value[v.name]),
+);
 
 //
 // Search

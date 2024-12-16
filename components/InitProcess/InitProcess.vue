@@ -80,7 +80,7 @@ const initMutation = useMutation({
   onSuccess: async () => {
     await store.fetchRootPath();
     if (typeof store.rootPath !== 'string') {
-      await navigateTo('/welcome');
+      await navigateTo('/welcome', { replace: true });
       running.value = false;
       return;
     }
@@ -97,7 +97,7 @@ const schemasMutation = useMutation({
   onError: stopRunning,
   onSuccess: async (schemas) => {
     if (Object.keys(schemas).length < 1) {
-      await navigateTo('/schemas');
+      await navigateTo('/schemas', { replace: true });
       running.value = false;
       return;
     }
@@ -117,7 +117,7 @@ const watcherMutation = useMutation({
   mutation: c_watch_path,
   onError: stopRunning,
   onSuccess: async () => {
-    await navigateTo('/application');
+    await navigateTo('/application', { replace: true });
   },
 });
 

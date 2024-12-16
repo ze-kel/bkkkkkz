@@ -13,7 +13,7 @@
 <script setup lang="ts">
 import { debounce as _debounce } from 'lodash';
 
-import { useStore } from '~~/utils/store';
+import { useStore } from '~/utils/store';
 import BookEditor from '~/components/Editor/BookEditor.vue';
 import TableView from '~/components/BookView/BooksView.vue';
 

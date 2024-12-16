@@ -42,16 +42,10 @@ import { c_load_schema, c_save_schema, returnErrorHandler } from '~/api/tauriAct
 
 import type { ErrorFromRust, Schema } from '~/types';
 
-const props = defineProps<{
-  path: string;
-}>();
-
-const emit = defineEmits<{
-  (e: 'back'): void;
-}>();
+const route = useRoute();
 
 const goBack = () => {
-  emit('back');
+  history.back();
 };
 
 const save = async () => {
@@ -68,13 +62,13 @@ const schema = ref<Schema | null>(null);
 
 onMounted(async () => {
   try {
-    const res = await c_load_schema(props.path);
+    const res = await c_load_schema(route.params.path as string);
     schema.value = res;
   } catch (e) {
     if (isOurError(e)) {
       rustErrorNotification(e as ErrorFromRust);
     }
-    emit('back');
+    navigateTo('/schemas', { replace: true });
   }
 });
 

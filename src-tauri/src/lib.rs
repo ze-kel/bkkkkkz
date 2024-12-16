@@ -13,7 +13,7 @@ use cache::{
     tables::create_db_tables_for_all_schemas,
     write::cache_files_and_folders,
 };
-use files::{read_file_by_path, save_file, FileReadMode};
+use files::io::{read_file_by_path, save_file, BookReadResult, BookSaveResult, FileReadMode};
 use schema::{
     defaults::get_default_schemas,
     operations::{
@@ -42,12 +42,12 @@ type IPCWatchPath = Result<bool, ErrorFromRust>;
 type IPCGetFilesPath = Result<BookListGetResult, ErrorFromRust>;
 type IPCGetAllTags = Result<Vec<String>, ErrorFromRust>;
 type IPCGetAllFolders = Result<Vec<String>, ErrorFromRust>;
-type IPCReadFileByPath = Result<files::BookReadResult, ErrorFromRust>;
+type IPCReadFileByPath = Result<BookReadResult, ErrorFromRust>;
 type IPCLoadSchemas = Result<SchemaLoadList, ErrorFromRust>;
 type IPCGetSchemas = Result<Vec<Schema>, ErrorFromRust>;
 type IPCLoadSchema = Result<Schema, ErrorFromRust>;
 type IPCSaveSchema = Result<Schema, ErrorFromRust>;
-type IPCSaveFile = Result<files::BookSaveResult, ErrorFromRust>;
+type IPCSaveFile = Result<BookSaveResult, ErrorFromRust>;
 type IPCGetDefaultSchemas = Result<Vec<DefaultSchema>, ErrorFromRust>;
 
 #[derive(TS)]

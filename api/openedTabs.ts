@@ -45,17 +45,6 @@ export const zOpenedPath = z.object({
 
 export type IOpenedPath = z.infer<typeof zOpenedPath>;
 
-export const zOpenedTag = z.object({
-  id: z.string(),
-  type: z.literal('tag'),
-  // Tag Name
-  thing: z.string(),
-  settings: zViewSettings,
-  scrollPosition: z.number(),
-});
-
-export type IOpenedTag = z.infer<typeof zOpenedTag>;
-
 export const zOpenedFile = z.object({
   id: z.string(),
   type: z.literal('file'),
@@ -79,7 +68,6 @@ export const zOpened = z.discriminatedUnion('type', [
   zOpenedFile,
   zOpenedInnerPage,
   zOpenedPath,
-  zOpenedTag,
 ]);
 
 export type IOpened = z.infer<typeof zOpened>;

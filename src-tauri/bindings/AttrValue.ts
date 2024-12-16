@@ -2,10 +2,13 @@
 import type { DateRead } from './DateRead';
 
 export type AttrValue =
-  | { type: 'Text'; value: string }
-  | { type: 'TextCollection'; value: Array<string> }
-  | { type: 'DatesPairCollection'; value: Array<DateRead> }
-  | { type: 'Number'; value: number }
-  | { type: 'Date'; value: string }
-  | { type: 'DateCollection'; value: Array<string> }
-  | { type: 'Image'; value: string };
+  | string
+  | null
+  | Array<string>
+  | null
+  | Array<DateRead>
+  | null
+  | bigint
+  | null
+  | number
+  | null;

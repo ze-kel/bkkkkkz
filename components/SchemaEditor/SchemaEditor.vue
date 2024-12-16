@@ -1,10 +1,7 @@
 <template>
-  <SchemaEditorSchemaFields
-    v-if="editingSchemaPath"
-    :path="editingSchemaPath"
-    @back="editingSchemaPath = null"
-  />
-  <div v-else class="mx-auto max-w-[600px]">
+  <div class="px-4 pb-4"></div>
+
+  <div class="mx-auto max-w-[600px]">
     <div class="flex flex-row items-center justify-between">
       <h1 class="font-serif text-3xl">Collections</h1>
       <ShDialog>
@@ -59,24 +56,34 @@
         >
           <ShButton
             v-if="schema"
+            as-child
             class="flex h-fit cursor-pointer flex-col gap-2 rounded-none border px-4 py-2"
-            @click="editingSchemaPath = schema.internal_path"
           >
-            <div class="text-lg">
-              {{ schema.name }}
-            </div>
-            <div class="font-mono text-xs opacity-70">
-              <template v-if="schema.items.length > 0" v-for="item in schema.items"
-                >{{ item.name }}{{ ' ' }}
-              </template>
-              <template v-else>This schema is empty and will not appear in the app</template>
-            </div>
+            <NuxtLink :to="{ name: 'schemas-path', params: { path: schema.internal_path } }">
+              <div class="text-lg">
+                {{ schema.name }}
+              </div>
+              <div class="font-mono text-xs opacity-70">
+                <template v-if="schema.items.length > 0" v-for="item in schema.items"
+                  >{{ item.name }}{{ ' ' }}
+                </template>
+                <template v-else>This schema is empty and will not appear in the app</template>
+              </div>
+            </NuxtLink>
           </ShButton>
         </div>
       </template>
       <div v-else>
         <h2>You do not have any schemas yet</h2>
       </div>
+      <ShButton
+        :disabled="Object.keys(schemas.schemas).length == 0"
+        class="mt-4 w-full"
+        variant="outline"
+      >
+        <NuxtLink to="/"> Save and exit </NuxtLink>
+      </ShButton>
+
       <ShCollapsible v-if="schemas?.error?.subErrors?.length" class="mt-8 flex flex-col gap-3">
         <div class="flex items-center justify-between">
           <h2 class="font-serif text-xl">

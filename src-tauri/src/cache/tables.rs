@@ -2,7 +2,7 @@ use ts_rs::TS;
 
 use crate::schema::{
     operations::get_all_schemas_cached,
-    types::{Schema, SchemaAttrKey},
+    types::{Schema, SchemaAttrType},
 };
 
 use super::dbconn::get_db_conn;
@@ -50,13 +50,13 @@ pub async fn create_db_tables_for_schema(schema: Schema) -> Result<(), sqlx::Err
         let columm_name = schema_i.name.clone();
         let table_name = format!("{}{}", table_prefix, columm_name);
         match schema_i.value {
-            SchemaAttrKey::Text(_) | SchemaAttrKey::Date(_) | SchemaAttrKey::Image(_) => {
+            SchemaAttrType::Text(_) | SchemaAttrType::Date(_) | SchemaAttrType::Image(_) => {
                 columns.push(format!("{} TEXT", columm_name));
             }
-            SchemaAttrKey::Number(_) => {
+            SchemaAttrType::Number(_) => {
                 columns.push(format!("{} REAL", columm_name));
             }
-            SchemaAttrKey::TextCollection(_) | SchemaAttrKey::DateCollection(_) => {
+            SchemaAttrType::TextCollection(_) | SchemaAttrType::DateCollection(_) => {
                 side_tables.push(format!(
                     "CREATE TABLE {} 
                     (id INTEGER PRIMARY KEY, ind INTEGER, path TEXT, value TEXT, 
@@ -66,7 +66,7 @@ pub async fn create_db_tables_for_schema(schema: Schema) -> Result<(), sqlx::Err
                 ));
                 side_tables_names.push(table_name);
             }
-            SchemaAttrKey::DatesPairCollection(_) => {
+            SchemaAttrType::DatesPairCollection(_) => {
                 side_tables.push(format!(
                     "CREATE TABLE {} 
                     (id INTEGER PRIMARY KEY, ind INTEGER, path TEXT, started TEXT, finished TEXT,

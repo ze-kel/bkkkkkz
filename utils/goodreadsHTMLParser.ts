@@ -1,6 +1,6 @@
 import { format, parse, isValid } from 'date-fns';
-import type { IDateRead } from '~/api/books';
-import { createFolder, saveNewFiles, type IUnsavedFile } from '~/api/files';
+import { mkdir, remove, rename } from '@tauri-apps/plugin-fs';
+import type { DateRead } from '~/types';
 import { useStore } from '~~/utils/store';
 
 const grabSimpleValue = (rootElement: Element, name: string) => {
@@ -29,7 +29,7 @@ const parseDate = (stringToParse: string, possibleFormats: string[]): Date | und
   }
 };
 
-const getDates = (rootElement: Element, dateFormat: string): IDateRead[] => {
+const getDates = (rootElement: Element, dateFormat: string): DateRead[] => {
   // Date started and date finished are separate in a table, each date is marked with a class
   // like date_started_amzn1grreading_sessionv141zd03da758c4d922gx543baa13a0a0 to identify pairs
   const hashes = new Set();
@@ -39,13 +39,13 @@ const getDates = (rootElement: Element, dateFormat: string): IDateRead[] => {
     hashes.add(classes[1].replace('date_started', '').replace('date_read', ''));
   }
 
-  const result: IDateRead[] = [];
+  const result: DateRead[] = [];
 
   // No idea why but the seccond format appeared in my export, even though the date is seen on the web
   const possibleFormats = ['MMM dd, y', 'MMM yyyy'];
 
   for (const hash of hashes) {
-    const date: IDateRead = {};
+    const date: DateRead = {};
 
     const startedEl = rootElement.getElementsByClassName('date_started' + hash);
     if (startedEl.length) {
@@ -80,21 +80,26 @@ const getYear = (rootElement: Element) => {
   if (date) return date.getFullYear();
 };
 
-const parseBook = (rootElement: Element, dateFormat: string): IUnsavedFile => {
-  const book: IUnsavedFile = { unsaved: true };
+type GoodreadsParsedBook = {
+  title: string;
+  author: string;
+  isbn13: number;
+  year?: number;
+  rating: number;
+  read: DateRead[];
+};
 
-  book.title = grabSimpleValue(rootElement, 'title');
-  book.author = grabSimpleValue(rootElement, 'author');
-  book.isbn13 = Number(grabSimpleValue(rootElement, 'isbn13'));
+const parseBook = (rootElement: Element, dateFormat: string): GoodreadsParsedBook => {
+  const book: GoodreadsParsedBook = {
+    title: grabSimpleValue(rootElement, 'title'),
+    author: grabSimpleValue(rootElement, 'author'),
+    isbn13: Number(grabSimpleValue(rootElement, 'isbn13')),
+    year: getYear(rootElement),
+    rating: rootElement.getElementsByClassName('field rating')[0].getElementsByClassName('star on')
+      .length,
+    read: getDates(rootElement, dateFormat),
+  };
 
-  const year = getYear(rootElement);
-  if (year) book.year = year;
-
-  book.myRating = rootElement
-    .getElementsByClassName('field rating')[0]
-    .getElementsByClassName('star on').length;
-
-  book.read = getDates(rootElement, dateFormat);
   return book;
 };
 
@@ -117,7 +122,7 @@ export const importGoodReadsHTML = (event: Event) => {
       const books = html.getElementById('booksBody')?.children;
       if (!books) return;
 
-      const result: IUnsavedFile[] = [];
+      const result: GoodreadsParsedBook[] = [];
 
       if (!store.settings || !store.rootPath) return;
 
@@ -125,12 +130,7 @@ export const importGoodReadsHTML = (event: Event) => {
         result.push(parseBook(book, store.settings?.dateFormat));
       }
 
-      const path = await createFolder({
-        pathForFolder: store.rootPath,
-        name: `Goodreads Import ${format(new Date(), 'MM-dd HH-mm-ss')}`,
-      });
-
-      await saveNewFiles({ basePath: path, files: result });
+      // write result somewhere
     }
   };
 };

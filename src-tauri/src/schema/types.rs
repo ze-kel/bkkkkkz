@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 use ts_rs::TS;
 
-#[derive(Serialize, Deserialize, Clone, Hash, Debug, TS)]
+#[derive(Serialize, Deserialize, Clone, Hash, Debug, PartialEq, TS)]
 #[ts(export)]
 pub struct DateRead {
     #[ts(optional)]
@@ -11,52 +11,24 @@ pub struct DateRead {
     pub finished: Option<String>,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize, TS)]
+/*
+    AttrValue represents types that can be found in frontmatter.
+    They MUST be uniquely identifiable by type inside.
+*/
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, TS)]
 #[ts(export)]
-#[serde(tag = "type", content = "value")]
+#[serde(untagged)]
 pub enum AttrValue {
-    Text(String),
-    TextCollection(Vec<String>),
-    DatesPairCollection(Vec<DateRead>),
-    Number(f64),
-    Date(String),
-    DateCollection(Vec<String>),
-    Image(String),
-}
-
-impl AttrValue {
-    pub fn default_text() -> Self {
-        AttrValue::Text(String::default())
-    }
-
-    pub fn default_text_collection() -> Self {
-        AttrValue::TextCollection(Vec::default())
-    }
-
-    pub fn default_dates_pair_collection() -> Self {
-        AttrValue::DatesPairCollection(Vec::default())
-    }
-
-    pub fn default_number() -> Self {
-        AttrValue::Number(0.0)
-    }
-
-    pub fn default_date() -> Self {
-        AttrValue::Date(String::default())
-    }
-
-    pub fn default_date_collection() -> Self {
-        AttrValue::DateCollection(Vec::default())
-    }
-
-    pub fn default_image() -> Self {
-        AttrValue::Image(String::default())
-    }
+    String(Option<String>),
+    StringVec(Option<Vec<String>>),
+    DateReadVec(Option<Vec<DateRead>>),
+    Integer(Option<i64>),
+    Float(Option<f64>),
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, TS)]
 #[serde(tag = "type", content = "settings")]
-pub enum SchemaAttrKey {
+pub enum SchemaAttrType {
     Text(TextSettings),
     TextCollection(TextCollectionSettings),
     Number(NumberSettings),
@@ -267,7 +239,7 @@ pub enum NumberStyle {
 #[ts(export)]
 pub struct SchemaItem {
     pub name: String,
-    pub value: SchemaAttrKey,
+    pub value: SchemaAttrType,
 }
 
 pub type SchemaItems = Vec<SchemaItem>;

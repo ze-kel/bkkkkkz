@@ -5,7 +5,7 @@ use std::collections::HashMap;
 use ts_rs::TS;
 
 use crate::schema::operations::get_schema_cached_safe;
-use crate::schema::types::{AttrValue, DateRead, Schema, SchemaAttrKey};
+use crate::schema::types::{AttrValue, DateRead, Schema, SchemaAttrType};
 use crate::utils::errorhandling::ErrorFromRust;
 
 use super::dbconn::get_db_conn;
@@ -50,7 +50,7 @@ pub async fn get_files_abstact(
         let columm_name = schema_i.name.to_owned();
         let table_name = format!("{}{}", table_prefix, columm_name);
         match schema_i.value {
-            SchemaAttrKey::TextCollection(_) | SchemaAttrKey::DateCollection(_) => {
+            SchemaAttrType::TextCollection(_) | SchemaAttrType::DateCollection(_) => {
                 selects.push(columm_name.clone());
                 joins.push(format!(
                     "LEFT JOIN
@@ -67,7 +67,7 @@ pub async fn get_files_abstact(
                     columm_name
                 ));
             }
-            SchemaAttrKey::DatesPairCollection(_) => {
+            SchemaAttrType::DatesPairCollection(_) => {
                 selects.push(columm_name.clone());
                 joins.push(format!(
                     "LEFT JOIN 
@@ -86,10 +86,10 @@ pub async fn get_files_abstact(
                     columm_name,
                 ));
             }
-            SchemaAttrKey::Text(_)
-            | SchemaAttrKey::Number(_)
-            | SchemaAttrKey::Image(_)
-            | SchemaAttrKey::Date(_) => selects.push(columm_name),
+            SchemaAttrType::Text(_)
+            | SchemaAttrType::Number(_)
+            | SchemaAttrType::Image(_)
+            | SchemaAttrType::Date(_) => selects.push(columm_name),
         }
     }
 
@@ -112,47 +112,39 @@ pub async fn get_files_abstact(
 
             for schema_i in schema.items.clone().iter() {
                 let name = schema_i.name.to_owned();
-                match schema_i.value {
-                    SchemaAttrKey::Text(_) => {
+                match &schema_i.value {
+                    SchemaAttrType::Text(_)
+                    | SchemaAttrType::Date(_)
+                    | SchemaAttrType::Image(_) => {
                         let v = row.get(&*name);
-                        hm.insert(name, AttrValue::Text(v));
-                    }
-                    SchemaAttrKey::Date(_) => {
-                        let v = row.get(&*name);
-                        hm.insert(name, AttrValue::Date(v));
-                    }
-                    SchemaAttrKey::Image(_) => {
-                        let v = row.get(&*name);
-                        hm.insert(name, AttrValue::Image(v));
+                        hm.insert(name, AttrValue::String(v));
                     }
 
-                    SchemaAttrKey::Number(_) => {
-                        let v = row.get(&*name);
-                        hm.insert(name, AttrValue::Number(v));
+                    SchemaAttrType::Number(number_settings) => {
+                        let v: f64 = row.get(&*name);
+                        if number_settings.decimal_places.is_some()
+                            && number_settings.decimal_places.unwrap() > 0
+                        {
+                            hm.insert(name, AttrValue::Float(Some(v)));
+                        } else {
+                            hm.insert(name, AttrValue::Integer(Some(v as i64)));
+                        }
                     }
-                    SchemaAttrKey::TextCollection(_) => {
+
+                    SchemaAttrType::DateCollection(_) | SchemaAttrType::TextCollection(_) => {
                         let v: String = row.get(&*name);
                         hm.insert(
                             name,
-                            AttrValue::TextCollection(
+                            AttrValue::StringVec(Some(
                                 v.split(",").map(|s| s.to_string()).collect(),
-                            ),
+                            )),
                         );
                     }
-                    SchemaAttrKey::DateCollection(_) => {
+                    SchemaAttrType::DatesPairCollection(_) => {
                         let v: String = row.get(&*name);
                         hm.insert(
                             name,
-                            AttrValue::DateCollection(
-                                v.split(",").map(|s| s.to_string()).collect(),
-                            ),
-                        );
-                    }
-                    SchemaAttrKey::DatesPairCollection(_) => {
-                        let v: String = row.get(&*name);
-                        hm.insert(
-                            name,
-                            AttrValue::DatesPairCollection(
+                            AttrValue::DateReadVec(Some(
                                 v.split(',')
                                     .map(|dd| {
                                         let mut parts = dd.split('|');
@@ -168,7 +160,7 @@ pub async fn get_files_abstact(
                                         }
                                     })
                                     .collect(),
-                            ),
+                            )),
                         );
                     }
                 }

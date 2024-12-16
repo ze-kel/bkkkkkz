@@ -1,7 +1,7 @@
 import { debounce as _debounce, throttle } from 'lodash';
 import { cloneDeep as _cloneDeep } from 'lodash';
 
-import type { IOpenedPath, IOpenedTag } from '~/api/openedTabs';
+import type { IOpenedPath } from '~/api/openedTabs';
 
 import { rustErrorNotification, useListenToEvent } from '~/api/tauriEvents';
 import { useThrottledEvents } from '~/utils/useTrottledEvents';
@@ -9,10 +9,7 @@ import path from 'path-browserify';
 import { c_get_files_path, returnErrorHandler } from '~/api/tauriActions';
 import type { BookFromDb } from '~/types';
 
-export const useFilesList = (
-  opened: IOpenedPath | IOpenedTag,
-  onLoaded?: () => void | Promise<void>,
-) => {
+export const useFilesList = (opened: IOpenedPath, onLoaded?: () => void | Promise<void>) => {
   const data = ref<Awaited<ReturnType<typeof c_get_files_path>> | null>(null);
 
   const loading = ref(true);

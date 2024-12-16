@@ -4,14 +4,15 @@ use ts_rs::TS;
 use crate::schema::types::{EmptySettings, NumberSettings, TextCollectionSettings, TextSettings};
 
 use super::types::{
-    InputSize, NumberStyle, SchemaAttrKey, SchemaItem, SchemaItems, TextFont, TextTheme, TextWeight,
+    InputSize, NumberStyle, SchemaAttrType, SchemaItem, SchemaItems, TextFont, TextTheme,
+    TextWeight,
 };
 
 pub fn default_book_schema() -> SchemaItems {
     vec![
         SchemaItem {
             name: "title".to_owned(),
-            value: SchemaAttrKey::Text(TextSettings {
+            value: SchemaAttrType::Text(TextSettings {
                 size: Some(InputSize::L),
                 font: Some(TextFont::Serif),
                 is_multiline: Some(true),
@@ -21,7 +22,7 @@ pub fn default_book_schema() -> SchemaItems {
         },
         SchemaItem {
             name: "author".to_owned(),
-            value: SchemaAttrKey::Text(TextSettings {
+            value: SchemaAttrType::Text(TextSettings {
                 size: Some(InputSize::M),
                 weight: Some(TextWeight::Bold),
                 theme: Some(TextTheme::Hidden),
@@ -30,7 +31,7 @@ pub fn default_book_schema() -> SchemaItems {
         },
         SchemaItem {
             name: "year".to_owned(),
-            value: SchemaAttrKey::Number(NumberSettings {
+            value: SchemaAttrType::Number(NumberSettings {
                 size: Some(InputSize::S),
                 min: Some(0.0),
                 ..NumberSettings::default()
@@ -38,7 +39,7 @@ pub fn default_book_schema() -> SchemaItems {
         },
         SchemaItem {
             name: "myRating".to_owned(),
-            value: SchemaAttrKey::Number(NumberSettings {
+            value: SchemaAttrType::Number(NumberSettings {
                 min: Some(0.0),
                 max: Some(5.0),
                 decimal_places: Some(1),
@@ -48,22 +49,22 @@ pub fn default_book_schema() -> SchemaItems {
         },
         SchemaItem {
             name: "read".to_owned(),
-            value: SchemaAttrKey::DatesPairCollection(EmptySettings {}),
+            value: SchemaAttrType::DatesPairCollection(EmptySettings {}),
         },
         SchemaItem {
             name: "tags".to_owned(),
-            value: SchemaAttrKey::TextCollection(TextCollectionSettings {
+            value: SchemaAttrType::TextCollection(TextCollectionSettings {
                 prefix: Some("#".to_owned()),
                 ..TextCollectionSettings::default()
             }),
         },
         SchemaItem {
             name: "cover".to_owned(),
-            value: SchemaAttrKey::Image(EmptySettings {}),
+            value: SchemaAttrType::Image(EmptySettings {}),
         },
         SchemaItem {
             name: "ISBN13".to_owned(),
-            value: SchemaAttrKey::Number(NumberSettings {
+            value: SchemaAttrType::Number(NumberSettings {
                 size: Some(InputSize::S),
                 min: Some(0.0),
                 ..NumberSettings::default()
@@ -76,7 +77,7 @@ pub fn default_movie_schema() -> SchemaItems {
     vec![
         SchemaItem {
             name: "title".to_owned(),
-            value: SchemaAttrKey::Text(TextSettings {
+            value: SchemaAttrType::Text(TextSettings {
                 size: Some(InputSize::L),
                 font: Some(TextFont::Serif),
                 is_multiline: Some(true),
@@ -87,7 +88,7 @@ pub fn default_movie_schema() -> SchemaItems {
         },
         SchemaItem {
             name: "director".to_owned(),
-            value: SchemaAttrKey::Text(TextSettings {
+            value: SchemaAttrType::Text(TextSettings {
                 size: Some(InputSize::M),
                 weight: Some(TextWeight::Bold),
                 theme: Some(TextTheme::Hidden),
@@ -96,11 +97,11 @@ pub fn default_movie_schema() -> SchemaItems {
         },
         SchemaItem {
             name: "premiere".to_owned(),
-            value: SchemaAttrKey::Date(EmptySettings {}),
+            value: SchemaAttrType::Date(EmptySettings {}),
         },
         SchemaItem {
             name: "myRating".to_owned(),
-            value: SchemaAttrKey::Number(NumberSettings {
+            value: SchemaAttrType::Number(NumberSettings {
                 min: Some(0.0),
                 max: Some(5.0),
                 style: Some(NumberStyle::Slider),
@@ -109,18 +110,18 @@ pub fn default_movie_schema() -> SchemaItems {
         },
         SchemaItem {
             name: "watched".to_owned(),
-            value: SchemaAttrKey::DateCollection(EmptySettings {}),
+            value: SchemaAttrType::DateCollection(EmptySettings {}),
         },
         SchemaItem {
             name: "tags".to_owned(),
-            value: SchemaAttrKey::TextCollection(TextCollectionSettings {
+            value: SchemaAttrType::TextCollection(TextCollectionSettings {
                 prefix: Some("#".to_owned()),
                 ..TextCollectionSettings::default()
             }),
         },
         SchemaItem {
             name: "poster".to_owned(),
-            value: SchemaAttrKey::Image(EmptySettings {}),
+            value: SchemaAttrType::Image(EmptySettings {}),
         },
     ]
 }
@@ -150,5 +151,5 @@ pub fn get_default_schemas() -> Vec<DefaultSchema> {
             description: "Default schema for movies, inspired by Letterboxd".to_owned(),
             schema_items: default_movie_schema(),
         },
-    ] 
+    ]
 }

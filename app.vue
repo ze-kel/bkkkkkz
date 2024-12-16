@@ -1,16 +1,18 @@
 <template>
-  <div
-    id="app"
-    class="h-screen bg-neutral-50 text-neutral-950 dark:bg-neutral-950 dark:text-neutral-50"
-  >
-    <NuxtLayout>
-      <NuxtPage />
-    </NuxtLayout>
-    <ShToaster :theme="colorMode.value === 'dark' ? 'dark' : 'light'" />
-    <ErrorModal />
+  <ShSidebarProvider>
+    <div
+      id="app"
+      class="h-full min-h-screen w-full bg-neutral-50 text-neutral-950 dark:bg-neutral-950 dark:text-neutral-50"
+    >
+      <NuxtLayout>
+        <NuxtPage />
+      </NuxtLayout>
+      <ShToaster :theme="colorMode.value === 'dark' ? 'dark' : 'light'" />
+      <ErrorModal />
 
-    <div id="customTeleport" class="absolute top-[-1000px]"></div>
-  </div>
+      <div id="customTeleport" class="absolute top-[-1000px]"></div>
+    </div>
+  </ShSidebarProvider>
 </template>
 
 <script setup lang="ts">
@@ -46,7 +48,7 @@ useHead({
   htmlAttrs: {
     class: computed(() => {
       return [
-        'overscroll-none select-none',
+        'overscroll-none overflow-hidden select-none',
         colorMode.value === 'dark'
           ? 'dark bg-gradient-to-t from-neutral-900 from-20% to-neutral-950 to-80%'
           : 'bg-gradient-to-t from-neutral-200 from-20% to-neutral-50 to-80%',

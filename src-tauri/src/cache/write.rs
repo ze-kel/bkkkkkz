@@ -2,9 +2,9 @@ use sqlx::{QueryBuilder, Sqlite};
 use std::path::Path;
 use walkdir::WalkDir;
 
-use crate::files::{read_file_by_path, FileReadMode};
+use crate::files::io::{read_file_by_path, FileReadMode};
 use crate::schema::operations::get_schema_cached_safe;
-use crate::schema::types::{SchemaAttrKey, AttrValue};
+use crate::schema::types::{AttrValue, SchemaAttrType};
 use crate::utils::errorhandling::ErrorFromRust;
 
 use super::dbconn::get_db_conn;
@@ -37,29 +37,27 @@ pub async fn insert_file(file: &BookFromDb) -> Result<(), ErrorFromRust> {
     for schema_i in files_schema.items {
         let name = schema_i.name;
         match schema_i.value {
-            SchemaAttrKey::Text(_) | SchemaAttrKey::Date(_) | SchemaAttrKey::Image(_) => {
+            SchemaAttrType::Text(_) | SchemaAttrType::Date(_) | SchemaAttrType::Image(_) => {
                 let v = match file.attrs.get(&name) {
-                    Some(AttrValue::Text(v)) => v,
-                    Some(AttrValue::Date(v)) => v,
-                    Some(AttrValue::Image(v)) => v,
+                    Some(AttrValue::String(Some(v))) => v,
                     _ => "",
                 };
                 insert_keys.push(name);
                 insert_values.push(InsertValues::Text(v.to_string()));
             }
-            SchemaAttrKey::Number(_) => {
+            SchemaAttrType::Number(_) => {
                 let v = match file.attrs.get(&name) {
-                    Some(AttrValue::Number(v)) => v.to_owned() as f64,
+                    Some(AttrValue::Float(Some(v))) => v.to_owned() as f64,
+                    Some(AttrValue::Integer(Some(v))) => v.to_owned() as f64,
                     _ => 0.0,
                 };
 
                 insert_keys.push(name);
                 insert_values.push(InsertValues::Number(v.to_owned()));
             }
-            SchemaAttrKey::TextCollection(_) | SchemaAttrKey::DateCollection(_) => {
+            SchemaAttrType::TextCollection(_) | SchemaAttrType::DateCollection(_) => {
                 let v = match file.attrs.get(&name) {
-                    Some(AttrValue::TextCollection(v)) => v.clone(),
-                    Some(AttrValue::DateCollection(v)) => v.clone(),
+                    Some(AttrValue::StringVec(Some(v))) => v.clone(),
                     _ => Vec::new(),
                 };
 
@@ -98,9 +96,9 @@ pub async fn insert_file(file: &BookFromDb) -> Result<(), ErrorFromRust> {
                 insertion.push(" ON CONFLICT(ind,path) DO UPDATE SET value=excluded.value");
                 separate_statements.push(insertion);
             }
-            SchemaAttrKey::DatesPairCollection(_) => {
+            SchemaAttrType::DatesPairCollection(_) => {
                 let v = match file.attrs.get(&name) {
-                    Some(AttrValue::DatesPairCollection(v)) => v,
+                    Some(AttrValue::DateReadVec(Some(v))) => v,
                     _ => &Vec::new(),
                 };
 
