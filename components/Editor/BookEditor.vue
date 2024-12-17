@@ -1,5 +1,5 @@
 <template>
-  <div class="flex h-full w-full flex-col overflow-y-auto overflow-x-hidden overscroll-none">
+  <div class="flex w-full flex-col overflow-x-hidden overscroll-none">
     <div class="mx-auto h-fit w-full max-w-2xl">
       <EditorMetaEditor v-if="file" v-model="file" :schema="schema" class="py-2" />
 

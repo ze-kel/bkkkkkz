@@ -1,13 +1,24 @@
 <template>
-  <div v-if="store.openedItem" :key="store.openedItem.id" class="h-full w-full">
+  <template v-if="store.openedItem" class="h-full w-full">
     <template v-if="store.openedItem.type === 'innerPage'"> home page is deprecated </template>
     <template v-else>
-      <BookEditor v-if="store.openedItem.type === 'file'" :opened="store.openedItem" />
-      <TableView v-else :opened="store.openedItem" :index="store.openedTabsActiveIndex || 0" />
+      <BookEditor
+        v-if="store.openedItem.type === 'file'"
+        :opened="store.openedItem"
+        :key="store.openedItem.id + '_f'"
+      />
+      <TableView
+        v-else
+        :opened="store.openedItem"
+        :index="store.openedTabsActiveIndex || 0"
+        :key="store.openedItem.id + '_t'"
+      />
     </template>
-  </div>
+  </template>
 
-  <PlaceholdersNoTabPlaceholder v-else />
+  <div v-else class="relative h-full w-full px-2 pr-4">
+    <PlaceholdersNoTabPlaceholder />
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -23,3 +34,5 @@ definePageMeta({
   layout: 'app',
 });
 </script>
+
+<style></style>

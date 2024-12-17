@@ -1,40 +1,43 @@
 <template>
-  <div class="gutter-stable relative h-full w-full px-2 pr-4">
+  <div class="relative px-2 pr-4">
     <div v-if="books.length === 0 && !loading">
-      <EmptyBooksPlaceholder class="mt-40" />
+      <EmptyBooksPlaceholder />
     </div>
 
     <div v-else>
-      <div>
-        <DropdownMenu>
-          <DropdownMenuTrigger>
-            <ShButton variant="outline"><EllipsisVertical :size="16" /></ShButton>
-          </DropdownMenuTrigger>
+      <div class="sticky top-0 bg-neutral-50 dark:bg-neutral-950">
+        <div class="flex gap-4 py-2">
+          <UIBasicInput />
+          <DropdownMenu>
+            <DropdownMenuTrigger>
+              <ShButton variant="outline"><EllipsisVertical :size="16" /></ShButton>
+            </DropdownMenuTrigger>
 
-          <DropdownMenuContent>
-            <DropdownMenuCheckboxItem
-              v-for="item in data?.schema.items"
-              v-model:checked="visibleNames[item.name]"
-              @select.prevent
-            >
-              {{ item.name }}
-            </DropdownMenuCheckboxItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
+            <DropdownMenuContent>
+              <DropdownMenuCheckboxItem
+                v-for="item in data?.schema.items"
+                v-model:checked="visibleNames[item.name]"
+                @select.prevent
+              >
+                {{ item.name }}
+              </DropdownMenuCheckboxItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
 
-      <div class="group mb-4 flex h-8 w-full flex-row gap-2 px-4">
-        <ResizablePanelGroup @layout="(v) => (resval = v)" direction="horizontal">
-          <template v-for="(column, index) in visibleSchemaItems" :key="column.name">
-            <ResizableHandle
-              v-if="index > 0"
-              class="mx-3 box-border w-[0.075rem] rounded-full opacity-0 transition-opacity group-hover:opacity-100"
-            />
-            <ResizablePanel class="flex items-center font-bold" :min-size="5">
-              {{ column.name }}
-            </ResizablePanel>
-          </template>
-        </ResizablePanelGroup>
+        <div class="group mb-4 flex h-8 w-full flex-row gap-2 px-4">
+          <ResizablePanelGroup @layout="(v) => (resval = v)" direction="horizontal">
+            <template v-for="(column, index) in visibleSchemaItems" :key="column.name">
+              <ResizableHandle
+                v-if="index > 0"
+                class="mx-3 box-border w-[0.075rem] rounded-full opacity-0 transition-opacity group-hover:opacity-100"
+              />
+              <ResizablePanel class="flex items-center font-bold" :min-size="5">
+                {{ column.name }}
+              </ResizablePanel>
+            </template>
+          </ResizablePanelGroup>
+        </div>
       </div>
 
       <div
@@ -86,6 +89,9 @@ import {
 } from '~/components/_shadcn/resizable';
 
 const store = useStore();
+
+const tes = ref();
+onMounted(() => (tes.value = Math.random()));
 
 const resval = ref([] as number[]);
 
@@ -166,10 +172,5 @@ onUnmounted(() => {
 .cards {
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   grid-auto-rows: max-content;
-}
-
-.gutter-stable {
-  scrollbar-gutter: stable;
-  overflow-y: scroll !important;
 }
 </style>

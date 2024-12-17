@@ -1,18 +1,16 @@
 <template>
-  <ShSidebarProvider>
-    <div
-      id="app"
-      class="h-full min-h-screen w-full bg-neutral-50 text-neutral-950 dark:bg-neutral-950 dark:text-neutral-50"
-    >
-      <NuxtLayout>
-        <NuxtPage />
-      </NuxtLayout>
-      <ShToaster :theme="colorMode.value === 'dark' ? 'dark' : 'light'" />
-      <ErrorModal />
+  <div
+    id="app"
+    class="h-full min-h-screen w-full bg-neutral-50 text-neutral-950 dark:bg-neutral-950 dark:text-neutral-50"
+  >
+    <NuxtLayout>
+      <NuxtPage />
+    </NuxtLayout>
+    <ShToaster :theme="colorMode.value === 'dark' ? 'dark' : 'light'" />
+    <ErrorModal />
 
-      <div id="customTeleport" class="absolute top-[-1000px]"></div>
-    </div>
-  </ShSidebarProvider>
+    <div id="customTeleport" class="absolute top-[-1000px]"></div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -70,22 +68,6 @@ useHead({
 
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-}
-
-::-webkit-scrollbar {
-  -webkit-appearance: none;
-  @apply w-2;
-}
-::-webkit-scrollbar-thumb {
-  @apply rounded-md bg-neutral-400 dark:bg-neutral-800;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  @apply bg-neutral-500 dark:bg-neutral-600;
-}
-
-::-webkit-scrollbar-track {
-  @apply bg-neutral-50 dark:bg-neutral-950;
 }
 
 input::-webkit-outer-spin-button,

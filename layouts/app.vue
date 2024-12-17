@@ -1,27 +1,31 @@
 <template>
-  <Sidebar />
-  <div class="h-full w-full">
-    <div
-      data-tauri-drag-region
-      class="col-span-2 box-border h-10 w-full bg-neutral-200 dark:bg-neutral-900"
+  <div class="h-12 w-full bg-red-500"></div>
+
+  <ShSidebarProvider class="h-[calc(100svh-3rem)]">
+    <Sidebar />
+    <main
+      :class="[
+        'relative flex h-svh w-36 flex-1 flex-col',
+        'peer-data-[variant=inset]:min-h-[calc(100svh-theme(spacing.4))] md:peer-data-[variant=inset]:m-2 md:peer-data-[state=collapsed]:peer-data-[variant=inset]:ml-2 md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:rounded-xl md:peer-data-[variant=inset]:shadow',
+      ]"
     >
-      <TabsSelector />
-    </div>
+      <div
+        data-tauri-drag-region
+        class="col-span-2 box-border h-10 bg-neutral-200 dark:bg-neutral-900"
+      >
+        <TabsSelector />
+      </div>
 
-    <div class="h-[calc(100vh_-_2.5rem)] max-h-full w-full items-start">
-      <!-- Empty space to drag window around -->
-
-      <slot />
-    </div>
-  </div>
+      <div class="gutter-stable h-[calc(100svh_-_2.5rem)] overscroll-none">
+        <slot />
+      </div>
+    </main>
+  </ShSidebarProvider>
 </template>
 
 <script setup lang="ts">
-import { useSidebar } from '~/components/_shadcn/sidebar';
 import Sidebar from '~/components/Sidebar/Sidebar.vue';
 import TabsSelector from '~/components/ViewCore/TabsSelector.vue';
-
-const s = useSidebar();
 
 const store = useStore();
 
@@ -44,5 +48,10 @@ watch(
 .customCols {
   grid-template-columns: min-content min-content 1fr;
   grid-template-rows: min-content 100%;
+}
+
+.gutter-stable {
+  scrollbar-gutter: stable;
+  overflow-y: scroll;
 }
 </style>

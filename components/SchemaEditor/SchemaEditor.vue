@@ -80,8 +80,9 @@
         :disabled="Object.keys(schemas.schemas).length == 0"
         class="mt-4 w-full"
         variant="outline"
+        as-child
       >
-        <NuxtLink to="/"> Save and exit </NuxtLink>
+        <NuxtLink href="/"> Save and exit </NuxtLink>
       </ShButton>
 
       <ShCollapsible v-if="schemas?.error?.subErrors?.length" class="mt-8 flex flex-col gap-3">

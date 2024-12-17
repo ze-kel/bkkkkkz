@@ -1,5 +1,7 @@
 <template>
-  <SchemaEditorSchemaFields />
+  <div class="w-full p-8 pt-0">
+    <SchemaEditorSchemaFields />
+  </div>
 </template>
 
 <script setup lang="ts">

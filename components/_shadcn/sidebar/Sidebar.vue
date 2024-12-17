@@ -37,21 +37,23 @@ const { isMobile, state, openMobile, setOpenMobile } = useSidebar();
     <slot />
   </div>
 
-  <Sheet v-else-if="isMobile" :open="openMobile" v-bind="$attrs" @update:open="setOpenMobile">
-    <SheetContent
-      data-sidebar="sidebar"
-      data-mobile="true"
-      :side="side"
-      class="bg-sidebar text-sidebar-foreground w-[--sidebar-width] p-0 [&>button]:hidden"
-      :style="{
-        '--sidebar-width': SIDEBAR_WIDTH_MOBILE,
-      }"
-    >
-      <div class="flex h-full w-full flex-col">
-        <slot />
-      </div>
-    </SheetContent>
-  </Sheet>
+  <template v-else-if="isMobile">
+    <Sheet :open="openMobile" v-bind="$attrs" @update:open="setOpenMobile">
+      <SheetContent
+        data-sidebar="sidebar"
+        data-mobile="true"
+        :side="side"
+        class="bg-sidebar text-sidebar-foreground w-[--sidebar-width] p-0 [&>button]:hidden"
+        :style="{
+          '--sidebar-width': SIDEBAR_WIDTH_MOBILE,
+        }"
+      >
+        <div class="flex h-full w-full flex-col">
+          <slot />
+        </div>
+      </SheetContent>
+    </Sheet>
+  </template>
 
   <div
     v-else

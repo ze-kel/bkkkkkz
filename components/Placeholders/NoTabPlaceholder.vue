@@ -1,5 +1,5 @@
 <template>
-  <div class="flex h-full w-full flex-col items-center justify-center">
+  <div class="flex flex-col items-center justify-center pt-40">
     <div>You have nothing opened.</div>
     <div class="mt-4 flex gap-4">
       <ShButton variant="outline" @click="openAllBooks">View All Books</ShButton>
